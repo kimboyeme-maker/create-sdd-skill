@@ -9,8 +9,10 @@ State the owning package or layer, public boundary, dependency direction, consum
 Close ownership by semantic subject, not by clause or file. One lifecycle state, identity, mutation authority, registry, counter, resource set, cache truth or protocol decision has exactly one authoritative owner across the whole SDD. Every other participant is a delegate, derived projection or observer; a derived projection states its source, update or invalidation rule and lifecycle. Mutation entry points delegate to the owner. When more than one requirement, layer or package touches one subject, add one ledger:
 
 ```text
-Semantic ID | description | Subject/invariant | Authoritative owner | Delegates/derived views | Canonical primitive | Requirement/batch refs | Evidence
+ID | description | Subject/invariant | Authoritative owner | Delegates/derived views | Canonical primitive | Requirement/batch refs | Evidence
 ```
+
+Name the first column `ID`, not `Semantic ID`: only a column named exactly `ID` makes the row an identifier definition, so any other spelling silently exempts the ledger from ID uniqueness and prefix checks. Its IDs use a two-letter prefix outside the controller's defaults, registered in `presentation.prefixes` before the first row ([document presentation](../document-presentation.md)); `SDD_ID_OR_PREFIX_INVALID` names an unregistered one.
 
 A new helper or primitive needs targeted negative evidence that no compatible canonical owner exists. An unresolved competing owner keeps the SDD `in-review`. Protected artifacts close their custody chain with [artifacts and dependencies](../design/artifacts-and-dependencies.md).
 
@@ -65,4 +67,4 @@ Revise an existing SDD in place as a delta. Preserve stable IDs, accepted decisi
 - [ ] Abstractions own invariants; the target tree or subtree follows owners, exports and dependency direction.
 - [ ] An incremental revision preserved IDs, decisions and routing, and changed only the requested or causally required delta.
 
-<!-- reading-receipt: 0c80fb11 -->
+<!-- reading-receipt: 809de355 -->

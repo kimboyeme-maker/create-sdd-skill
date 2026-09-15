@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
-import { loadContract, rawProgram } from './lib/contract-source.ts'
+import { loadContract, programBlock } from './lib/contract-source.ts'
 import { requiredDocuments } from './lib/reading-policy.ts'
 
 /**
@@ -60,7 +60,7 @@ async function evaluate(sdd: string) {
     }
   const text = readFileSync(sdd, 'utf8')
   // An invalid contract still declares which documents were required, so it never shrinks the receipt.
-  const { contract } = await loadContract(sdd, text)
+  const { contract, error: contractError } = await loadContract(sdd, text)
   const required = requiredDocuments('HANDOFF', contract)
   const entries = receiptEntries(text)
   const missing = required.filter((path) => !entries.has(path))
@@ -68,14 +68,25 @@ async function evaluate(sdd: string) {
   const stale = [...entries]
     .filter(([path, token]) => existsSync(join(ROOT, path)) && tokenOf(read(path)) !== token)
     .map(([path]) => path)
-  const valid = !missing.length && !unknown.length && !stale.length
-  return { sdd, valid, contract: contract !== null, required, missing, stale, unknown }
+  // A block the reader could not parse fails the check; silently reporting "no contract" would
+  // shrink the required set to the phase baseline and hide the fault.
+  const valid = !contractError && !missing.length && !unknown.length && !stale.length
+  return {
+    sdd,
+    valid,
+    contract: contract !== null,
+    ...(contractError ? { error: contractError } : {}),
+    required,
+    missing,
+    stale,
+    unknown
+  }
 }
 
 async function check(sdd: string) {
   const root = await evaluate(sdd)
   // A program root is authored with every document of its tree; each node carries its own receipt.
-  const program = existsSync(sdd) ? rawProgram(readFileSync(sdd, 'utf8')) : null
+  const program = existsSync(sdd) ? programBlock(readFileSync(sdd, 'utf8')).value : null
   const children = []
   for (const node of Array.isArray(program?.nodes) ? program.nodes : []) {
     if (typeof node?.sdd !== 'string') continue

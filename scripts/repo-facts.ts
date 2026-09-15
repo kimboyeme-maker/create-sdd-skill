@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve } from 'node:path'
-import { loadContract, rawProgram, sectionText } from './lib/contract-source.ts'
+import { loadContract, programBlock, sectionText } from './lib/contract-source.ts'
 
 /**
  * Read-only repository facts for an SDD. Contracts declare what they touch; this check compares
@@ -315,9 +315,8 @@ export async function checkRepositoryFacts(
   asLeaf = false
 ): Promise<{ valid: boolean; issues: IIssue[]; facts: Item }> {
   const text = readFileSync(sdd, 'utf8')
-  const program = asLeaf ? null : rawProgram(text)
-  if (program) return checkProgramFacts(sdd, program, repository)
-  const { contract } = await loadContract(sdd, text)
+  const program = asLeaf ? { value: null } : programBlock(text)
+  const { contract, error: contractError } = await loadContract(sdd, text)
   const root = repository ? resolve(repository) : repositoryRoot(dirname(sdd))
   const files = walk(root)
   const directories = packageDirectories(root, files)
@@ -328,6 +327,11 @@ export async function checkRepositoryFacts(
     toolchain: toolchainPins(root),
     unscannable_symbols: []
   }
+  // An unreadable block is reported, never treated as an absent one: the checks below would
+  // otherwise describe a document this command could not actually read.
+  if (program.error) return { valid: false, issues: [{ code: program.error, detail: sdd }], facts }
+  if (program.value) return checkProgramFacts(sdd, program.value, repository)
+  if (contractError) return { valid: false, issues: [{ code: contractError, detail: sdd }], facts }
   if (!contract)
     return { valid: false, issues: [{ code: 'CONTRACT_REQUIRED', detail: sdd }], facts }
   // Without a repository the facts below would be vacuous, so absence is a failure, not a pass.
