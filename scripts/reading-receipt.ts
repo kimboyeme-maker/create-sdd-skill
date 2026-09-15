@@ -13,7 +13,13 @@ import { requiredDocuments } from './lib/reading-policy.ts'
  */
 const ROOT = join(import.meta.dir, '..')
 const TOKEN_LINE = /\n*<!-- reading-receipt: [0-9a-f]{8} -->\s*$/
-const RECEIPT_ENTRY = /`?(references\/[\w./-]+\.md)`?\s*[:|-]?\s*`?([0-9a-f]{8})\b/
+/**
+ * A receipt row names its document and its token. `document-presentation.md` also requires a
+ * `description` column, so the token is not necessarily adjacent to the path: read the path, then
+ * take the last token on the same row, whatever columns sit between them.
+ */
+const RECEIPT_PATH = /`?(references\/[\w./-]+\.md)`?/
+const RECEIPT_TOKEN = /(?<![0-9a-f])([0-9a-f]{8})(?![0-9a-f])/g
 
 const body = (text: string) => text.replace(TOKEN_LINE, '').replace(/\s*$/, '\n')
 const tokenOf = (text: string) => createHash('sha256').update(body(text)).digest('hex').slice(0, 8)
@@ -21,15 +27,20 @@ const references = () => [...new Bun.Glob('references/**/*.md').scanSync(ROOT)].
 const read = (path: string) => readFileSync(join(ROOT, path), 'utf8')
 
 /** Receipt entries from the SDD's "Authoring receipt" section. */
-function receiptEntries(text: string): Map<string, string> {
+export function receiptEntries(text: string): Map<string, string> {
   const entries = new Map<string, string>()
   let inside = false
   for (const line of text.split(/\r?\n/)) {
     const heading = /^(#{1,6})\s+(.*)$/.exec(line)
     if (heading) inside = /authoring receipt/i.test(heading[2]!)
     else if (inside) {
-      const entry = RECEIPT_ENTRY.exec(line)
-      if (entry) entries.set(entry[1]!, entry[2]!)
+      const path = RECEIPT_PATH.exec(line)
+      if (!path) continue
+      // Scan only what follows the path so a hex-looking word before it cannot shadow the token.
+      const rest = line.slice(path.index + path[0].length)
+      const tokens = [...rest.matchAll(RECEIPT_TOKEN)]
+      const token = tokens.at(-1)
+      if (token) entries.set(path[1]!, token[1]!)
     }
   }
   return entries
@@ -83,24 +94,27 @@ async function check(sdd: string) {
   process.exit(valid ? 0 : 1)
 }
 
-const [command, flag, value] = Bun.argv.slice(2)
-if (command === 'check' && flag === '--sdd' && value) await check(value)
-else if (command === 'stamp') {
-  // Maintainers run this after editing references; tokens change only when content changes.
-  for (const path of references()) {
-    const text = read(path)
-    const next = `${body(text)}\n<!-- reading-receipt: ${tokenOf(text)} -->\n`
-    if (next !== text) writeFileSync(join(ROOT, path), next)
+// Guarded so tests may import the row parser without running the CLI.
+if (import.meta.main) {
+  const [command, flag, value] = Bun.argv.slice(2)
+  if (command === 'check' && flag === '--sdd' && value) await check(value)
+  else if (command === 'stamp') {
+    // Maintainers run this after editing references; tokens change only when content changes.
+    for (const path of references()) {
+      const text = read(path)
+      const next = `${body(text)}\n<!-- reading-receipt: ${tokenOf(text)} -->\n`
+      if (next !== text) writeFileSync(join(ROOT, path), next)
+    }
+    console.log(JSON.stringify({ stamped: references().length }))
+  } else if (command === 'verify') {
+    const unstamped = references().filter((path) => {
+      const match = /<!-- reading-receipt: ([0-9a-f]{8}) -->\s*$/.exec(read(path))
+      return match?.[1] !== tokenOf(read(path))
+    })
+    console.log(JSON.stringify({ references: references().length, unstamped }))
+    process.exit(unstamped.length ? 1 : 0)
+  } else {
+    console.error('usage: reading-receipt.ts check --sdd <path> | stamp | verify')
+    process.exit(2)
   }
-  console.log(JSON.stringify({ stamped: references().length }))
-} else if (command === 'verify') {
-  const unstamped = references().filter((path) => {
-    const match = /<!-- reading-receipt: ([0-9a-f]{8}) -->\s*$/.exec(read(path))
-    return match?.[1] !== tokenOf(read(path))
-  })
-  console.log(JSON.stringify({ references: references().length, unstamped }))
-  process.exit(unstamped.length ? 1 : 0)
-} else {
-  console.error('usage: reading-receipt.ts check --sdd <path> | stamp | verify')
-  process.exit(2)
 }

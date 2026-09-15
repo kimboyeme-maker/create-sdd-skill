@@ -410,4 +410,21 @@ result = validated; return result
 
 The outer example uses a Markdown fence only for documentation. In the actual SDD, write the marker, JSON fence, and closing marker literally.
 
-<!-- reading-receipt: 91036200 -->
+## Guarded acceptance: the `REQUIRED` branch
+
+`YS01` above is a positive business path, so its `oracle_sensitivity` is `NOT_APPLICABLE` with a reason. A case that observes a guard takes the other branch instead; these are its exact fields:
+
+```json
+"oracle_sensitivity": {
+  "applicability": "REQUIRED",
+  "fault_model": "The pre-validation loop is removed, so a replay containing one read-only source writes the earlier writable sources before rejecting",
+  "perturbation_method": "Delete the validation loop that precedes the apply loop in BZ04 and rerun the case",
+  "restoration_method": "Reinstate the validation loop ahead of the first apply call and rerun the case",
+  "expected_flip": "PASS_TO_FAIL_TO_PASS",
+  "implementation_timing": "IMPLEMENTATION_REQUIRED"
+}
+```
+
+`applicability` is `REQUIRED` or `NOT_APPLICABLE`; no other value is accepted. `NOT_APPLICABLE` carries `reason` and nothing else. `REQUIRED` carries all five fields above, `expected_flip` is always the literal `PASS_TO_FAIL_TO_PASS`, and `implementation_timing` is `IMPLEMENTATION_REQUIRED` for a guard this delivery still has to build or `DESIGN_PROVEN` for one already probed in an isolated copy — `DESIGN_PROVEN` additionally requires a non-empty `evidence` array naming where that probe is recorded.
+
+<!-- reading-receipt: 1d81aa9a -->

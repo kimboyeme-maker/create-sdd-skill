@@ -84,20 +84,7 @@ Before calling a design ready, walk each reachable branch and reverse-trace each
 
 ## Source metadata and shared validation
 
-New output adds this to the existing contract, alongside current numbering/presentation metadata:
-
-```json
-"design_detail": {
-  "protocol": "design-detail/v1",
-  "sections": {
-    "breaking_changes": {"document":"self","heading":"Breaking Changes"},
-    "api_typing": {"document":"self","heading":"New/Changed API & Typing"},
-    "entities_tools": {"document":"self","heading":"New/Changed Entities & Tools"},
-    "implementation_flow": {"document":"self","heading":"Implementation Flow & Pseudocode"},
-    "delivery_verification": {"document":"self","heading":"Delivery & Verification"}
-  }
-}
-```
+New output adds a `design_detail` block to the existing contract, alongside current numbering/presentation metadata: one binding per section above, each naming the document and the heading that owns it. Its exact shape is in the [worked example](examples/loop-ready-example.md), which carries the only copy so the two cannot drift.
 
 A source is the root (`self`) or an existing/proposed normative Agent Context document path relative to the root SDD. Its heading must occur exactly once outside code. Do not use contextual or evidence documents as normative step owners.
 
@@ -105,4 +92,4 @@ Validate proposed documents with the loop's `validate-draft` before anything is 
 
 Documents without `design_detail` are validated without section bindings; add it through a normal scoped amendment when the design is revised.
 
-<!-- reading-receipt: 691c8883 -->
+<!-- reading-receipt: bc15ced1 -->

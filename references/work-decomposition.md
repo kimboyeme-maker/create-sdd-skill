@@ -22,7 +22,7 @@ A batch is the smallest unit that:
 
 - produces one externally observable outcome linked to its requirement and acceptance IDs;
 - closes its own acceptance, or is an explicit producer for a later batch that closes it;
-- fits one Operator lease: `estimated_minutes` roughly 20–45 and within the controller's batch limit (`DELIVERY_PLAN_BATCH_TOO_LARGE` otherwise);
+- fits one Operator lease: `estimated_minutes` roughly 20–45 and at most `configuration.limits.max_batch_minutes` (`DELIVERY_PLAN_BATCH_TOO_LARGE` otherwise);
 - has one write set that the Operator can hold in context without re-discovery;
 - has a strict `test_budget` derived from its own acceptance; see [test budget](planning/test-budget.md).
 
@@ -90,4 +90,4 @@ Run `validate` and read `deliveryPlan`. Report waves, lanes, serial minutes and 
 - Adding shards that split one browser journey or shared fixture across Architects.
 - Treating the plan as a promise that concurrent Operators exist in the current controller.
 
-<!-- reading-receipt: df5c7c55 -->
+<!-- reading-receipt: ff35d02f -->

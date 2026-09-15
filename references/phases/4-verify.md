@@ -10,7 +10,7 @@ A universal negative claim ("no Babel anywhere in the dependency graph") declare
 
 ## Oracle sensitivity for guards
 
-Rejection or denial, unsigned, null or malformed input, provenance and custody, permission, budget and boundary guards, and legacy-absence claims declare `oracle_sensitivity` with one minimal fault model and one perturbation: bypassing the guard flips only that case `PASS → FAIL`, and restoration returns it to `PASS`. An existing guard is probed in an isolated copy now (`DESIGN_PROVEN`); a new guard declares the fault model (`IMPLEMENTATION_REQUIRED`) for Operator to implement and Architect to confirm. A positive business path without a guard is `NOT_APPLICABLE` with a reason. Never build mutation-testing infrastructure.
+Rejection or denial, unsigned, null or malformed input, provenance and custody, permission, budget and boundary guards, and legacy-absence claims declare `oracle_sensitivity` with one minimal fault model and one perturbation: bypassing the guard flips only that case `PASS → FAIL`, and restoration returns it to `PASS`. An existing guard is probed in an isolated copy now (`DESIGN_PROVEN`); a new guard declares the fault model (`IMPLEMENTATION_REQUIRED`) for Operator to implement and Architect to confirm. A positive business path without a guard is `NOT_APPLICABLE` with a reason. Both branches' exact fields are in the [worked example](../examples/loop-ready-example.md#guarded-acceptance-the-required-branch). Never build mutation-testing infrastructure.
 
 ## Atomic execution and failure isolation
 
@@ -34,4 +34,4 @@ Each acceptance case names the packages it observes, including verification-only
 - [ ] Oracle kinds are stated; red-baseline gates compare diagnostic identities; shared resources and consumed artifacts have declared owners and producers.
 - [ ] Every document this phase loaded is listed in the SDD's authoring receipt with its current token.
 
-<!-- reading-receipt: ce4b6ea9 -->
+<!-- reading-receipt: 51aae4bf -->
