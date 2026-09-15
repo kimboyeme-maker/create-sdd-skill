@@ -1,0 +1,856 @@
+{
+  "protocol": "skill-behavior-cases/v1",
+  "suite": "create-sdd",
+  "cases": [
+    {
+      "id": "CSDD-SCOPE-001",
+      "title": "Repository gate does not create product scope",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the failing package can falsify the owned product outcome",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a Storage package correction.",
+        "starting_state": "A repository-wide command also reports an unrelated Website failure; no admitted Storage oracle observes Website.",
+        "material_action": "Add Website repair and zero-exit repository health to Must-Ship.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Website cannot falsify or mask any admitted Storage oracle.",
+        "completion_oracle": "The SDD retains Storage and its causal consumers only."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a Storage package correction.",
+        "starting_state": "The changed Storage protocol is consumed directly by Website and its focused contract test fails.",
+        "material_action": "Include the affected Website consumer contract in causal acceptance.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Website directly consumes the changed protocol and can falsify the requested outcome.",
+        "completion_oracle": "The SDD includes the consumer oracle without granting unrelated Website modification authority."
+      }
+    },
+    {
+      "id": "CSDD-FIDELITY-001",
+      "title": "Compiler authority is not transitive package absence",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the user constrained execution authority or the complete dependency universe",
+      "bad": {
+        "task_mode": "design",
+        "request": "Use Oxc to compile production React code and do not fall back to Babel.",
+        "starting_state": "React Router contains internal Babel utilities but Oxc owns the production compiler path.",
+        "material_action": "Require the complete transitive graph to contain no Babel packages.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The request constrains compiler authority, not transitive dependency presence.",
+        "completion_oracle": "Acceptance separately proves Oxc authority, no Babel fallback, and audited transitive utilities."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "The production dependency graph must contain no Babel package for licensing reasons.",
+        "starting_state": "The declared closed dependency universe can be inspected before implementation.",
+        "material_action": "Require exhaustive absence of Babel across that closed universe.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The user explicitly constrained transitive package presence and supplied the product reason.",
+        "completion_oracle": "Acceptance enumerates the closed universe and proves every member."
+      }
+    },
+    {
+      "id": "CSDD-OWNER-001",
+      "title": "Derived projection does not become a second owner",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the local state is authoritative or mechanically derived",
+      "bad": {
+        "task_mode": "design",
+        "request": "Expose lifecycle state through a package adapter.",
+        "starting_state": "Lifecycle already owns the canonical registry and counters.",
+        "material_action": "Add another mutable registry and counter inside the adapter.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Two independently mutable stores would own the same invariant.",
+        "completion_oracle": "The adapter delegates to or projects from the lifecycle owner."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Expose lifecycle state through a package adapter.",
+        "starting_state": "Lifecycle owns the canonical registry; the adapter holds only a recomputable view.",
+        "material_action": "Add a derived projection with no independent mutation authority.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The adapter state is mechanically derived and cannot diverge from the owner.",
+        "completion_oracle": "Ownership inventory identifies one canonical writer and a disposable projection."
+      }
+    },
+    {
+      "id": "CSDD-MIGRATION-001",
+      "title": "Package ownership is not module reader closure",
+      "skill": "create-sdd",
+      "evidence_level": "repro",
+      "single_changed_fact": "whether every reader of the removed legacy surface is enumerated and ordered",
+      "bad": {
+        "task_mode": "design",
+        "request": "Extract the WebRPC wire contract and remove the legacy path.",
+        "starting_state": "Core owners are known, but attachment modules reading the legacy contract were not exhaustively inspected.",
+        "material_action": "Declare one atomic migration packet after a typing probe passes.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Typing proves the new API shape, not the closed universe of legacy module readers.",
+        "completion_oracle": "The SDD remains in review and records unknown migration readers."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Extract the WebRPC wire contract and remove the legacy path.",
+        "starting_state": "Every import, re-export, call, construction, dynamic lookup, fixture, test, and generated reader is classified with a target owner and owning test.",
+        "material_action": "Derive staged reader packets followed by a zero-reader removal packet.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The module-reader universe is closed and the removal packet depends on every reader migration.",
+        "completion_oracle": "The SDD carries an exact migration inventory, DAG, and universal zero-reader oracle."
+      }
+    },
+    {
+      "id": "CSDD-CUSTODY-001",
+      "title": "Custody authority is an effect envelope, not an attempt counter",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether repeated signing changes user-owned effects",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design local signed-fixture replacement for two fixed repository paths.",
+        "starting_state": "Keys are process-local, replacement is locally reversible, and paths, behavior, mutation scope, and external effects are fixed.",
+        "material_action": "Create a new user authorization requirement after signer one or retry zero is exhausted.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Attempt counts do not change any user-owned authority effect.",
+        "completion_oracle": "The SDD assigns renewable bounded custody recovery to Coordinator inside one admitted envelope."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design publication of the signed fixture to a third-party registry.",
+        "starting_state": "The user approved local repository replacement but not external publication.",
+        "material_action": "Add one explicit external-effect authorization requirement.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Third-party publication adds an external effect outside the admitted envelope.",
+        "completion_oracle": "The SDD remains in review until that exact external action is authorized."
+      }
+    },
+    {
+      "id": "CSDD-DEPENDENCY-001",
+      "title": "Dependency commands are classified by effects",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the operation can change workspace resolution",
+      "bad": {
+        "task_mode": "design",
+        "request": "Prepare package dependencies for an in-scope test.",
+        "starting_state": "The proposed pnpm link can replace workspace symlinks and has no captured baseline or restore method.",
+        "material_action": "Classify every pnpm command as harmless and assign it directly to Operator.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The operation can mutate workspace resolution and cannot prove recovery.",
+        "completion_oracle": "The SDD stays in review until the exact write and recovery envelope is closed."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Prepare package dependencies for an in-scope test.",
+        "starting_state": "Frozen offline materialization uses the current lock/cache, preserves tracked files, and has exact pre/post fingerprints and recovery.",
+        "material_action": "Classify it as REPRODUCIBLE_MATERIALIZATION and admit the bounded plan.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Expected effects and restoration are known without touching user dirty work.",
+        "completion_oracle": "Operator may materialize dependencies inside the admitted envelope."
+      }
+    },
+    {
+      "id": "CSDD-ORACLE-001",
+      "title": "Negative guards require focused sensitivity",
+      "skill": "create-sdd",
+      "evidence_level": "repro",
+      "single_changed_fact": "whether bypassing the target guard flips its acceptance",
+      "bad": {
+        "task_mode": "design",
+        "request": "Prove unsigned custody input is rejected.",
+        "starting_state": "The suite stays green after the signature guard is bypassed.",
+        "material_action": "Accept the green suite as custody evidence.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The oracle is insensitive to the guard it claims to prove.",
+        "completion_oracle": "The SDD records the evidence gap without creating a general mutation framework."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Prove unsigned custody input is rejected.",
+        "starting_state": "One isolated bypass flips the linked acceptance PASS to FAIL and restoration returns PASS.",
+        "material_action": "Record the focused DESIGN_PROVEN sensitivity evidence.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The minimal perturbation proves the rejection oracle depends on the target guard.",
+        "completion_oracle": "Only the linked negative acceptance gains sensitivity evidence."
+      }
+    },
+    {
+      "id": "CSDD-LOGIC-001",
+      "title": "Implementation pseudocode must close prerequisite producers",
+      "skill": "create-sdd",
+      "evidence_level": "repro",
+      "single_changed_fact": "whether the implementation-critical prerequisite and failure path have current independent closure evidence",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design and deliver a resumable signed artifact migration while preserving the old consumer until its migration completes.",
+        "material_action": "Declare the SDD loop-ready",
+        "starting_state": "COMMIT requires signed_artifact but no entry or prior step produces it; a future Operator is expected to discover the signer route. Every other loop-ready gate already passes: validate is clean, the convergence receipt covers the final design and the controller receipt is compatible.",
+        "decisive_fact": "COMMIT requires signed_artifact but no entry or prior step produces it; a future Operator is expected to discover the signer route.",
+        "expected_decision": "REJECT",
+        "completion_oracle": "No implementation is dispatched; close the missing producer/branch and its implementation sequence in the SDD before readiness."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design and deliver a resumable signed artifact migration while preserving the old consumer until its migration completes.",
+        "material_action": "Declare the SDD loop-ready",
+        "starting_state": "A verified signer step produces signed_artifact before COMMIT; its installer authority and cancellation branch were probed. Every other loop-ready gate already passes: validate is clean, the convergence receipt covers the final design and the controller receipt is compatible.",
+        "decisive_fact": "A verified signer step produces signed_artifact before COMMIT; its installer authority and cancellation branch were probed.",
+        "expected_decision": "ALLOW",
+        "completion_oracle": "The closed route can proceed without invented defects, redundant permission requests, or a successor controller."
+      }
+    },
+    {
+      "id": "SDD-CONTEXT-INDEX-001",
+      "title": "Index normative sections without hiding global constraints",
+      "skill": "create-sdd",
+      "evidence_level": "repro",
+      "single_changed_fact": "whether an omitted section is required by the active implementation path",
+      "bad": {
+        "task_mode": "execute",
+        "request": "Narrow Operator startup reading for a large SDD with a context-index/v2 block.",
+        "starting_state": "A global authority rule is falsely bound only to an unrelated requirement.",
+        "material_action": "Use the index to narrow Operator startup context.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "A global authority rule is falsely bound only to an unrelated requirement.",
+        "completion_oracle": "Coordinator corrects the binding before relying on narrowed context."
+      },
+      "good": {
+        "task_mode": "execute",
+        "request": "Narrow Operator startup reading for a large SDD with a context-index/v2 block.",
+        "starting_state": "Only a proven unrelated requirement section is excluded; global and unindexed content remain shared.",
+        "material_action": "Use the index to narrow Operator startup context.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Only a proven unrelated requirement section is excluded; global and unindexed content remain shared.",
+        "completion_oracle": "The exact source projection covers all current prerequisites without an extra product gate."
+      }
+    },
+    {
+      "id": "CSDD-PLAN-001",
+      "title": "Parallel batches must not share a write set",
+      "skill": "create-sdd",
+      "evidence_level": "repro",
+      "single_changed_fact": "whether two batches without a dependency path write the same package root",
+      "bad": {
+        "task_mode": "design",
+        "request": "Plan delivery for a core API change and a web consumer update.",
+        "starting_state": "Both batches edit the core package barrel export and neither depends on the other.",
+        "material_action": "Place both batches in separate lanes as parallel work.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Unordered batches overlap on the barrel export, so validate reports DELIVERY_PLAN_WRITE_CONFLICT.",
+        "completion_oracle": "The export edit is hoisted into a foundation batch both depend on, and validate reports the resulting waves."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Plan delivery for a core API change and a web consumer update.",
+        "starting_state": "The core batch writes packages/core only, the web batch writes apps/web only, and no requirement dependency orders them.",
+        "material_action": "Place both batches in separate lanes as parallel work.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The write sets are disjoint and no requirement dependency orders them.",
+        "completion_oracle": "validate reports both batches in wave 0 with a critical path shorter than the serial total."
+      }
+    },
+    {
+      "id": "CSDD-HARVEST-001",
+      "title": "Only stated or observed facts become normative",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether the route-critical fact was observed or only inferred",
+      "bad": {
+        "task_mode": "design",
+        "request": "Move session storage to the shared cache package.",
+        "starting_state": "The author infers from a package name that the cache package already exposes a TTL API.",
+        "material_action": "Make the TTL-based route normative without reading the package exports.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The TTL API is an INFERRED fact that controls the route and has no executed probe.",
+        "completion_oracle": "The ledger records the export read or probe result before the route becomes normative."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Move session storage to the shared cache package.",
+        "starting_state": "The package exports and a focused type check confirm the TTL API with its signature.",
+        "material_action": "Make the TTL-based route normative.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The route rests on OBSERVED facts with cited sources.",
+        "completion_oracle": "The SDD cites the export and probe evidence without adding extra discovery gates."
+      }
+    },
+    {
+      "id": "CSDD-SPLIT-001",
+      "title": "Split into parallel SDDs only for independent streams",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether the two streams share a state owner that must co-evolve",
+      "bad": {
+        "task_mode": "design",
+        "request": "Deliver session storage and session web rendering quickly.",
+        "starting_state": "Both streams mutate the same session store and its public contract is still being shaped.",
+        "material_action": "Split into two child SDDs running in parallel threads.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The shared owner cannot be frozen in a foundation SDD before children start.",
+        "completion_oracle": "One SDD remains, and the design summary names the failed split condition."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Deliver session storage and session web rendering quickly.",
+        "starting_state": "A foundation can freeze the session interface; storage and web write disjoint packages with several batches each; the program critical path is materially shorter than the single-SDD plan.",
+        "material_action": "Split into foundation, two child SDDs in separate worktrees, and an integration SDD.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Ownership, write sets and interfaces are independent and the program critical path is materially shorter.",
+        "completion_oracle": "The program plan lists four SDDs with disjoint unordered write sets and reports both critical paths."
+      }
+    },
+    {
+      "id": "CSDD-TESTBUDGET-001",
+      "title": "Test effort stays inside the batch budget",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether the proposed test work proves the batch's own acceptance",
+      "bad": {
+        "task_mode": "design",
+        "request": "Fix the date parsing bug in the billing package.",
+        "starting_state": "A repository-wide suite also fails in an unrelated reporting package.",
+        "material_action": "Budget 40 minutes and three new test files to make the whole suite green.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The extra tests serve an unrelated gate and exceed the batch's test budget.",
+        "completion_oracle": "The batch keeps one focused regression in the existing billing test host within its budget."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Fix the date parsing bug in the billing package.",
+        "starting_state": "The existing billing parser test host can express the failing date case.",
+        "material_action": "Budget 5 minutes and no new test file for one focused regression.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The test directly falsifies the batch's acceptance within the strict budget.",
+        "completion_oracle": "validate accepts the plan and the regression proves the parsing acceptance."
+      }
+    },
+    {
+      "id": "CSDD-CONTENT-001",
+      "title": "A blog is designed as a content publication",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether the product's primary value is reading authored content",
+      "bad": {
+        "task_mode": "design",
+        "request": "Plan a personal technical blog.",
+        "starting_state": "The author treats the blog as a generic web application and plans components, a database and an admin panel first.",
+        "material_action": "Make the plan normative without a content model, route set, reading journey, readability targets or style hooks.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "A blog is content-publication: reading quality, continuation and discoverability control the design.",
+        "completion_oracle": "validate reports EXPERIENCE_CONTRACT_REQUIRED until routes, templates, journeys, style hooks and readability exist."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Plan a personal technical blog.",
+        "starting_state": "The author classifies content-publication and closes content model, routes (home, article, tags, feed, sitemap, 404), an article-to-topic journey, a 60-75ch measure and tokenized style hooks.",
+        "material_action": "Make the plan normative with foundation batches for tokens and templates before page batches.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Reading-controlling dimensions are decided and bound to acceptance before implementation.",
+        "completion_oracle": "validate reports experienceContract and acceptance measures reading width, contrast, heading order and continuation links."
+      }
+    },
+    {
+      "id": "CSDD-PLATFORM-001",
+      "title": "A mini-program product closes platform constraints before pages",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether mini-program lifecycle, package, identity and review constraints are designed",
+      "bad": {
+        "task_mode": "design",
+        "request": "Plan a WeChat mini program for booking classes.",
+        "starting_state": "The author reuses the web booking design and lists pages and components only.",
+        "material_action": "Make the plan normative without subpackages, page-stack and share-entry behavior, server-side code2Session login, privacy authorization flow or review category.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Mini-program limits and review gates change routes, packaging and identity; ignoring them fails late.",
+        "completion_oracle": "Review rejects the design: platforms.md dimensions are open and no acceptance measures package size or deep-link cold start."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Plan a WeChat mini program for booking classes.",
+        "starting_state": "The author declares delivery_platforms [\"mini-program\",\"server\"], closes package split, page-stack depth, share-card deep-link routes, server-side session exchange, just-in-time permission requests and category review evidence.",
+        "material_action": "Make the plan normative with a foundation batch for tokens and page skeletons, then feature subpackage batches.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Platform-controlling decisions are evidenced and bound to acceptance before implementation.",
+        "completion_oracle": "Acceptance uses miniprogram-automator journeys for share entry and back destination and miniprogram-ci size output under the main-package budget."
+      }
+    },
+    {
+      "id": "CSDD-ARCH-001",
+      "title": "A tool with CLI, service and docs keeps one core",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether surfaces call one core through use cases or duplicate rules",
+      "bad": {
+        "task_mode": "design",
+        "request": "Add an HTTP API and generated reference docs to an existing CLI tool.",
+        "starting_state": "The author plans the service to shell out to the CLI and hand-writes API and flag docs.",
+        "material_action": "Make the plan normative with validation duplicated in the CLI parser and the service handler.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Duplicated rules and hand-written docs drift; the service depends on CLI output formats.",
+        "completion_oracle": "Review rejects the design: no use-case inventory, no error catalog mapping and no documentation drift check."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Add an HTTP API and generated reference docs to an existing CLI tool.",
+        "starting_state": "The author extracts a core package with use cases, a typed error catalog and metadata schemas, declares architecture core-adapters/v1 with cli, service and documents adapters, and orders adapter batches after the core batch.",
+        "material_action": "Make the plan normative with parallel adapter lanes on disjoint packages.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Every surface translates the same use cases and docs are generated from core metadata.",
+        "completion_oracle": "validate accepts architecture; acceptance runs a CLI/service parity table, an import-boundary sensitivity check and an empty documentation regeneration diff."
+      }
+    },
+    {
+      "id": "CSDD-PROBE-002",
+      "title": "Release APIs are probed during design, not deferred to admission",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the route-critical release API was probed or its authority request recorded",
+      "bad": {
+        "task_mode": "design",
+        "request": "Prepare an implementation SDD that switches the website to the latest published @scope/store packages.",
+        "starting_state": "The route depends on the latest release exports; registry metadata and a temporary unpack are safe read-only probes, the author has not run them and has not asked for registry access.",
+        "material_action": "Keep the route normative and note that the release API will be verified at admission.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "A safe decisive probe was deferred to a later role instead of being run or requested now.",
+        "completion_oracle": "The SDD records the probe result or one exact authority request before the route becomes normative."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Prepare an implementation SDD that switches the website to the latest published @scope/store packages.",
+        "starting_state": "The author read the published exports and type declarations from a release unpacked in a temporary directory; the only probe needing registry credentials is recorded as one authority request with exact command and scope.",
+        "material_action": "Base the route on the observed exports and keep the recorded authority request open.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The route rests on an executed probe and the remaining authority need is explicit.",
+        "completion_oracle": "The route cites the probe evidence and the open request, without claiming unobserved behavior."
+      }
+    },
+    {
+      "id": "CSDD-ACCEPT-001",
+      "title": "Acceptance cases carry executable fields",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether each acceptance case states its runnable method, environment, oracle, timeout and sensitivity",
+      "bad": {
+        "task_mode": "design",
+        "request": "Write the verification design for a website search and theme integration.",
+        "starting_state": "Each acceptance row is one sentence such as \"reuse the browser suite to check themes\", with no exact command, environment, oracle, timeout, isolation or sensitivity.",
+        "material_action": "Mark the verification design complete and move on to batch decomposition.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Prose claims without runnable fields cannot be executed or falsified by a later role.",
+        "completion_oracle": "Every acceptance case declares method, environment, oracle, packages, execution fields and oracle sensitivity."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Write the verification design for a website search and theme integration.",
+        "starting_state": "Each acceptance case names the exact command, browser and fixture, a precise oracle, observed packages, a timeout under 900 seconds, isolation and blocking edges, and oracle sensitivity where a guard is claimed.",
+        "material_action": "Mark the verification design complete and move on to batch decomposition.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Every case is an executable falsifier of one claim.",
+        "completion_oracle": "The drafted contract passes validate-draft with these acceptance cases."
+      }
+    },
+    {
+      "id": "CSDD-CHECK-001",
+      "title": "Implementation documents are checked by the design validator",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "which validator the implementation-targeting draft passed",
+      "bad": {
+        "task_mode": "design",
+        "request": "Close the structural check of a new implementation SDD at the end of the design phase.",
+        "starting_state": "The draft passed document-check, which checks IDs and tables only; validate-draft was not run. Every other design exit-gate item already holds.",
+        "material_action": "Report the SDD as structurally validated and start the verification phase.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "document-check never verifies the required design sections or the contract, so it cannot stand in for validation of an implementation SDD.",
+        "completion_oracle": "validate-draft is run and its diagnostics are reported."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Close the structural check of a new implementation SDD at the end of the design phase.",
+        "starting_state": "The draft and its drafted contract block passed validate-draft with the five required design sections and no diagnostics. Every other design exit-gate item already holds.",
+        "material_action": "Report the SDD as structurally validated and start the verification phase.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The design validator checked the required sections and the drafted contract.",
+        "completion_oracle": "The report cites the validate-draft result."
+      }
+    },
+    {
+      "id": "CSDD-RECEIPT-001",
+      "title": "Phase gates need the documents the phase points to",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the phase documents were loaded and receipted",
+      "bad": {
+        "task_mode": "design",
+        "request": "Close the verification phase of an implementation SDD.",
+        "starting_state": "The author wrote acceptance rows from the verification card alone; acceptance standards and the test budget were never opened and the authoring receipt lacks them. Every other verification exit-gate item is claimed to hold.",
+        "material_action": "Mark the verification exit gate as held and start decomposition.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The phase standards were not read, so the acceptance fields rest on the card summary.",
+        "completion_oracle": "The receipt check passes after the missing documents are loaded and the rows are revised against them."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Close the verification phase of an implementation SDD.",
+        "starting_state": "The author loaded the verification card, acceptance standards and test budget, recorded their current tokens, every acceptance row follows those standards, and every other verification exit-gate item already holds.",
+        "material_action": "Mark the verification exit gate as held and start decomposition.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The phase documents were loaded and receipted and the rows follow them.",
+        "completion_oracle": "The receipt check lists no missing or stale documents for the phase."
+      }
+    },
+    {
+      "id": "CSDD-GROUND-001",
+      "title": "External calls are grounded at the exact version",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the exact call combination the design writes was exercised at the pinned version",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a Rust service change that calls a new connection-pool API from a published crate.",
+        "starting_state": "A scratch crate added the crate and cargo resolved it, but no code calling the builder methods and trait bounds the SDD writes was compiled.",
+        "material_action": "Mark the API section grounded and continue to design.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Resolving a dependency does not prove the calls and types the design relies on exist.",
+        "completion_oracle": "The evidence companion records a scratch crate compiling the exact calls at the pinned version."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a Rust service change that calls a new connection-pool API from a published crate.",
+        "starting_state": "A scratch crate at the pinned version compiled the exact builder calls and trait bounds the SDD writes; an earlier probe bound to the same version covers the error type and is reused.",
+        "material_action": "Mark the API section grounded and continue to design.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The design uses only interface combinations already exercised at its version.",
+        "completion_oracle": "The evidence companion lists the compile command, versions and output excerpt."
+      }
+    },
+    {
+      "id": "CSDD-PROPAGATE-001",
+      "title": "Shared mechanism writes follow the authority chain",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether a workspace manager of the edited package is declared",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design adding a dependency to one member crate of a Cargo workspace.",
+        "starting_state": "The plan edits the member Cargo.toml and lists only that crate as writable, but the workspace root Cargo.lock that manages the member is omitted.",
+        "material_action": "Close the dependency operation and grant modification authority.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The workspace lockfile is a write point of this change and its owner is outside modification authority.",
+        "completion_oracle": "shared_mechanism_writes names the root Cargo.lock and its owner is inside modification authority."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design adding a dependency to one member crate of a Cargo workspace.",
+        "starting_state": "The member crate is excluded from the workspace and owns its own Cargo.lock; a sibling tool mentions the crate name in a README only, which is not a manager.",
+        "material_action": "Close the dependency operation and grant modification authority.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Only the member lockfile manages the package, and it is declared.",
+        "completion_oracle": "repo-facts reports no undeclared write point."
+      }
+    },
+    {
+      "id": "CSDD-BASELINE-001",
+      "title": "Red gates are compared by diagnostic identity",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether a red baseline gate is judged by count or by identity",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a Go module refactor whose acceptance uses the repository linter.",
+        "starting_state": "The baseline linter already reports 12 findings; the acceptance passes when the total stays at most 12.",
+        "material_action": "Admit the lint acceptance as written.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "One fixed legacy finding can hide one new finding.",
+        "completion_oracle": "The acceptance asserts no finding outside the recorded baseline identities."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a Go module refactor whose acceptance uses the repository linter.",
+        "starting_state": "The baseline findings are recorded by file, rule and message in the evidence companion; the acceptance fails on any finding not in that set.",
+        "material_action": "Admit the lint acceptance as written.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Identity comparison cannot be offset by unrelated fixes.",
+        "completion_oracle": "The oracle lists the baseline identity file and its diff rule."
+      }
+    },
+    {
+      "id": "CSDD-READERS-001",
+      "title": "Every scan candidate of a legacy symbol has a disposition",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether a non-import hit of the removed symbol is disposed",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design removing a legacy configuration key from a Python service.",
+        "starting_state": "Readers list the two modules importing the key constant; a test asserting the key text in a config fixture matched the scan but is neither a reader nor dismissed.",
+        "material_action": "Declare the reader inventory closed.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "An undisposed candidate can break after removal without any owner.",
+        "completion_oracle": "Every scan hit is a reader or a dismissed candidate with a reason."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design removing a legacy configuration key from a Python service.",
+        "starting_state": "The scan also hit a changelog entry, recorded in dismissed_candidates as historical documentation, and the fixture test is a reader migrated in the same batch.",
+        "material_action": "Declare the reader inventory closed.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Each candidate has an explicit disposition, including a legitimate non-reader.",
+        "completion_oracle": "repo-facts reports no undisposed candidate or prose symbol."
+      }
+    },
+    {
+      "id": "CSDD-GRAPH-001",
+      "title": "Cross-path inputs bind their producer",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether a consumed value is bound to the path that produces it",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a CLI change where a new config loader feeds an existing command runner.",
+        "starting_state": "The runner path lists the loaded config as an ENTRY input whose evidence says it is produced by the loader path.",
+        "material_action": "Record the implementation logic as closed.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Prose evidence hides the producer edge, so batch order and admission cannot check it.",
+        "completion_oracle": "The input uses source {path, output} of the loader path."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a CLI change where a new config loader feeds an existing command runner.",
+        "starting_state": "The runner input binds the loader path output; an unrelated ENTRY input named config comes from the user shell and is marked independent_of_outputs with evidence.",
+        "material_action": "Record the implementation logic as closed.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Every produced value is bound, and a same-named external input is explicitly independent.",
+        "completion_oracle": "validate reports no IMPLEMENTATION_LOGIC finding."
+      }
+    },
+    {
+      "id": "CSDD-SLICE-001",
+      "title": "Acceptance runs only delivered steps",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether an acceptance in an earlier batch exercises a step from a later batch",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a mobile app feature split into a storage batch and a sync batch.",
+        "starting_state": "The storage batch acceptance calls the conflict-merge action that the sync batch implements two batches later.",
+        "material_action": "Approve the batch acceptance mapping.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The earlier batch cannot pass its own acceptance.",
+        "completion_oracle": "The merge assertion moves to the sync batch or the action moves earlier."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a mobile app feature split into a storage batch and a sync batch.",
+        "starting_state": "The storage batch acceptance exercises only local writes; the merge assertion belongs to the sync batch that implements it.",
+        "material_action": "Approve the batch acceptance mapping.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Each acceptance runs steps delivered by its own or an earlier batch.",
+        "completion_oracle": "validate reports no IMPLEMENTATION_LOGIC_ACCEPTANCE_BEFORE_PRODUCER."
+      }
+    },
+    {
+      "id": "CSDD-SHIPGATE-001",
+      "title": "The SHIP gate covers every Must-Ship acceptance",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the SHIP row covers all Must-Ship acceptance",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a desktop app release with four Must-Ship requirements.",
+        "starting_state": "The SHIP row lists only the acceptance of the last batch.",
+        "material_action": "Accept the delivery table as the final gate.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Earlier Must-Ship claims could ship without final verification.",
+        "completion_oracle": "The SHIP rows together list every Must-Ship acceptance."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a desktop app release with four Must-Ship requirements.",
+        "starting_state": "The SHIP row lists every Must-Ship acceptance; a should-level acceptance stays outside it.",
+        "material_action": "Accept the delivery table as the final gate.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Final verification covers every Must-Ship obligation.",
+        "completion_oracle": "validate reports no SDD_PRESENTATION_SHIP_COVERAGE_INCOMPLETE."
+      }
+    },
+    {
+      "id": "CSDD-PROMISE-001",
+      "title": "Stated guarantees have branches",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether a stated failure guarantee has an implementing branch",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a payment webhook handler that promises to acknowledge duplicates without reprocessing.",
+        "starting_state": "The failure table promises duplicate acknowledgement, but the pseudocode inserts the event without checking the idempotency key.",
+        "material_action": "Declare the design converged.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The guarantee exists only in prose.",
+        "completion_oracle": "A step branch checks the key and an acceptance replays a duplicate."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a payment webhook handler that promises to acknowledge duplicates without reprocessing.",
+        "starting_state": "The step checks the key before side effects and an acceptance replays a duplicate; a purely synchronous formatting step has no invalidation mechanism and states why none applies.",
+        "material_action": "Declare the design converged.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Guarantees map to branches, and a synchronous path is not forced to add machinery.",
+        "completion_oracle": "Each failure row names its step, branch and acceptance."
+      }
+    },
+    {
+      "id": "CSDD-CONTEXT-001",
+      "title": "Context-bound instances declare their context-change policy",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether a long-lived instance survives a context change with a stated policy",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design an in-app catalog cache for a multi-tenant admin console.",
+        "starting_state": "The cache is created once per session and keeps serving entries after the operator switches tenant without a reload.",
+        "material_action": "Approve the cache design.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Tenant switch leaves the instance bound to the previous tenant.",
+        "completion_oracle": "The design states update, rebuild or per-tenant isolation and an acceptance switches tenant."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design an in-app catalog cache for a multi-tenant admin console.",
+        "starting_state": "Cache instances are keyed by tenant; a switch reads the new tenant key and late results for the old tenant are dropped by owner key.",
+        "material_action": "Approve the cache design.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The context-change policy is explicit and late results cannot cross contexts.",
+        "completion_oracle": "An acceptance switches tenant mid-load and observes only new-tenant entries."
+      }
+    },
+    {
+      "id": "CSDD-DESTRUCT-001",
+      "title": "Destructive steps follow confirmed commits",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether old data is removed before the replacement is committed",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design migrating stored user settings to a new schema version.",
+        "starting_state": "The step writes the new record asynchronously and deletes the old record immediately in the same call.",
+        "material_action": "Approve the migration step.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "A failed write loses the user settings.",
+        "completion_oracle": "Old data is removed only after the new write is confirmed."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design migrating stored user settings to a new schema version.",
+        "starting_state": "The old record is deleted only after the new write is confirmed; records with an unknown future version are kept read-only rather than deleted.",
+        "material_action": "Approve the migration step.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Replacement is committed first and unrecognized data is preserved.",
+        "completion_oracle": "An acceptance fails the write and observes the old record intact."
+      }
+    },
+    {
+      "id": "CSDD-EVIDENCE-001",
+      "title": "Probe evidence is persisted",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the probe record survives outside a temporary directory",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a JVM library upgrade after probing the new API in a scratch project.",
+        "starting_state": "The SDD cites only a path under the system temporary directory for the probe output.",
+        "material_action": "Cite the probe as design evidence.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "A reviewer cannot inspect a deleted temporary directory.",
+        "completion_oracle": "The evidence companion records command, versions and output excerpt."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a JVM library upgrade after probing the new API in a scratch project.",
+        "starting_state": "The probe ran in a temporary directory, and the evidence companion next to the SDD records the command, coordinates, JDK and compile output excerpt.",
+        "material_action": "Cite the probe as design evidence.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Temporary execution is fine when the record is persisted.",
+        "completion_oracle": "Contract evidence references resolve to the companion file."
+      }
+    },
+    {
+      "id": "CSDD-CONVERGE-002",
+      "title": "Later-slice Must-Ship work stays in the contract",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether later-batch Must-Ship work is kept as a requirement or downgraded",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a data pipeline delivered in three batches where only the first is admitted now.",
+        "starting_state": "The author moves the third batch Must-Ship export to deferred because it is not in the current slice.",
+        "material_action": "Mark the design converged for handoff.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Slice admission does not change delivery obligations.",
+        "completion_oracle": "The export stays a pending Must-Ship requirement with its batch and dependencies."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a data pipeline delivered in three batches where only the first is admitted now.",
+        "starting_state": "All three batches stay in the contract; shared schema decisions are closed now, and the export batch execution details close at its own slice admission.",
+        "material_action": "Mark the design converged for handoff.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Obligations are kept while slice-level details are deferred to their admission.",
+        "completion_oracle": "validate accepts the CONVERGED status with no open design unknowns."
+      }
+    },
+    {
+      "id": "CSDD-NONGOAL-001",
+      "title": "Author non-goals do not silently cut discussed outcomes",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether a non-goal that degrades a discussed outcome records its authority basis",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design search history for a documentation site after the user discussed search results and history together.",
+        "starting_state": "The author lists rendering search results as a non-goal, so recorded history refills a box that still shows no results, and cites no user statement.",
+        "material_action": "Publish the scope with the non-goal list.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The non-goal visibly degrades the outcome the user discussed.",
+        "completion_oracle": "The scope records a user decision or restores the outcome."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design search history for a documentation site after the user discussed search results and history together.",
+        "starting_state": "The author chooses local storage over an indexed database for a ten-entry history; user-visible search and history behavior is unchanged.",
+        "material_action": "Publish the scope with the non-goal list.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "A technical trade-off that keeps user outcomes intact needs no approval.",
+        "completion_oracle": "The design basis records the trade-off and its reason."
+      }
+    },
+    {
+      "id": "CSDD-TOOLCHAIN-001",
+      "title": "Acceptance runtimes match repository pins",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether acceptance runs with a version that contradicts a repository pin",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a Node service change in a repository that pins its runtime version.",
+        "starting_state": "The repository pins the package manager at one version, but every acceptance environment names the newer version installed on the author machine.",
+        "material_action": "Admit the acceptance environments.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Verification would run a toolchain the product does not use.",
+        "completion_oracle": "Environments use the pinned version or name an exception."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a Node service change in a repository that pins its runtime version.",
+        "starting_state": "Acceptance uses the pinned product version; the delivery controller needs a newer runtime and that difference is recorded in environment_exceptions with its reason.",
+        "material_action": "Admit the acceptance environments.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Product and controller runtimes are recorded separately.",
+        "completion_oracle": "repo-facts reports no TOOLCHAIN_VERSION_CONFLICT."
+      }
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create SDD"
+  short_description: "Create, merge, refactor, or audit repository SDDs"
+  default_prompt: "Use $create-sdd to design an implementation-ready SDD for this product and validate its loop-ready contract."
