@@ -38,7 +38,7 @@ Choose the narrowest matching mode; state the assumption when intent stays ambig
 - **Implementation or closure audit**: compare clauses with source, tests, metadata and reproducible evidence. [audit](references/audit.md), [closure evidence](references/closure-evidence.md).
 - **Migration design**: add [migration](references/migration.md).
 - **Program split**: assess both single- and multi-SDD suitability after the initial inventory; [program split](references/planning/program-split.md) is required before either choice. Shared prerequisites are dependency edges, not proof that consumers must merge. Propose boundaries with estimates and record the user's decision before creating child documents. Reuse an explicit split instruction without asking again. At most three levels; omit unnecessary groups. Meta references one authority graph, each Meta binds validators and each SDD has its own estimate. Only execution SDDs are Bundles.
-- **Loop-ready**: when `sdd-loop-delivery` is installed, implementation-targeting work defaults to loop-ready unless document-only output is requested: follow [loop-ready](references/loop-ready.md), emit the machine-checkable index including `delivery_plan`, and obtain the controller compatibility receipt. Do not ask the user to announce the later loop run.
+- **Loop-ready**: when `sdd-loop-delivery` is installed, implementation-targeting work defaults to loop-ready unless document-only output is requested: follow [loop-ready](references/loop-ready.md), emit the machine-checkable index including `delivery_plan`, and obtain the controller compatibility receipt. Do not ask the user to announce the later loop run; hand them its launch instruction instead.
 
 ## Workflow
 
@@ -53,7 +53,7 @@ Keep repository input and output location independent. Read the actual system `$
 3. **Design** ([card](references/phases/3-design.md)): one owner per semantic subject, derivable batches, and the [complete design template](references/complete-design.md) sections. Plan Mode outputs the complete proposed SDD and uses read-only `validate-draft`; it never replaces the document with a short plan.
 4. **Verify** ([card](references/phases/4-verify.md)): one claim per acceptance case, oracle sensitivity for guards, failure-isolation dry run, reused test hosts and causal delivery gates.
 5. **Decompose** ([work decomposition](references/work-decomposition.md)): lease-sized batches without write conflicts, lanes, prepared checks, final verification shards and a strict `test_budget` per batch, recorded as `delivery_plan`. Numeric limits belong to the delivery controller: read them from its `configuration` output's `limits` object, never from memory. Draft the contract block in this phase, even when the SDD stays `in-review`, and run `validate-draft`; report waves, serial minutes and critical path from its output.
-6. **Hand off** (loop-ready only; [loop-ready](references/loop-ready.md)): pass `validate` and the controller compatibility receipt, then report `LOOP_READY`.
+6. **Hand off** (loop-ready only; [loop-ready](references/loop-ready.md)): pass `validate` and the controller compatibility receipt, then report `LOOP_READY` together with the copyable instruction that starts its delivery.
 
 ## Output
 

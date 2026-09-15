@@ -410,6 +410,62 @@ result = validated; return result
 
 The outer example uses a Markdown fence only for documentation. In the actual SDD, write the marker, JSON fence, and closing marker literally.
 
+## Worked program index (multi-SDD root)
+
+A program root carries this block between `<!-- sdd-program:start -->` and `<!-- sdd-program:end -->`, separate from any leaf `sdd-contract` block. The tree below is the smallest useful shape: one group root over two execution leaves, where `b` consumes the Asset `a` produces. Field rules are in [program split](../planning/program-split.md); this is what they look like assembled. The values are a fixture, not evidence for any repository, but the structure is the one `program-check` accepts.
+
+```json
+{
+  "protocol": "sdd-program/v1",
+  "id": "PG01",
+  "revision": "r1",
+  "nodes": [
+    {"id": "root", "parent": null, "kind": "group", "sdd": "root.sdd.md",
+     "estimate": {"design": [5, 10], "implementation": [0, 0], "integration": [0, 0], "verification": [0, 0], "conditional_verification": [0, 0], "basis": "group coordination only", "waiting": "none"}},
+    {"id": "a", "parent": "root", "kind": "execution", "sdd": "a.sdd.md",
+     "estimate": {"design": [5, 10], "implementation": [30, 45], "integration": [0, 0], "verification": [30, 45], "conditional_verification": [0, 0], "basis": "one batch in one package", "waiting": "none"}},
+    {"id": "b", "parent": "root", "kind": "execution", "sdd": "b.sdd.md",
+     "estimate": {"design": [5, 10], "implementation": [30, 45], "integration": [0, 0], "verification": [30, 45], "conditional_verification": [0, 0], "basis": "one batch in one package", "waiting": "a's commit"}}
+  ],
+  "metas": [
+    {"id": "EN01", "kind": "Entry", "owner": "root", "members": ["MA", "MB"], "requires": [],
+     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "root", "acceptance_ids": [], "method": "composition of both deliveries", "pass_condition": "both Bundles released"}}},
+
+    {"id": "MA", "kind": "Module", "owner": "a", "members": [], "requires": [], "source_id": "XQ01",
+     "origin": {"document": "a.sdd.md", "requirement_id": "XQ01"},
+     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
+    {"id": "CA", "kind": "Chunk", "owner": "a", "members": ["MA"], "requires": [], "source_id": "BT01",
+     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
+    {"id": "BA", "kind": "Bundle", "owner": "a", "members": ["CA"], "requires": [], "reads": [],
+     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
+    {"id": "AA", "kind": "Asset", "owner": "a", "members": [], "requires": [], "path": "packages/a/value.ts",
+     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
+
+    {"id": "MB", "kind": "Module", "owner": "b", "members": [], "requires": [], "source_id": "XQ01",
+     "origin": {"document": "b.sdd.md", "requirement_id": "XQ01"},
+     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
+    {"id": "CB", "kind": "Chunk", "owner": "b", "members": ["MB"], "requires": [], "source_id": "BT01",
+     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
+    {"id": "BB", "kind": "Bundle", "owner": "b", "members": ["CB"], "requires": ["AA"], "reads": [],
+     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
+    {"id": "AB", "kind": "Asset", "owner": "b", "members": [], "requires": [], "path": "packages/b/value.ts",
+     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}}
+  ],
+  "execution": {"max_parallel": 2, "total_test_seconds": 200, "base_ref": "HEAD", "allocations": {"BA": 150, "BB": 50}},
+  "split_decision": {"source": "USER_STATED", "reference": "the user's reply choosing to split"}
+}
+```
+
+Reading it back:
+
+- **nodes** carry the tree. The root is `parent: null` and points at the total document itself; every other node names one parent. A group node's `implementation`, `integration` and `verification` ranges are zero — coordination is its only work. Each `estimate` holds five `[min, max]` minute ranges plus `basis` and `waiting`; `waiting` is separate from active work, so `b` records that it waits for `a`'s commit.
+- **metas** are five kinds, not five document levels. `MA`/`MB` are Modules, one per requirement, each binding its original document and requirement through `origin`. `CA`/`CB` are Chunks naming a `delivery_plan` batch through `source_id`. `BA`/`BB` are Bundles, one per execution SDD, and a Bundle's `requires` lists the Asset IDs it consumes — `BB` requires `AA`, which is what orders the waves. `AA`/`AB` are Assets naming a delivered repository-relative path.
+- **validators** appear on every Meta: `definition` is always `program-structure/v1`, and `implementation` names the owning node, the acceptance it rests on, and a `method`/`pass_condition` that explain the claim. Those two strings are explanation, never execution evidence.
+- **execution** proposes limits: `max_parallel`, the shared `total_test_seconds`, the `base_ref` children branch from, and `allocations` mapping every Bundle to its lifetime test seconds, summing to at most the total. A proposal is not the user's consent.
+- **split_decision** must cite a real user statement. `USER_STATED` needs the reply that answered the split question; `EXPLICIT_INSTRUCTION` needs the request that asked for the split. An author's own judgment is not a source, and `repo-facts.ts check` on the root reports `SPLIT_DECISION_UNRECORDED` without one.
+
+`bun <loop-skill-root>/scripts/main.ts program-check --program <absolute-root-SDD>` accepts this shape and returns the fingerprint, total and scheduled minutes, the waves (`BA` before `BB`, from the Asset edge) and the execution task count. It checks structure only: it runs no acceptance and replaces no leaf gate.
+
 ## Guarded acceptance: the `REQUIRED` branch
 
 `YS01` above is a positive business path, so its `oracle_sensitivity` is `NOT_APPLICABLE` with a reason. A case that observes a guard takes the other branch instead; these are its exact fields:
@@ -427,4 +483,4 @@ The outer example uses a Markdown fence only for documentation. In the actual SD
 
 `applicability` is `REQUIRED` or `NOT_APPLICABLE`; no other value is accepted. `NOT_APPLICABLE` carries `reason` and nothing else. `REQUIRED` carries all five fields above, `expected_flip` is always the literal `PASS_TO_FAIL_TO_PASS`, and `implementation_timing` is `IMPLEMENTATION_REQUIRED` for a guard this delivery still has to build or `DESIGN_PROVEN` for one already probed in an isolated copy — `DESIGN_PROVEN` additionally requires a non-empty `evidence` array naming where that probe is recorded.
 
-<!-- reading-receipt: 1d81aa9a -->
+<!-- reading-receipt: 07322f54 -->

@@ -45,7 +45,7 @@ Structure does not prove implementation behavior. Planned Assets have no fabrica
 
 ## Program index
 
-Put one JSON block between `<!-- sdd-program:start -->` and `<!-- sdd-program:end -->` in the total SDD, separate from leaf sdd-contract blocks.
+Put one JSON block between `<!-- sdd-program:start -->` and `<!-- sdd-program:end -->` in the total SDD, separate from leaf sdd-contract blocks. The rules below define the fields; an assembled two-leaf index that `program-check` accepts is in the [worked example](../examples/loop-ready-example.md#worked-program-index-multi-sdd-root).
 
 - protocol: "sdd-program/v1"; id and revision identify the program and current design.
 - split_decision: {source, reference}. source is `USER_STATED` (the user answered the one split question) or `EXPLICIT_INSTRUCTION` (the request itself asked for a split); reference quotes or points to that message. An author's own judgment is not a source. `repo-facts check` on the root reports `SPLIT_DECISION_UNRECORDED` without it and checks every execution SDD; `reading-receipt check` on the root checks every node's receipt.
@@ -82,4 +82,4 @@ Read delivery's [program workflow](../../../sdd-loop-delivery/references/program
 
 New single-SDD authoring also requires the approved assessment. Preserve requirement IDs, active controllers and budgets. Do not claim unverified host/runtime behavior.
 
-<!-- reading-receipt: 18688575 -->
+<!-- reading-receipt: de015d1b -->
