@@ -295,11 +295,136 @@
       "good": {
         "task_mode": "design",
         "request": "Deliver session storage and session web rendering quickly.",
-        "starting_state": "A foundation can freeze the session interface; storage and web write disjoint packages with several batches each; the program critical path is materially shorter than the single-SDD plan.",
+        "starting_state": "A foundation can freeze the session interface; storage and web write disjoint packages with several batches each; the program critical path is materially shorter than the single-SDD plan. The user answered the one split question with \"split\".",
         "material_action": "Split into foundation, two child SDDs in separate worktrees, and an integration SDD.",
         "expected_decision": "ALLOW",
         "decisive_fact": "Ownership, write sets and interfaces are independent and the program critical path is materially shorter.",
         "completion_oracle": "The program plan lists four SDDs with disjoint unordered write sets and reports both critical paths."
+      }
+    },
+    {
+      "id": "CSDD-SPLIT-002",
+      "title": "Split by attributable outcome, never by layer or agent count",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether each proposed SDD owns an attributable outcome behind a stable contract",
+      "bad": {
+        "task_mode": "design",
+        "request": "Build invoice export with an API and a download page; use as many agents as possible.",
+        "starting_state": "The API response shape is designed together with the page and changes with it.",
+        "material_action": "Split into an API SDD and a UI SDD so two tasks run in parallel.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The layers co-evolve one contract and neither delivers the outcome alone; agent count is not a split reason.",
+        "completion_oracle": "One SDD with batches remains, and the rationale names the co-evolving contract."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Build invoice export and a separate audit-log retention job.",
+        "starting_state": "Export and retention write disjoint packages, share no state owner and each has its own user-visible acceptance. The user answered the one split question with \"split\".",
+        "material_action": "Split into two execution SDDs under one root.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Each SDD owns an attributable outcome with disjoint writes and no shared evolving contract.",
+        "completion_oracle": "The program plan lists two execution SDDs with disjoint write sets and separate acceptance."
+      }
+    },
+    {
+      "id": "CSDD-SPLIT-003",
+      "title": "A program never exceeds three SDD levels",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether task-level work is modelled as SDDs or as batches",
+      "bad": {
+        "task_mode": "design",
+        "request": "Plan a multi-team platform migration.",
+        "starting_state": "The draft has root, domain group, feature group and one SDD per task.",
+        "material_action": "Emit the four-level tree to program-check.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "A fourth level turns batches into documents; program-check rejects PROGRAM_DEPTH_EXCEEDED.",
+        "completion_oracle": "The tree has at most three levels and task work appears as delivery_plan batches."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Plan a multi-team platform migration.",
+        "starting_state": "The draft has root, domain groups and execution SDDs whose tasks are batches.",
+        "material_action": "Emit the three-level tree to program-check.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Three levels with tasks as batches is the supported shape.",
+        "completion_oracle": "program-check passes and every task is a batch inside an execution SDD."
+      }
+    },
+    {
+      "id": "CSDD-SPLIT-004",
+      "title": "Cross-SDD cycles become a shared foundation",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether the mutually consumed contract is owned by a separate foundation",
+      "bad": {
+        "task_mode": "design",
+        "request": "Deliver billing and entitlement in parallel.",
+        "starting_state": "Billing consumes entitlement checks and entitlement consumes billing plan state; both contracts are still open.",
+        "material_action": "Dispatch both SDDs and let them agree the interface while implementing.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Mutual consumption of open contracts is a cycle; parallel negotiation makes both deliveries depend on unfinished work.",
+        "completion_oracle": "Either one combined SDD or a foundation SDD owning the shared contract exists before either consumer starts."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Deliver billing and entitlement in parallel.",
+        "starting_state": "A foundation SDD freezes the plan/entitlement contract; billing and entitlement each require only its Asset.",
+        "material_action": "Dispatch the foundation, then both consumers.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The shared contract has one producer, so the dependency graph is acyclic.",
+        "completion_oracle": "program-check reports the foundation in an earlier wave than both consumers."
+      }
+    },
+    {
+      "id": "CSDD-SPLIT-005",
+      "title": "A multi-predecessor Bundle integrates its inputs first",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether the consumer declares an integration-first batch for its predecessor commits",
+      "bad": {
+        "task_mode": "design",
+        "request": "Build the checkout page on top of the new cart and pricing SDDs.",
+        "starting_state": "The checkout Bundle requires Assets from two predecessor Bundles and its first batch already implements checkout behavior.",
+        "material_action": "Hand off the program without integration_batch_id.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Two predecessors need an explicit merge before consumer work; program-check rejects PROGRAM_MULTI_SOURCE_INTEGRATION_REQUIRED.",
+        "completion_oracle": "The checkout SDD has an integration-first batch that every other batch follows."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Build the checkout page on top of the new cart and pricing SDDs.",
+        "starting_state": "The checkout Bundle names integration_batch_id for a first batch that merges both committed predecessors under declared merge authority.",
+        "material_action": "Hand off the program.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Predecessor commits are integrated in a declared first batch before dependent behavior.",
+        "completion_oracle": "program-check passes and the integration batch has no predecessors inside the leaf."
+      }
+    },
+    {
+      "id": "CSDD-SPLIT-006",
+      "title": "The split decision is asked once and recorded with its source",
+      "skill": "create-sdd",
+      "evidence_level": "report",
+      "single_changed_fact": "whether the recorded split decision cites an actual user statement",
+      "bad": {
+        "task_mode": "design",
+        "request": "Write the SDD for the reporting overhaul.",
+        "starting_state": "The author judged the work splittable and wrote child SDDs; the program block says the user approved, but no user message asked or answered.",
+        "material_action": "Report the program as ready.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "An authored approval is an INFERRED fact presented as USER_STATED; the split was never offered.",
+        "completion_oracle": "repo-facts reports SPLIT_DECISION_UNRECORDED until split_decision cites a real user statement."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Write the SDD for the reporting overhaul.",
+        "starting_state": "The author presented hierarchy, dependencies, estimates and coordination cost once; the user replied to split; split_decision records USER_STATED with that reply.",
+        "material_action": "Create the child SDDs and report the program.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The split rests on a cited user statement or an explicit split instruction.",
+        "completion_oracle": "The program block carries split_decision with source USER_STATED and a reference to the reply."
       }
     },
     {

@@ -127,8 +127,10 @@ Derive the contract only from explicit clauses, preserve stable IDs and add mech
 
 ## Reporting LOOP_READY
 
+For multi-SDD work, the total/group documents use `sdd-program/v1` and the delivery controller's `program-check` command; they are not dispatched as duplicate executable contracts. Only execution SDDs receive individual LOOP_READY receipts. Report structure validity, individual readiness and runtime delivery separately. Program runtime startup and continuation follow delivery's program-workflow reference and do not grant test, merge or budget authority.
+
 A clean `validate` and a compatible receipt are necessary, not sufficient. Re-read the human clauses as one design for guessed product choices, unsupported problem-to-solution jumps, route-invalidating assumptions, causal expansion, verification that includes non-causal repository health, contradictions, competing owners, unresolved primitive reuse, missing failure behavior, and oracles that only assert an implementation or test exists. Report `LOOP_READY` only when product closure, validation and compatibility all pass; it is still not implementation or runtime lease evidence.
 
 Judge readiness from the evidence in hand, in both directions. A prerequisite without a producer, a failure path left to a future Operator or an unexecuted decisive probe blocks readiness. When every prerequisite has an evidenced producer and the decisive probes and branches have been executed, the route is ready: do not invent defects, request permissions the contract already grants, or open a successor to appear careful.
 
-<!-- reading-receipt: 862cea84 -->
+<!-- reading-receipt: f3973a98 -->

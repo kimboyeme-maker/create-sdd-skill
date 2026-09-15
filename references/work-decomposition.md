@@ -22,9 +22,9 @@ A batch is the smallest unit that:
 
 - produces one externally observable outcome linked to its requirement and acceptance IDs;
 - closes its own acceptance, or is an explicit producer for a later batch that closes it;
-- fits one Operator lease: `estimated_minutes` between roughly 20 and 45, never above 60 (the controller rejects `DELIVERY_PLAN_BATCH_TOO_LARGE`);
+- fits one Operator lease: `estimated_minutes` roughly 20–45 and within the controller's batch limit (`DELIVERY_PLAN_BATCH_TOO_LARGE` otherwise);
 - has one write set that the Operator can hold in context without re-discovery;
-- has a strict `test_budget` (≤⌈estimate/3⌉ and ≤15 minutes, ≤1 new test file) derived from its own acceptance; see [test budget](planning/test-budget.md).
+- has a strict `test_budget` derived from its own acceptance; see [test budget](planning/test-budget.md).
 
 Cut along the implementation logic, not along files or layers. Invalid shapes: "all types", "all tests", "all docs", one batch per file, one batch per requirement by reflex, a test-only batch detached from its behavior. A migration keeps its reader DAG from [migration](migration.md): new owner → reader groups → exports and owning tests → zero-reader scan → removal.
 
@@ -45,6 +45,8 @@ With two or more batches, load [conflicts and lanes](planning/conflicts-and-lane
 Load [verification planning](planning/verification-planning.md) for packet checks and final verification shards.
 
 ## Step 6: record and evaluate
+
+For an approved multi-SDD design, apply [program split](planning/program-split.md): map requirements to Modules, these batches to Chunks, each execution SDD to one Bundle, and explicit output paths to Assets. Keep parent/group coordination separate from execution ownership; include each SDD's own estimate and the wave-to-task handoff. The program's total test allocation is shared, never copied into each child or reset by integration. Run the delivery controller's `program-check --program <absolute-root-SDD>` command in addition to each leaf's normal checks; do not claim source-level independence from declared paths alone.
 
 Add the plan beside `implementation_logic` in the contract:
 
@@ -69,7 +71,7 @@ Add the plan beside `implementation_logic` in the contract:
 }
 ```
 
-Rules the controller enforces: unique batch IDs; known non-`non-goal` requirements; acceptance inside each batch's requirements; every delivered requirement and its acceptance covered; acyclic known dependencies; requirement order respected; no write overlap between unordered batches; 1–60 minutes per batch; a `test_budget` per batch within min(15, ⌈estimate/3⌉) minutes and at most one new test file; acceptance `timeout_seconds` ≤900; shards partition Must-Ship acceptance without cross-shard blocking edges.
+`validate-draft` checks the plan's structure (coverage, dependencies, write overlap, size and budget limits, shard partition) and names each violation by code. Author judgment covers what it cannot: whether a cut follows the implementation logic and whether an estimate is honest.
 
 When earlier deliveries left retrospectives, calibrate estimates first with [estimate calibration](planning/estimate-calibration.md) and record the ratio used.
 
@@ -88,4 +90,4 @@ Run `validate` and read `deliveryPlan`. Report waves, lanes, serial minutes and 
 - Adding shards that split one browser journey or shared fixture across Architects.
 - Treating the plan as a promise that concurrent Operators exist in the current controller.
 
-<!-- reading-receipt: 9f77c6f2 -->
+<!-- reading-receipt: df5c7c55 -->

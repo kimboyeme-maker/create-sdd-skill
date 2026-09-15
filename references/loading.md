@@ -6,14 +6,14 @@ Implementation-targeting create, refactor and merge work runs in phases. Load a 
 
 | Phase | Load | Leaves the phase |
 | --- | --- | --- |
-| 1 Harvest | [harvest card](phases/1-harvest.md), [archetypes](product/archetypes.md), [delivery platforms](product/platforms.md) | fact ledger and both queues final |
-| 2 Admit | [admission card](phases/2-admit.md) | convergence gate holds |
-| 3 Design | [design card](phases/3-design.md), [complete design template](complete-design.md), [writing guide](writing.md) | template sections written |
+| 1 Harvest | [harvest card](phases/1-harvest.md), [archetypes](product/archetypes.md), [delivery platforms](product/platforms.md), [program split](planning/program-split.md) | fact ledger and initial ownership inventory available |
+| 2 Admit | [admission card](phases/2-admit.md) | single/multi-SDD assessment and outputs agreed with the user; convergence gate holds |
+| 3 Design | [design card](phases/3-design.md), [complete design template](complete-design.md), [writing guide](writing.md), [document presentation](document-presentation.md) | template sections written |
 | 4 Verify | [verification card](phases/4-verify.md), [acceptance standards](product/acceptance-standards.md) | verification gate holds |
 | 5 Decompose | [work decomposition](work-decomposition.md) | `validate` reports the delivery plan |
-| 6 Hand off (loop-ready only) | [loop-ready](loop-ready.md) | `LOOP_READY`, or the named blocker |
+| 6 Hand off (loop-ready only) | [loop-ready](loop-ready.md), [Agent Context map](design/agent-context-map.md) | `LOOP_READY`, or the named blocker |
 
-`reading-receipt.ts check` requires every phase document above plus the conditional documents the contract implies (experience contract, content site, platform guides, migration, conflicts and lanes, test budget). List any other document you loaded too; stale tokens fail.
+`scripts/lib/reading-policy.ts` owns the phase and conditional reading requirements; `reading-receipt.ts check` applies them, and the tables below explain the routing. Receipt tokens identify document versions; they do not authenticate a read.
 
 ## Minimum structured output
 
@@ -43,17 +43,14 @@ Whoever writes the SDD, each phase leaves the same inspectable minimum:
 | A language is in scope (load only the languages present) | [Rust](product/languages/rust.md), [Go](product/languages/go.md), [Python](product/languages/python.md), [Bun and Node](product/languages/bun-node.md), [JVM](product/languages/jvm.md) | 1, 4 |
 | TypeScript build or publication responsibility changes | [TypeScript toolchain](design/typescript-toolchain.md) | 3 |
 | One capability exposed through several surfaces | [core and adapters](product/architecture/core-adapters.md) | 3 |
-| The ledger shows several independent owners and write sets | [program split](planning/program-split.md) | 1 |
 | A choice may need user authority | [decision authority](design/decision-authority.md) | 1, 2 |
 | Protected artifacts, package-manager operations or any shared-mechanism write | [artifacts and dependencies](design/artifacts-and-dependencies.md) | 1, 3 |
 | Continuation of an unfinished predecessor delivery | [continuation lineage](design/continuation-lineage.md) | 2 |
 | Owner, export, path or format replacement or removal | [migration](migration.md) | 2, 5 |
-| New document IDs, tables or progress reporting | [document presentation](document-presentation.md) | 3 |
 | Two or more batches | [conflicts and lanes](planning/conflicts-and-lanes.md) | 5 |
 | Any batch adds, changes or runs tests | [test budget](planning/test-budget.md) | 4, 5 |
 | Prepared packet checks or final verification shards | [verification planning](planning/verification-planning.md) | 5 |
 | Earlier deliveries left retrospectives | [estimate calibration](planning/estimate-calibration.md) | 5 |
-| Loop-ready routing is added or changes | [Agent Context map](design/agent-context-map.md) | 6 |
 | First contract for the repository, or an unclear field shape | [worked example](examples/loop-ready-example.md) | 6 |
 
 ## When a check fails
@@ -74,7 +71,7 @@ Read the owning document before fixing the SDD; do not patch a field until the d
 | `CONTRACT_REFERENCE_*` | [Agent Context map](design/agent-context-map.md#evidence-companion) |
 | `SHARED_MECHANISM_*`, `TOOLCHAIN_VERSION_CONFLICT` | [artifacts and dependencies](design/artifacts-and-dependencies.md#dependency-operations) |
 | `MIGRATION_CANDIDATE_UNDISPOSED`, `MIGRATION_SYMBOL_UNSCANNABLE`, `MIGRATION_DISMISSED_*` | [migration](migration.md) |
-| `GROUNDING_EVIDENCE_MISSING`, `REPOSITORY_NOT_FOUND` | [admission card](phases/2-admit.md#run-decisive-probes-now) and the language guide |
+| `REPOSITORY_NOT_FOUND`, or entries in `facts.grounding_candidates` (review, not failure) | [admission card](phases/2-admit.md#run-decisive-probes-now) and the language guide |
 | Reading receipt `missing` or `stale` | the listed documents, then update their receipt lines |
 
 ## Other modes
@@ -85,4 +82,4 @@ Read the owning document before fixing the SDD; do not patch a field until the d
 | Audit, or two invariants in tension | [invariants](invariants.md), [audit](audit.md); closure audits add [closure evidence](closure-evidence.md) |
 | Changing this skill's policy | [behavior evaluation](behavior-evaluation.md) |
 
-<!-- reading-receipt: 79a1b405 -->
+<!-- reading-receipt: b006bd2f -->

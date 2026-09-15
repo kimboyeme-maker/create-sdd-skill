@@ -10,7 +10,7 @@ Classify each operation by its expected effects, never by the command name: `REA
 
 Record each write to a shared mechanism in `shared_mechanism_writes`. Follow the authority chain from the edited package to every manager that owns it: a lockfile in the package, a workspace lockfile whose importers or members include the package, a generator whose registry includes it. Include each owner in modification authority. A file that merely mentions the package name does not manage it. Record the product toolchain, the verification toolchain and the delivery controller's runtime separately; a runtime that differs from a repository pin is either aligned or named in `environment_exceptions` with its reason.
 
-For a dependency-contract change, list its repository-relative manifest path explicitly in the existing `write_points`, together with the managing lockfiles. `repo-facts` derives the lockfile completeness check from these declared manifest write points, never from prose mentioning a manifest. Use these manifest write points for dependency changes, not read-only inventory or unrelated metadata edits. This check cannot establish that all intended writes were declared; source inventory alone grants no write authority.
+For a dependency-contract change, list its repository-relative manifest path explicitly in the existing `write_points`, together with the managing lockfiles. `repo-facts` derives the lockfile completeness check from these declared manifest write points and from `BZ` step sections that edit a manifest path, never from other prose. Use these manifest write points for dependency changes, not read-only inventory or unrelated metadata edits. This check cannot establish that all intended writes were declared; source inventory alone grants no write authority.
 
 ## Source inventory and runtime resolution
 
@@ -28,4 +28,4 @@ Every stage must be runnable by its assigned role under the actual repository an
 
 Authority covers the admitted artifact and effect envelope, not signer, stage-write, rename, retry or agent-lifetime counters. Process-local key replacement, re-signing and bounded local reinstall inside the envelope are recovery mechanics; a role or capability correction inside the approved artifact, path, behavior, protection policy and mutation scope is not a user authorization request.
 
-<!-- reading-receipt: a9427b6d -->
+<!-- reading-receipt: 9a34cc65 -->

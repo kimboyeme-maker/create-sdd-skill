@@ -75,4 +75,4 @@ After the information set closes, apply three lenses: synthesis of the route, ad
 - [ ] Every document this phase loaded is listed in the SDD's authoring receipt with its current token.
 - [ ] Remaining residual risks cannot invalidate Must-Ship behavior, ownership, scope, authority or verification, and are disclosed. Nothing was satisfied by downgrading, omitting, renaming or moving an item.
 
-<!-- reading-receipt: 849c26af -->
+<!-- reading-receipt: 5b2987dc -->

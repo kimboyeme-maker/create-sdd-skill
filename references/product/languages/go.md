@@ -36,7 +36,7 @@ Load when in-scope packages are Go modules. Follow the repository's module layou
 
 ## Contract grounding probe
 
-Create a temporary module (`go mod init`, `go get <module>@<exact version>`), write the calls and types the SDD uses, and run `go build ./...` or `go vet ./...`. Persist the command, exact versions, toolchain and an output excerpt in the SDD's evidence companion; a temporary directory may host the probe but is not the record.
+When a key decision depends on version, types or call shape and no applicable contract, documentation or existing consumer settles it, make one focused probe: create a temporary module (`go mod init`, `go get <module>@<exact version>`), write the calls and types the SDD uses, and run `go build ./...` or `go vet ./...`. Compiling or type-checking is design evidence; running the scratch program to observe behavior is testing and follows the user's test authorization. Persist the command, exact versions, toolchain and an output excerpt in the SDD's evidence companion; a temporary directory may host the probe but is not the record.
 
 ## Anti-patterns
 
@@ -45,4 +45,4 @@ Create a temporary module (`go mod init`, `go get <module>@<exact version>`), wr
 - `panic` for expected errors; `log.Fatal` outside `main`.
 - One `models` package imported by every layer.
 
-<!-- reading-receipt: 950fe28c -->
+<!-- reading-receipt: 5cb995af -->

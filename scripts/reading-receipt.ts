@@ -1,66 +1,24 @@
 #!/usr/bin/env bun
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { loadContract } from './lib/contract-source.ts'
+import { dirname, join, resolve } from 'node:path'
+import { loadContract, rawProgram } from './lib/contract-source.ts'
+import { requiredDocuments } from './lib/reading-policy.ts'
 
 /**
  * Reading receipts make create-sdd's document pointers enforceable without inlining them.
  * Every reference ends with a token derived from its own content; an SDD records the token of
  * each document its author loaded, and `check` derives the required set from the phase table
- * and the SDD's contract. A token proves the author opened the current version, not understanding;
- * the loop validators still judge the content.
+ * and the SDD's contract. A token identifies content, not an authenticated read or understanding.
  */
 const ROOT = join(import.meta.dir, '..')
 const TOKEN_LINE = /\n*<!-- reading-receipt: [0-9a-f]{8} -->\s*$/
 const RECEIPT_ENTRY = /`?(references\/[\w./-]+\.md)`?\s*[:|-]?\s*`?([0-9a-f]{8})\b/
 
-/** Phase documents every implementation-targeting SDD loads (phases 1–6 of loading.md). */
-const PHASE_DOCUMENTS = [
-  'references/phases/1-harvest.md',
-  'references/product/archetypes.md',
-  'references/product/platforms.md',
-  'references/phases/2-admit.md',
-  'references/phases/3-design.md',
-  'references/complete-design.md',
-  'references/writing.md',
-  'references/phases/4-verify.md',
-  'references/product/acceptance-standards.md',
-  'references/work-decomposition.md',
-  'references/loop-ready.md'
-] as const
-
-/** Platform guides keyed by the contract's `delivery_platforms` values. */
-const PLATFORM_DOCUMENTS: Readonly<Record<string, readonly string[]>> = {
-  'mini-program': ['references/product/platforms/mini-program.md'],
-  ios: ['references/product/platforms/mobile-native.md'],
-  android: ['references/product/platforms/mobile-native.md'],
-  flutter: ['references/product/platforms/flutter.md', 'references/product/platforms/mobile-native.md'],
-  harmonyos: ['references/product/platforms/harmonyos-arkts.md'],
-  desktop: ['references/product/platforms/desktop.md'],
-  'native-sdk': ['references/product/platforms/native-sdk.md']
-}
-
 const body = (text: string) => text.replace(TOKEN_LINE, '').replace(/\s*$/, '\n')
 const tokenOf = (text: string) => createHash('sha256').update(body(text)).digest('hex').slice(0, 8)
 const references = () => [...new Bun.Glob('references/**/*.md').scanSync(ROOT)].sort()
 const read = (path: string) => readFileSync(join(ROOT, path), 'utf8')
-
-/** Documents the contract makes mandatory, mirroring loading.md's conditional rows. */
-function contractDocuments(contract: Record<string, any> | null): string[] {
-  if (!contract) return []
-  const required: string[] = []
-  if (contract.experience_contract !== undefined) required.push('references/product/experience-contract.md')
-  if (contract.product_archetype === 'content-publication') required.push('references/product/content-site.md')
-  for (const platform of Array.isArray(contract.delivery_platforms) ? contract.delivery_platforms : [])
-    required.push(...(PLATFORM_DOCUMENTS[platform] ?? []))
-  if (contract.migration_applicability === 'REQUIRED') required.push('references/migration.md')
-  const batches: Record<string, any>[] = Array.isArray(contract.delivery_plan?.batches) ? contract.delivery_plan.batches : []
-  if (batches.length >= 2) required.push('references/planning/conflicts-and-lanes.md')
-  if (batches.some((batch) => Number(batch.test_budget?.minutes) > 0 || Number(batch.test_budget?.max_new_test_files) > 0))
-    required.push('references/planning/test-budget.md')
-  return required
-}
 
 /** Receipt entries from the SDD's "Authoring receipt" section. */
 function receiptEntries(text: string): Map<string, string> {
@@ -77,11 +35,22 @@ function receiptEntries(text: string): Map<string, string> {
   return entries
 }
 
-async function check(sdd: string) {
+async function evaluate(sdd: string) {
+  if (!existsSync(sdd))
+    return {
+      sdd,
+      valid: false,
+      contract: false,
+      required: [],
+      missing: [],
+      stale: [],
+      unknown: [],
+      not_found: true
+    }
   const text = readFileSync(sdd, 'utf8')
   // An invalid contract still declares which documents were required, so it never shrinks the receipt.
   const { contract } = await loadContract(sdd, text)
-  const required = [...new Set([...PHASE_DOCUMENTS, ...contractDocuments(contract)])]
+  const required = requiredDocuments('HANDOFF', contract)
   const entries = receiptEntries(text)
   const missing = required.filter((path) => !entries.has(path))
   const unknown = [...entries.keys()].filter((path) => !existsSync(join(ROOT, path)))
@@ -89,7 +58,28 @@ async function check(sdd: string) {
     .filter(([path, token]) => existsSync(join(ROOT, path)) && tokenOf(read(path)) !== token)
     .map(([path]) => path)
   const valid = !missing.length && !unknown.length && !stale.length
-  console.log(JSON.stringify({ protocol: 'create-sdd-reading-receipt/v1', sdd, valid, contract: contract !== null, required, missing, stale, unknown }))
+  return { sdd, valid, contract: contract !== null, required, missing, stale, unknown }
+}
+
+async function check(sdd: string) {
+  const root = await evaluate(sdd)
+  // A program root is authored with every document of its tree; each node carries its own receipt.
+  const program = existsSync(sdd) ? rawProgram(readFileSync(sdd, 'utf8')) : null
+  const children = []
+  for (const node of Array.isArray(program?.nodes) ? program.nodes : []) {
+    if (typeof node?.sdd !== 'string') continue
+    const path = resolve(dirname(sdd), node.sdd)
+    if (path !== resolve(sdd)) children.push(await evaluate(path))
+  }
+  const valid = root.valid && children.every((child) => child.valid)
+  console.log(
+    JSON.stringify({
+      protocol: 'create-sdd-reading-receipt/v1',
+      ...root,
+      valid,
+      ...(program ? { children } : {})
+    })
+  )
   process.exit(valid ? 0 : 1)
 }
 

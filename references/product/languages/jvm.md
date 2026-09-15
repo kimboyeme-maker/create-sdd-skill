@@ -37,7 +37,7 @@ Load when in-scope packages are Java or Kotlin on the JVM (services, libraries, 
 
 ## Contract grounding probe
 
-Create a minimal Gradle or Maven project in a temporary directory with the exact coordinates, and compile a class that uses the APIs the SDD calls (`compileJava`, `compileKotlin` or `mvn compile`). Persist the command, exact versions, toolchain and an output excerpt in the SDD's evidence companion; a temporary directory may host the probe but is not the record.
+When a key decision depends on version, types or call shape and no applicable contract, documentation or existing consumer settles it, make one focused probe: create a minimal Gradle or Maven project in a temporary directory with the exact coordinates, and compile a class that uses the APIs the SDD calls (`compileJava`, `compileKotlin` or `mvn compile`). Compiling or type-checking is design evidence; running the scratch program to observe behavior is testing and follows the user's test authorization. Persist the command, exact versions, toolchain and an output excerpt in the SDD's evidence companion; a temporary directory may host the probe but is not the record.
 
 ## Anti-patterns
 
@@ -46,4 +46,4 @@ Create a minimal Gradle or Maven project in a temporary directory with the exact
 - A `common` module that every module depends on and that accumulates domain logic.
 - Tests that pass only against H2 for a PostgreSQL product.
 
-<!-- reading-receipt: 5efa8ce6 -->
+<!-- reading-receipt: 3da3e1d0 -->

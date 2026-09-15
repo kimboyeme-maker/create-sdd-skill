@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 /** Root of the create-sdd skill; scripts live one level below it. */
@@ -18,24 +17,30 @@ export function rawContract(text: string): Record<string, any> | null {
   }
 }
 
+/** The program index JSON of a multi-SDD root; null when absent or unparseable. */
+export function rawProgram(text: string): Record<string, any> | null {
+  const block =
+    /<!-- sdd-program:start -->[\s\S]*?```json\s*([\s\S]*?)```[\s\S]*?<!-- sdd-program:end -->/.exec(
+      text
+    )
+  try {
+    const value = block ? JSON.parse(block[1]!) : null
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : null
+  } catch {
+    return null
+  }
+}
+
 /**
- * Parse the SDD's contract with the sibling loop controller when it accepts the document, and
- * fall back to the raw JSON otherwise: a contract the loop rejects still declares the facts a
- * create-sdd check needs, so an invalid contract never silently narrows a check.
+ * The contract as written in the SDD. create-sdd never imports the delivery controller's code:
+ * the controller judges the contract through its own `validate` command, and a contract it would
+ * reject still declares the facts these checks need, so parsing the raw JSON never narrows a check.
  */
 export async function loadContract(
-  sdd: string,
-  text = readFileSync(sdd, 'utf8')
-): Promise<{ contract: Record<string, any> | null; loopAccepted: boolean }> {
-  const loopRoot = process.env.SDD_LOOP_ROOT ?? join(SKILL_ROOT, '..', 'sdd-loop-delivery')
-  try {
-    const { readContractDocument } = await import(
-      join(loopRoot, 'scripts/services/contract-document.ts')
-    )
-    return { contract: readContractDocument(sdd, text), loopAccepted: true }
-  } catch {
-    return { contract: rawContract(text), loopAccepted: false }
-  }
+  _sdd: string,
+  text: string
+): Promise<{ contract: Record<string, any> | null }> {
+  return { contract: rawContract(text) }
 }
 
 /**

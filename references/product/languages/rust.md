@@ -36,7 +36,7 @@ Load when in-scope packages are Rust crates. Follow the repository's existing wo
 
 ## Contract grounding probe
 
-Create a scratch crate in a temporary directory that depends on the exact versions, write the calls and types the SDD uses with exactly the features the design enables, and run `cargo check`. Persist the command, exact versions, toolchain and an output excerpt in the SDD's evidence companion; a temporary directory may host the probe but is not the record.
+When a key decision depends on version, types or call shape and no applicable contract, documentation or existing consumer settles it, make one focused probe: create a scratch crate in a temporary directory that depends on the exact versions, write the calls and types the SDD uses with exactly the features the design enables, and run `cargo check`. Compiling or type-checking is design evidence; running the scratch program to observe behavior is testing and follows the user's test authorization. Persist the command, exact versions, toolchain and an output excerpt in the SDD's evidence companion; a temporary directory may host the probe but is not the record.
 
 ## Anti-patterns
 
@@ -45,4 +45,4 @@ Create a scratch crate in a temporary directory that depends on the exact versio
 - `clone()` sprinkled to silence the borrow checker instead of redesigning ownership.
 - Features that change behavior of existing APIs.
 
-<!-- reading-receipt: 7afbfb3f -->
+<!-- reading-receipt: daf89895 -->

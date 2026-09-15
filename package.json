@@ -1,0 +1,19 @@
+{
+  "name": "create-sdd",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test tests",
+    "format:check": "oxfmt --config oxfmt.json --check scripts tests",
+    "format": "oxfmt --config oxfmt.json scripts tests",
+    "lint": "oxlint --config oxlint.json --deny-warnings scripts tests",
+    "typecheck": "tsc --noEmit",
+    "review:release": "bun scripts/review-release.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.2",
+    "oxfmt": "0.67.0",
+    "oxlint": "1.82.0",
+    "typescript": "7.0.2"
+  }
+}

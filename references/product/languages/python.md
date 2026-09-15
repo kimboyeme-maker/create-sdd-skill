@@ -36,7 +36,7 @@ Load when in-scope packages are Python. Follow the repository's project manager,
 
 ## Contract grounding probe
 
-Create a temporary virtual environment, install the exact versions, import the modules and call the signatures the SDD uses, and run the repository's type checker on the scratch file when the project uses one. Persist the command, exact versions, toolchain and an output excerpt in the SDD's evidence companion; a temporary directory may host the probe but is not the record.
+When a key decision depends on version, types or call shape and no applicable contract, documentation or existing consumer settles it, make one focused probe: create a temporary virtual environment, install the exact versions, import the modules and call the signatures the SDD uses, and run the repository's type checker on the scratch file when the project uses one. Compiling or type-checking is design evidence; running the scratch program to observe behavior is testing and follows the user's test authorization. Persist the command, exact versions, toolchain and an output excerpt in the SDD's evidence companion; a temporary directory may host the probe but is not the record.
 
 ## Anti-patterns
 
@@ -45,4 +45,4 @@ Create a temporary virtual environment, install the exact versions, import the m
 - Tests that pass only because of import path hacks instead of an installed package.
 - Mutable default arguments and module-level singletons holding connections.
 
-<!-- reading-receipt: ddda1dc8 -->
+<!-- reading-receipt: 268ffda2 -->

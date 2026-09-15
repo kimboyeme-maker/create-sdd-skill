@@ -1,0 +1,9 @@
+{
+  "plugins": ["typescript", "oxc"],
+  "categories": { "correctness": "error" },
+  "rules": {
+    "no-debugger": "error",
+    "no-eval": "error"
+  },
+  "ignorePatterns": ["**/node_modules/**"]
+}

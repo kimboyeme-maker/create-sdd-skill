@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve } from 'node:path'
-import { loadContract, sectionText } from './lib/contract-source.ts'
+import { loadContract, rawProgram, sectionText } from './lib/contract-source.ts'
 
 /**
  * Read-only repository facts for an SDD. Contracts declare what they touch; this check compares
@@ -18,11 +18,31 @@ export type IIssue = { readonly code: string; readonly detail: string }
 
 /** Directories that hold dependencies, VCS data or build output, never product sources. */
 const SKIP_DIRS = new Set([
-  'node_modules', '.git', 'dist', 'build', 'target', '.venv', 'venv', '__pycache__',
-  '.react-router', 'coverage', 'out', '.gradle', '.next', '.turbo'
+  'node_modules',
+  '.git',
+  'dist',
+  'build',
+  'target',
+  '.venv',
+  'venv',
+  '__pycache__',
+  '.react-router',
+  'coverage',
+  'out',
+  '.gradle',
+  '.next',
+  '.turbo'
 ])
-/** Manifest paths explicitly declared as dependency write points trigger manager checks. */
-const MANIFESTS = ['package.json', 'Cargo.toml', 'go.mod', 'pyproject.toml', 'build.gradle', 'build.gradle.kts', 'pom.xml']
+/** A manifest path declared as a write point, or edited in a `BZ` step section, triggers manager checks. */
+const MANIFESTS = [
+  'package.json',
+  'Cargo.toml',
+  'go.mod',
+  'pyproject.toml',
+  'build.gradle',
+  'build.gradle.kts',
+  'pom.xml'
+]
 /** Largest file scanned for migration candidates; larger files are reported, not read. */
 const SCAN_LIMIT_BYTES = 1_000_000
 
@@ -72,7 +92,9 @@ function globMatch(pattern: string, path: string): boolean {
   const clean = pattern.replace(/^\.\//, '').replace(/\/$/, '')
   const expression = clean
     .split('/')
-    .map((part) => (part === '**' ? '.*' : part.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*')))
+    .map((part) =>
+      part === '**' ? '.*' : part.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*')
+    )
     .join('/')
   return new RegExp(`^${expression}$`).test(path)
 }
@@ -89,7 +111,8 @@ export function packageDirectories(root: string, files = walk(root)): Map<string
       try {
         identity = JSON.parse(text()).name
       } catch {}
-    } else if (name === 'Cargo.toml') identity = /\[package\][^[]*?\bname\s*=\s*"([^"]+)"/.exec(text())?.[1]
+    } else if (name === 'Cargo.toml')
+      identity = /\[package\][^[]*?\bname\s*=\s*"([^"]+)"/.exec(text())?.[1]
     else if (name === 'go.mod') identity = /^module\s+(\S+)/m.exec(text())?.[1]
     else if (name === 'pyproject.toml')
       identity = /\[(?:project|tool\.poetry)\][^[]*?\bname\s*=\s*"([^"]+)"/.exec(text())?.[1]
@@ -113,10 +136,13 @@ export function toolchainPins(root: string): { tool: string; version: string; so
     try {
       const manifest = JSON.parse(read(join(root, file)))
       const manager = /^([\w-]+)@(.+)$/.exec(String(manifest.packageManager ?? ''))
-      if (manager) pins.push({ tool: manager[1]!, version: manager[2]!, source: `${file} packageManager` })
+      if (manager)
+        pins.push({ tool: manager[1]!, version: manager[2]!, source: `${file} packageManager` })
     } catch {}
   }
-  const rust = /channel\s*=\s*"([^"]+)"/.exec(read(join(root, 'rust-toolchain.toml')))?.[1] ?? read(join(root, 'rust-toolchain')).trim()
+  const rust =
+    /channel\s*=\s*"([^"]+)"/.exec(read(join(root, 'rust-toolchain.toml')))?.[1] ??
+    read(join(root, 'rust-toolchain')).trim()
   if (rust) pins.push({ tool: 'rust', version: rust, source: 'rust-toolchain' })
   const python = read(join(root, '.python-version')).trim()
   if (python) pins.push({ tool: 'python', version: python, source: '.python-version' })
@@ -133,7 +159,20 @@ export function toolchainPins(root: string): { tool: string; version: string; so
  */
 export function lockManagers(root: string, packageDir: string): string[] {
   const managers: string[] = []
-  const locks = ['pnpm-lock.yaml', 'bun.lock', 'bun.lockb', 'package-lock.json', 'yarn.lock', 'Cargo.lock', 'go.sum', 'go.work.sum', 'uv.lock', 'poetry.lock', 'Pipfile.lock', 'gradle.lockfile']
+  const locks = [
+    'pnpm-lock.yaml',
+    'bun.lock',
+    'bun.lockb',
+    'package-lock.json',
+    'yarn.lock',
+    'Cargo.lock',
+    'go.sum',
+    'go.work.sum',
+    'uv.lock',
+    'poetry.lock',
+    'Pipfile.lock',
+    'gradle.lockfile'
+  ]
   let dir = packageDir
   while (true) {
     const rel = relative(dir === '.' ? '' : dir, packageDir === '.' ? '' : packageDir) || '.'
@@ -149,7 +188,10 @@ export function lockManagers(root: string, packageDir: string): string[] {
       let members: string[] = []
       if (lock === 'pnpm-lock.yaml') {
         const importers = /^importers:\n([\s\S]*?)(?:^\S|$(?![\s\S]))/m.exec(text)?.[1] ?? ''
-        if (new RegExp(`^  ${rel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:\\s*$`, 'm').test(importers)) managers.push(path)
+        if (
+          new RegExp(`^  ${rel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:\\s*$`, 'm').test(importers)
+        )
+          managers.push(path)
         continue
       }
       if (lock === 'bun.lock' && text.includes(`"${rel}": {`)) {
@@ -166,13 +208,21 @@ export function lockManagers(root: string, packageDir: string): string[] {
           members = Array.isArray(workspaces) ? workspaces : (workspaces?.packages ?? [])
         } catch {}
       } else if (lock === 'Cargo.lock') {
-        const block = /\[workspace\][\s\S]*?members\s*=\s*\[([^\]]*)\]/.exec(read(join(root, dir, 'Cargo.toml')))?.[1] ?? ''
+        const block =
+          /\[workspace\][\s\S]*?members\s*=\s*\[([^\]]*)\]/.exec(
+            read(join(root, dir, 'Cargo.toml'))
+          )?.[1] ?? ''
         members = [...block.matchAll(/"([^"]+)"/g)].map((match) => match[1]!)
       } else if (lock === 'uv.lock') {
-        const block = /\[tool\.uv\.workspace\][\s\S]*?members\s*=\s*\[([^\]]*)\]/.exec(read(join(root, dir, 'pyproject.toml')))?.[1] ?? ''
+        const block =
+          /\[tool\.uv\.workspace\][\s\S]*?members\s*=\s*\[([^\]]*)\]/.exec(
+            read(join(root, dir, 'pyproject.toml'))
+          )?.[1] ?? ''
         members = [...block.matchAll(/"([^"]+)"/g)].map((match) => match[1]!)
       } else if (lock === 'go.work.sum') {
-        members = [...read(join(root, dir, 'go.work')).matchAll(/^\s*(?:use\s+)?\.\/(\S+)\s*$/gm)].map((match) => match[1]!)
+        members = [
+          ...read(join(root, dir, 'go.work')).matchAll(/^\s*(?:use\s+)?\.\/(\S+)\s*$/gm)
+        ].map((match) => match[1]!)
       }
       if (members.some((pattern) => globMatch(pattern, rel))) managers.push(path)
     }
@@ -196,7 +246,9 @@ function runtimeStatements(contract: Item): string[] {
 export function apiSpecifiers(text: string): string[] {
   const section = sectionText(text, /New\/Changed API & Typing/)
   const specifiers = new Set<string>()
-  for (const block of section.matchAll(/```(?:ts|tsx|typescript|js|jsx|javascript)\s*\n([\s\S]*?)```/g))
+  for (const block of section.matchAll(
+    /```(?:ts|tsx|typescript|js|jsx|javascript)\s*\n([\s\S]*?)```/g
+  ))
     for (const match of block[1]!.matchAll(/(?:from\s+|import\s*\(\s*)['"]([^'"]+)['"]/g)) {
       const specifier = match[1]!
       if (!/^(\.|\/|node:|bun:|@\/|~)/.test(specifier)) specifiers.add(specifier)
@@ -218,16 +270,66 @@ function evidenceCorpus(sdd: string, text: string, contract: Item | null): strin
   return [sections, ...companions, ...challenges].join('\n')
 }
 
-/** Compare the SDD's declarations with repository facts. */
-export async function checkRepositoryFacts(sdd: string): Promise<{ valid: boolean; issues: IIssue[]; facts: Item }> {
+/** Where a split decision may come from; an author's own judgment is not one of them. */
+const SPLIT_SOURCES = ['USER_STATED', 'EXPLICIT_INSTRUCTION']
+
+/** A program root records who decided to split, and every execution SDD passes its own checks. */
+async function checkProgramFacts(
+  sdd: string,
+  program: Item,
+  repository?: string
+): Promise<{ valid: boolean; issues: IIssue[]; facts: Item }> {
+  const issues: IIssue[] = []
+  const decision = program.split_decision
+  if (
+    !SPLIT_SOURCES.includes(decision?.source) ||
+    typeof decision?.reference !== 'string' ||
+    !decision.reference.trim()
+  )
+    issues.push({ code: 'SPLIT_DECISION_UNRECORDED', detail: sdd })
+  const children: Item[] = []
+  for (const node of Array.isArray(program.nodes) ? program.nodes : []) {
+    if (node?.kind !== 'execution' || typeof node.sdd !== 'string') continue
+    const child = resolve(dirname(sdd), node.sdd)
+    if (!existsSync(child)) {
+      issues.push({ code: 'PROGRAM_CHILD_NOT_FOUND', detail: node.sdd })
+      continue
+    }
+    // A one-document program is its own execution SDD.
+    const result = await checkRepositoryFacts(child, repository, true)
+    children.push({ sdd: node.sdd, valid: result.valid, facts: result.facts })
+    issues.push(
+      ...result.issues.map((issue) => ({
+        code: issue.code,
+        detail: `${node.sdd}: ${issue.detail}`
+      }))
+    )
+  }
+  return { valid: issues.length === 0, issues, facts: { program: program.id ?? null, children } }
+}
+
+/** Compare the SDD's declarations with repository facts; `asLeaf` ignores a program block. */
+export async function checkRepositoryFacts(
+  sdd: string,
+  repository?: string,
+  asLeaf = false
+): Promise<{ valid: boolean; issues: IIssue[]; facts: Item }> {
   const text = readFileSync(sdd, 'utf8')
+  const program = asLeaf ? null : rawProgram(text)
+  if (program) return checkProgramFacts(sdd, program, repository)
   const { contract } = await loadContract(sdd, text)
-  const root = repositoryRoot(dirname(sdd))
+  const root = repository ? resolve(repository) : repositoryRoot(dirname(sdd))
   const files = walk(root)
   const directories = packageDirectories(root, files)
   const issues: IIssue[] = []
-  const facts: Item = { root, packages: [], toolchain: toolchainPins(root), unscannable_symbols: [] }
-  if (!contract) return { valid: false, issues: [{ code: 'CONTRACT_REQUIRED', detail: sdd }], facts }
+  const facts: Item = {
+    root,
+    packages: [],
+    toolchain: toolchainPins(root),
+    unscannable_symbols: []
+  }
+  if (!contract)
+    return { valid: false, issues: [{ code: 'CONTRACT_REQUIRED', detail: sdd }], facts }
   // Without a repository the facts below would be vacuous, so absence is a failure, not a pass.
   if (!existsSync(join(root, '.git')))
     return { valid: false, issues: [{ code: 'REPOSITORY_NOT_FOUND', detail: dirname(sdd) }], facts }
@@ -235,35 +337,60 @@ export async function checkRepositoryFacts(sdd: string): Promise<{ valid: boolea
   // Shared mechanisms: a dependency edit of an owned package declares every lockfile managing it.
   const owned = new Set<string>([
     ...(contract.ownership?.packages ?? []),
-    ...(contract.delivery_plan?.batches ?? []).flatMap((batch: Item) => batch?.modification_packages ?? [])
+    ...(contract.delivery_plan?.batches ?? []).flatMap(
+      (batch: Item) => batch?.modification_packages ?? []
+    )
   ])
-  const writes: Item[] = Array.isArray(contract.shared_mechanism_writes) ? contract.shared_mechanism_writes : []
-  const writePoints = writes.flatMap((write) => (Array.isArray(write?.write_points) ? write.write_points : []))
+  const writes: Item[] = Array.isArray(contract.shared_mechanism_writes)
+    ? contract.shared_mechanism_writes
+    : []
+  const writePoints = writes.flatMap((write) =>
+    Array.isArray(write?.write_points) ? write.write_points : []
+  )
+  // Step sections are structured design; other prose that merely mentions a manifest is not an edit.
+  const stepText = sectionText(text, /^BZ\d+\b/)
   for (const name of owned) {
     const dir = directories.get(name) ?? (existsSync(join(root, name)) ? name : undefined)
     if (!dir) continue
     const managers = lockManagers(root, dir)
     facts.packages.push({ package: name, dir, lock_managers: managers })
-    const edited = MANIFESTS.some((manifest) => writePoints.includes(dir === '.' ? manifest : `${dir}/${manifest}`))
+    const edited = MANIFESTS.some((manifest) => {
+      const path = dir === '.' ? manifest : `${dir}/${manifest}`
+      return writePoints.includes(path) || (dir !== '.' && stepText.includes(path))
+    })
     if (!edited) continue
     for (const lock of managers)
       if (!writePoints.some((point: unknown) => typeof point === 'string' && point.includes(lock)))
-        issues.push({ code: 'SHARED_MECHANISM_WRITE_POINT_UNDECLARED', detail: `${lock} manages ${dir}` })
+        issues.push({
+          code: 'SHARED_MECHANISM_WRITE_POINT_UNDECLARED',
+          detail: `${lock} manages ${dir}`
+        })
   }
   for (const point of writePoints) {
-    const path = typeof point === 'string' ? /^([\w.@/-]+\.(?:lock|lockb|ya?ml|json|toml|sum|lockfile))\b/.exec(point)?.[1] : undefined
-    if (path && !existsSync(join(root, path))) issues.push({ code: 'SHARED_MECHANISM_WRITE_POINT_NOT_FOUND', detail: path })
+    const path =
+      typeof point === 'string'
+        ? /^([\w.@/-]+\.(?:lock|lockb|ya?ml|json|toml|sum|lockfile))\b/.exec(point)?.[1]
+        : undefined
+    if (path && !existsSync(join(root, path)))
+      issues.push({ code: 'SHARED_MECHANISM_WRITE_POINT_NOT_FOUND', detail: path })
   }
 
   // Toolchain: acceptance must not run with a version that contradicts a repository pin.
-  const exceptions = new Set<string>(Array.isArray(contract.environment_exceptions) ? contract.environment_exceptions.map((item: Item) => String(item?.tool ?? item)) : [])
+  const exceptions = new Set<string>(
+    Array.isArray(contract.environment_exceptions)
+      ? contract.environment_exceptions.map((item: Item) => String(item?.tool ?? item))
+      : []
+  )
   for (const pin of facts.toolchain as { tool: string; version: string; source: string }[]) {
     if (!/^\d+\.\d+(\.\d+)?$/.test(pin.version) || exceptions.has(pin.tool)) continue
     const pattern = new RegExp(`\\b${pin.tool}(?:@|\\s+)v?(\\d+\\.\\d+(?:\\.\\d+)?)\\b`, 'gi')
     for (const statement of runtimeStatements(contract))
       for (const match of statement.matchAll(pattern))
         if (!pin.version.startsWith(match[1]!) && !match[1]!.startsWith(pin.version))
-          issues.push({ code: 'TOOLCHAIN_VERSION_CONFLICT', detail: `${pin.tool} ${match[1]} vs ${pin.version} pinned by ${pin.source}` })
+          issues.push({
+            code: 'TOOLCHAIN_VERSION_CONFLICT',
+            detail: `${pin.tool} ${match[1]} vs ${pin.version} pinned by ${pin.source}`
+          })
   }
 
   // Migration: every scan candidate of a legacy symbol has a disposition.
@@ -273,7 +400,11 @@ export async function checkRepositoryFacts(sdd: string): Promise<{ valid: boolea
       ...(migration.readers ?? []).map((reader: Item) => String(reader?.module)),
       ...(migration.dismissed_candidates ?? []).map((candidate: Item) => String(candidate?.module))
     ])
-    const scanned = [...new Set<string>((migration.inventory_roots ?? []).flatMap((base: string) => walk(root, base)))]
+    const scanned = [
+      ...new Set<string>(
+        (migration.inventory_roots ?? []).flatMap((base: string) => walk(root, base))
+      )
+    ]
     for (const surface of migration.legacy_surfaces ?? [])
       for (const symbol of surface?.symbols ?? []) {
         if (typeof symbol !== 'string' || !/^[\w$@./:[\]-]{3,}$/.test(symbol)) {
@@ -294,19 +425,29 @@ export async function checkRepositoryFacts(sdd: string): Promise<{ valid: boolea
 
   // Missing module-path matches are review candidates, not proof of missing or invalid interfaces.
   const corpus = evidenceCorpus(sdd, text, contract)
-  facts.grounding_candidates = apiSpecifiers(text).filter((specifier) => !corpus.includes(specifier))
+  facts.grounding_candidates = apiSpecifiers(text).filter(
+    (specifier) => !corpus.includes(specifier)
+  )
 
-  const unique = [...new Map(issues.map((issue) => [`${issue.code}|${issue.detail}`, issue])).values()]
+  const unique = [
+    ...new Map(issues.map((issue) => [`${issue.code}|${issue.detail}`, issue])).values()
+  ]
   return { valid: unique.length === 0, issues: unique, facts }
 }
 
 if (import.meta.main) {
-  const [command, flag, value] = Bun.argv.slice(2)
-  if (command === 'check' && flag === '--sdd' && value) {
-    const result = await checkRepositoryFacts(value)
+  const [command, flag, value, repoFlag, repository, ...extra] = Bun.argv.slice(2)
+  if (
+    command === 'check' &&
+    flag === '--sdd' &&
+    value &&
+    !extra.length &&
+    (repoFlag === undefined || (repoFlag === '--repository' && repository))
+  ) {
+    const result = await checkRepositoryFacts(value, repository)
     console.log(JSON.stringify({ protocol: 'create-sdd-repo-facts/v1', sdd: value, ...result }))
     process.exit(result.valid ? 0 : 1)
   }
-  console.error('usage: repo-facts.ts check --sdd <path>')
+  console.error('usage: repo-facts.ts check --sdd <path> [--repository <root>]')
   process.exit(2)
 }
