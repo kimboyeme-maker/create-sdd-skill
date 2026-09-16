@@ -515,8 +515,20 @@ export async function checkRepositoryFacts(
   //
   // A step whose Location is `Proposed` is deliberately not exempt. New code is exactly where an
   // invented helper hides, and the rehearsal's defect lived in such a step.
+  // Search the roots this work owns, not the whole repository. A same-named helper in an unrelated
+  // package would answer the question with somebody else's code and hide that this step has no
+  // implementation available to it; scanning everything also costs the most in the repositories
+  // where it helps least. With no resolvable owner the search is skipped rather than widened,
+  // because a candidate derived from the wrong scope is worse than no candidate.
+  const ownedRoots = [...owned]
+    .map((name) => directories.get(name) ?? (existsSync(join(root, name)) ? name : undefined))
+    .filter((dir): dir is string => dir !== undefined)
   const sourceCorpus = files
-    .filter((file) => /\.(ts|tsx|js|jsx|mjs|cjs|go|rs|py|java|kt|swift)$/.test(file))
+    .filter(
+      (file) =>
+        /\.(ts|tsx|js|jsx|mjs|cjs|go|rs|py|java|kt|swift)$/.test(file) &&
+        ownedRoots.some((dir) => dir === '.' || file.startsWith(`${dir}/`))
+    )
     .map((file) => read(join(root, file)))
     .join('\n')
   const definition = (name: string) =>
@@ -530,6 +542,7 @@ export async function checkRepositoryFacts(
     for (const step of Array.isArray(path?.steps) ? (path.steps as Item[]) : []) {
       const item = step as Item
       if (typeof item?.pseudocode !== 'string') continue
+      if (!ownedRoots.length) continue
       const called = new Set(
         [...item.pseudocode.matchAll(/(?:^|[^.\w])([a-z][A-Za-z0-9_]{3,})\s*\(/g)].map(
           (match) => match[1]!

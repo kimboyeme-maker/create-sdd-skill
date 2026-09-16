@@ -12,7 +12,7 @@ test('the repository answers the conditions an author must never be asked to dec
 
   const derived = derivedConditions(null, [], {
     extensions: ['.ts', '.go', '.md'],
-    typescriptConfig: true,
+    typescriptResponsibilityChange: true,
     existingContracts: 0
   })
   expect(derived.languages?.sort()).toEqual(['go', 'typescript'])
@@ -22,10 +22,12 @@ test('the repository answers the conditions an author must never be asked to dec
   expect(derivedConditions(null, [], { extensions: [], existingContracts: 2 }).firstContract).toBe(
     false
   )
-  // A Node package is not a TypeScript package: only sources and a configuration say that.
+  // A Node package is not a TypeScript package, and a TypeScript package is not a build-and-publish
+  // change: the toolchain guide follows responsibility moving, not a config file existing.
   const plainJs = derivedConditions(null, [], { extensions: ['.js', '.json'] })
   expect(plainJs.languages).toEqual(['javascript'])
   expect(plainJs.typescriptToolchain).toBe(false)
+  expect(derivedConditions(null, [], { extensions: ['.ts'] }).typescriptToolchain).toBe(false)
 })
 
 test('each derived condition routes the documents it exists to make reachable', () => {
@@ -37,7 +39,7 @@ test('each derived condition routes the documents it exists to make reachable', 
 
   const facts = derivedConditions(null, [], {
     extensions: ['.ts', '.go'],
-    typescriptConfig: true,
+    typescriptResponsibilityChange: true,
     existingContracts: 0
   })
   const routed = docs(facts)

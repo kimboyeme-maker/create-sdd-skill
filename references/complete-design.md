@@ -20,7 +20,7 @@ Use the fields **Before**, **After**, **Consumers**, **Migration**, **Intermedia
 
 ### New/Changed API & Typing
 
-Use **Signatures**, **Inputs and outputs**, **Errors**, **Examples**, **Exports and consumers**. Give exact native-language signatures, including generics, defaults, unions/error variants or ownership semantics when used. Include valid/invalid caller examples and public export/generated declaration changes. Name existing symbols with their inspected source paths; declare planned symbols in this section before calling them from pseudocode. Every external symbol is grounded: the evidence companion records the probe that exercised it at the exact version, and `repo-facts.ts check` rejects an imported specifier without evidence. Match existing Go, Rust, Python or other native conventions; do not force TypeScript.
+Use **Signatures**, **Inputs and outputs**, **Errors**, **Examples**, **Exports and consumers**. Give exact native-language signatures, including generics, defaults, unions/error variants or ownership semantics when used. Include valid/invalid caller examples and public export/generated declaration changes. Name existing symbols with their inspected source paths; declare planned symbols in this section before calling them from pseudocode. Ground an external symbol in proportion to what it decides: a capability the design depends on needs evidence that fits the claim, which may be an interface declaration, official material, an existing consumer in this repository, or an executed probe when nothing weaker settles it. `repo-facts.ts check` reports unmatched imported specifiers as grounding candidates for the author to answer; it does not reject them, and a candidate is not a finding. Match existing Go, Rust, Python or other native conventions; do not force TypeScript.
 
 ### New/Changed Entities & Tools
 
@@ -92,4 +92,4 @@ Validate proposed documents with the loop's `validate-draft` before anything is 
 
 Documents without `design_detail` are validated without section bindings; add it through a normal scoped amendment when the design is revised.
 
-<!-- reading-receipt: bc15ced1 -->
+<!-- reading-receipt: 2c0a4e3d -->

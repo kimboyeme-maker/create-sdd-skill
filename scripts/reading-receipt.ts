@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
-import { basename, dirname, extname, join, resolve } from 'node:path'
+import { dirname, extname, join, resolve } from 'node:path'
 import { loadContract, programBlock } from './lib/contract-source.ts'
 import { derivedConditions, requiredDocuments, type RepositoryFacts } from './lib/reading-policy.ts'
 import { packageDirectories, repositoryRoot, walk } from './repo-facts.ts'
@@ -37,14 +37,21 @@ const read = (path: string) => readFileSync(join(ROOT, path), 'utf8')
 function repositoryFacts(
   sdd: string,
   repository: string | undefined,
-  owned: readonly string[]
+  owned: readonly string[],
+  contract: { shared_mechanism_writes?: { target?: string; write_points?: string[] }[] } | null,
+  text: string
 ): RepositoryFacts {
+  // Locations the document's own steps declare they will write.
+  const stepLocations = text
+    .split(/\r?\n/)
+    .filter((line) => /^\*\*Location:\*\*/.test(line.trim()))
+    .flatMap((line) => line.match(/[\w.@-]+(?:\/[\w.@-]+)+/g) ?? [])
   try {
     const root = repository ? resolve(repository) : repositoryRoot(dirname(sdd))
     // `repositoryRoot` falls back to its starting directory when nothing above it is a repository.
     // Scanning that would describe a scratch directory as if it were the project, so an SDD written
     // outside any repository simply derives nothing.
-    if (!existsSync(join(root, '.git'))) return {}
+    if (!existsSync(join(root, '.git'))) return { unknown: `no repository above ${dirname(sdd)}` }
     const files = walk(root)
     const directories = packageDirectories(root, files)
     // Languages come from the roots this work owns, not from the whole repository: a monorepo's
@@ -62,9 +69,19 @@ function repositoryFacts(
           .filter(Boolean)
       )
     ]
-    const typescriptConfig = files.some(
-      (file) => basename(file).startsWith('tsconfig') && (inScope(file) || !file.includes('/'))
+    // The trigger is a change in build or publication responsibility, so it reads what this work
+    // says it will write, not what the repository happens to contain.
+    const BUILD_SURFACE =
+      /(^|\/)(tsconfig[^/]*\.json|package\.json|tsup\.config\.[^/]+|rollup\.config\.[^/]+|vite\.config\.[^/]+|turbo\.json)$/
+    const writeTargets = (contract?.shared_mechanism_writes ?? []).flatMap(
+      (entry: { target?: string; write_points?: string[] }) => [
+        ...(entry?.target ? [entry.target] : []),
+        ...(entry?.write_points ?? [])
+      ]
     )
+    const typescriptResponsibilityChange =
+      writeTargets.some((target: string) => BUILD_SURFACE.test(target)) ||
+      stepLocations.some((location) => BUILD_SURFACE.test(location))
     const self = resolve(sdd)
     const existingContracts = files.filter(
       (file) =>
@@ -72,9 +89,9 @@ function repositoryFacts(
         resolve(join(root, file)) !== self &&
         readFileSync(join(root, file), 'utf8').includes('<!-- sdd-contract:start -->')
     ).length
-    return { extensions, typescriptConfig, existingContracts }
-  } catch {
-    return {}
+    return { extensions, typescriptResponsibilityChange, existingContracts }
+  } catch (error) {
+    return { unknown: `repository facts unreadable: ${(error as Error).message}` }
   }
 }
 
@@ -115,16 +132,19 @@ export async function evaluate(sdd: string, repository?: string) {
   const { contract, error: contractError } = await loadContract(sdd, text)
   // Conditions come from the contract and the SDD's own directory, never from the author.
   const siblings = existsSync(dirname(sdd)) ? readdirSync(dirname(sdd)) : []
-  const conditions = derivedConditions(
-    contract,
-    siblings,
-    repositoryFacts(sdd, repository, [
+  const facts = repositoryFacts(
+    sdd,
+    repository,
+    [
       ...(contract?.ownership?.packages ?? []),
       ...(contract?.delivery_plan?.batches ?? []).flatMap(
         (batch: { modification_packages?: string[] }) => batch?.modification_packages ?? []
       )
-    ])
+    ],
+    contract,
+    text
   )
+  const conditions = derivedConditions(contract, siblings, facts)
   const required = requiredDocuments('HANDOFF', contract, conditions)
   const entries = receiptEntries(text)
   const missing = required.filter((path) => !entries.has(path))
@@ -140,6 +160,9 @@ export async function evaluate(sdd: string, repository?: string) {
     valid,
     contract: contract !== null,
     conditions,
+    // A condition the repository could not answer is reported as undetermined, never as absent:
+    // "no repository" is not the claim "nothing more to read".
+    ...(facts.unknown ? { conditions_undetermined: facts.unknown } : {}),
     ...(contractError ? { error: contractError } : {}),
     required,
     missing,

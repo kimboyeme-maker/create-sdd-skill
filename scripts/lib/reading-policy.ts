@@ -90,7 +90,7 @@ export function derivedConditions(
     // TypeScript configuration governs them; the author is never asked, because a self-declared
     // language is unverified, and a repository-wide scan would load guides for untouched packages.
     ...(languages.length ? { languages } : {}),
-    typescriptToolchain: repository.typescriptConfig === true,
+    typescriptToolchain: repository.typescriptResponsibilityChange === true,
     // The worked example is for an author writing their first contract in this repository, and one
     // contract elsewhere is what makes it no longer the first. An unreadable repository leaves this
     // absent: "no repository" is not the same claim as "no contract yet".
@@ -104,10 +104,21 @@ export function derivedConditions(
 export type RepositoryFacts = Readonly<{
   /** Source file extensions found under the roots this work owns, with the leading dot. */
   extensions?: readonly string[]
-  /** Whether a TypeScript configuration governs those roots. */
-  typescriptConfig?: boolean
+  /**
+   * Whether this work changes who builds or publishes TypeScript: a write to a compiler
+   * configuration, a package manifest or a build script inside the roots it owns. The mere presence
+   * of a `tsconfig.json` is not that change — it describes most TypeScript repositories, and using
+   * it as the trigger pulls an ordinary feature edit into a build-and-publish design obligation.
+   */
+  typescriptResponsibilityChange?: boolean
   /** Documents other than this one that already carry a contract block. */
   existingContracts?: number
+  /**
+   * Why the repository could not answer, when it could not. An absent fact and an unanswerable one
+   * are different claims: the first says a condition does not apply, the second says nobody knows.
+   * Reporting the reason keeps a failed lookup from quietly reading as "nothing more to read".
+   */
+  unknown?: string
 }>
 
 /**
