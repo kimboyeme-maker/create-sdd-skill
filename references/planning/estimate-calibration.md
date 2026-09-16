@@ -16,10 +16,24 @@ Load from [work decomposition](../work-decomposition.md) when earlier deliveries
 4. Record the basis in the Delivery & Verification section: raw estimate, ratio, sample count and the digest files used.
 5. A lane with a median ratio above 1.5 signals a decomposition problem (hidden prerequisites, broad write sets, slow test hosts). Name its cause in the design basis before scaling numbers.
 
+## Observed samples
+
+Not yet calibration. This ledger exists so the third sample can be recognised as the third, rather
+than the first one anybody remembered. Do not multiply an estimate by anything here until the rules
+in **Apply** are satisfied.
+
+| Date | Repository / lane | Batch | Estimated | Actual | Ratio | Note |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-09-16 | migai / logger | PC01 | 15 min | 6.5 min | 0.43 | One acceptance case in an existing host plus one document row. Below the five-minute floor for calibration use, and the batch was deliberately minimal. Recorded as `ESTIMATE_MISS` in `docs/logger/batch-overflow-coverage.sdd.md.retrospective.json`. |
+
+The single sample so far says only that a deliberately tiny batch was over-estimated by roughly
+half. One reading cannot distinguish a systematic bias from the fact that this batch was chosen to
+be trivial, which is exactly why one sample is not calibration.
+
 ## Anti-patterns
 
 - Copying an old plan's numbers without recomputing the work.
 - Calibrating from one delivery or from batches shorter than five minutes.
 - Inflating every estimate to the cap to avoid overruns; it destroys wave planning and credit budgets.
 
-<!-- reading-receipt: ffe57b88 -->
+<!-- reading-receipt: bafb55f7 -->

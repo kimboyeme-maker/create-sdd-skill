@@ -219,3 +219,31 @@ test('prose that only mentions a manifest does not trigger the lockfile check', 
     rmSync(root, { recursive: true, force: true })
   }
 })
+
+test('a step whose write location is outside every declared owner is reported', async () => {
+  const root = repository({
+    'packages/core/package.json': JSON.stringify({ name: '@demo/core' }),
+    'docs/contracts/error-codes.md': '# Registry\n'
+  })
+  const step =
+    '## BZ01 Write the code\n\n**Location:** `packages/core/src/entry.ts`\n\n## BZ02 Update the registry\n\n**Location:** `docs/contracts/error-codes.md`\n'
+  const narrow = join(root, 'narrow.sdd.md')
+  try {
+    // Only the package is declared, so BZ02 has no admissible write location.
+    writeFileSync(narrow, sdd(step, { ownership: { packages: ['@demo/core'] } }))
+    const result = await checkRepositoryFacts(narrow, root)
+    expect(result.issues).toContainEqual({
+      code: 'STEP_WRITE_OUTSIDE_AUTHORITY',
+      detail: 'docs/contracts/error-codes.md'
+    })
+
+    // Declaring the registry root as its own approved identity closes it.
+    writeFileSync(narrow, sdd(step, { ownership: { packages: ['@demo/core', 'docs/contracts'] } }))
+    const widened = await checkRepositoryFacts(narrow, root)
+    expect(widened.issues.filter((issue) => issue.code === 'STEP_WRITE_OUTSIDE_AUTHORITY')).toEqual(
+      []
+    )
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})

@@ -37,6 +37,24 @@ Load for every implementation SDD together with the platform and language guides
 
 Commands, tools and platform oracles live in each guide: [platforms](platforms.md), [mini program](platforms/mini-program.md), [native mobile](platforms/mobile-native.md), [Flutter](platforms/flutter.md), [HarmonyOS ArkTS](platforms/harmonyos-arkts.md), [desktop](platforms/desktop.md), [native SDK](platforms/native-sdk.md), [JVM](languages/jvm.md), [Rust](languages/rust.md), [Go](languages/go.md), [Python](languages/python.md), [Bun and Node](languages/bun-node.md), [core and adapters](architecture/core-adapters.md).
 
+## The method must be unable to pass on nothing
+
+A command's exit code answers "did the run fail?", never "was anything observed?". A name-filtered
+test run that matches no case, a suite whose files were all skipped, a linter given no input and a
+query returning an empty set all exit 0. An acceptance whose method can exit 0 without observing
+its claim is not a falsifier: deleting the case restores a green result, so the case cannot detect
+the loss of the coverage it exists to assert.
+
+Write the method so that absence fails. Pass the runner's own flag for it where one exists
+(`--passWithNoTests=false` in Vitest and Jest, `--suiteXmlFile` counts in others), or make the
+oracle assert the observed count rather than the exit status. State in the Oracle field what a zero
+observation looks like and why it cannot be mistaken for a pass.
+
+The decisive check needs no knowledge of the runner: an acceptance whose sensitivity declares
+`implementation_timing: IMPLEMENTATION_REQUIRED` must **fail** when run before its implementation
+exists. Run it then and record the result. A pre-implementation PASS means the oracle is insensitive
+and the case is decorative, whatever its assertions say.
+
 ## Sizing to the loop
 
 - One claim per case; a journey is split at its natural checkpoints when the whole run would exceed the timeout.
@@ -48,6 +66,7 @@ Commands, tools and platform oracles live in each guide: [platforms](platforms.m
 - "Manually verified on my phone" without device, OS, steps and observed result.
 - Coverage percentage as the acceptance of a behavior.
 - A performance claim without workload, environment and baseline.
+- A filtered test command whose runner treats "matched nothing" as success.
 - One end-to-end test standing in for every requirement.
 
-<!-- reading-receipt: 261f10cc -->
+<!-- reading-receipt: df5c7997 -->

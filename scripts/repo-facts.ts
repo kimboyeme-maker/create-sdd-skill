@@ -370,6 +370,24 @@ export async function checkRepositoryFacts(
           detail: `${lock} manages ${dir}`
         })
   }
+  // Every step writes somewhere, and admission compares modification scope against the declared
+  // owners by exact identifier. A location outside every declared root is admissible nowhere, so the
+  // author sees it here instead of discovering it when the controller refuses the admission.
+  const ownedDirs = [...owned]
+    .map((name) => directories.get(name) ?? (existsSync(join(root, name)) ? name : undefined))
+    .filter((dir): dir is string => dir !== undefined)
+  for (const line of stepText.split(/\r?\n/)) {
+    if (!/^\*\*Location:\*\*/.test(line.trim())) continue
+    for (const token of line.match(/[\w.@-]+(?:\/[\w.@-]+)+/g) ?? []) {
+      // Only a path the repository can actually place counts; prose that merely looks path-like
+      // (a package specifier, a URL fragment) has no existing parent directory here.
+      const parent = dirname(token)
+      if (!existsSync(join(root, token)) && !existsSync(join(root, parent))) continue
+      if (ownedDirs.some((dir) => dir === '.' || token === dir || token.startsWith(`${dir}/`)))
+        continue
+      issues.push({ code: 'STEP_WRITE_OUTSIDE_AUTHORITY', detail: token })
+    }
+  }
   for (const point of writePoints) {
     const path =
       typeof point === 'string'

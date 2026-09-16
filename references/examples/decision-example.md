@@ -1,8 +1,10 @@
-# Loop-ready example
+# Decision example
 
-A fixture-shaped illustration of every required section and contract field; it is not evidence for any real repository.
+A complete, minimal SDD for work whose route waits on a choice only the user may make, and whose acceptance is a universal absence claim. It exists because three contract shapes had no worked instance: a `requirement_type: "decision"` requirement with its `decision` metadata, a `claim.quantifier: "UNIVERSAL"` with its `universe`, and `inventory_authorities.RUNTIME_RESOLUTION` in its `REQUIRED` form.
 
-## Worked loop-ready SDD
+The values are a fixture. Read it beside the [loop-ready example](loop-ready-example.md) for the baseline contract, and [migration](../migration.md) for when a removal needs a universal case at all.
+
+## Worked decision SDD
 
 ````markdown
 # Input validation design
@@ -134,28 +136,29 @@ result = validated; return result
 
 **Observable result:** Valid input returns and publishes the supplied value; YS01 observes both paths
 
-# Example SDD
+# Decision example SDD
 
 ## 交付事项
 
 | ID | description | requirement_ids | acceptance_ids | batch_ids | gate |
 | --- | --- | --- | --- | --- | --- |
-| PC01 | 完成输入检查并保持原有行为 | XQ01 | YS01 | | |
-| BH01 | 关闭输入缺失时的错误分支 | XQ01 | YS01 | PC01 | |
-| MJ01 | 完成最终独立验收 | XQ01 | YS01 | PC01 | SHIP |
+| PC01 | Close the rejection decision and remove the legacy validator | JC01,XQ01 | YS01 | | |
+| BH01 | Close the legacy-absence scan over its declared universe | XQ01 | YS01 | PC01 | |
+| MJ01 | Complete final independent acceptance | JC01,XQ01 | YS01 | | SHIP |
 
 <!-- sdd-contract:start -->
 ```json
 {
   "protocol": "sdd-loop-delivery/v1",
   "revision": "SDD-v1",
-  "objective": "Land one observable feature",
+  "objective": "Remove the legacy validator after a user decides which rejection the product keeps",
   "implementation_logic": {
     "protocol": "implementation-logic/v1",
     "paths": [
       {
         "id": "LJ01",
         "requirement_ids": [
+          "JC01",
           "XQ01"
         ],
         "acceptance_ids": [
@@ -224,6 +227,7 @@ result = validated; return result
         "id": "PC01",
         "lane": "core",
         "requirement_ids": [
+          "JC01",
           "XQ01"
         ],
         "acceptance_ids": [
@@ -305,17 +309,43 @@ result = validated; return result
       ]
     },
     "RUNTIME_RESOLUTION": {
-      "applicability": "NOT_APPLICABLE",
-      "reason": "The acceptance does not depend on installed resolution"
+      "applicability": "REQUIRED",
+      "reason": "The absence claim quantifies over the installed graph, so the resolver output is part of the universe it inspects",
+      "source_fingerprint": "sha256 of packages/demo/src at the admitted commit",
+      "lockfile_fingerprint": "sha256 of the root lockfile",
+      "tool_runtime_version": "node 24.16.0",
+      "workspace_link_fingerprint": "sha256 of the resolved workspace link graph",
+      "resolver_mode": "frozen-lockfile"
     }
   },
   "requirements": [
     {
-      "id": "XQ01",
-      "title": "Main path",
+      "id": "JC01",
+      "title": "Which rejection the product keeps",
       "kind": "must-ship",
       "status": "pending",
+      "requirement_type": "decision",
       "dependencies": [],
+      "acceptance": [
+        "YS01"
+      ],
+      "decision": {
+        "authority": "user",
+        "question": "Does a negative value return Invalid, or throw a RangeError the caller must handle?",
+        "status": "resolved",
+        "resolution": "Return Invalid; the caller never branches on a thrown type",
+        "evidence": "user reply choosing the returned variant"
+      }
+    },
+    {
+      "id": "XQ01",
+      "title": "No legacy validator remains",
+      "kind": "must-ship",
+      "status": "pending",
+      "requirement_type": "delivery",
+      "dependencies": [
+        "JC01"
+      ],
       "acceptance": [
         "YS01"
       ]
@@ -325,16 +355,23 @@ result = validated; return result
     {
       "id": "YS01",
       "requirement_ids": [
+        "JC01",
         "XQ01"
       ],
-      "oracle": "returns the expected result",
+      "oracle": "no module under the declared universe imports or defines the legacy validator",
       "claim": {
         "id": "DL01",
-        "statement": "The supported runtime returns the expected result",
-        "dimension": "BEHAVIOR",
-        "quantifier": "SINGLE"
+        "statement": "The legacy validator is absent from every declared surface",
+        "dimension": "ARCHITECTURE",
+        "quantifier": "UNIVERSAL",
+        "universe": [
+          "packages/demo/src",
+          "packages/demo/package.json",
+          "the root lockfile",
+          "the emitted dist output"
+        ]
       },
-      "method": "pnpm --filter @demo/core test",
+      "method": "pnpm --filter @demo/core run check:legacy-absent",
       "environment": "supported runtime",
       "packages": [
         "@demo/core"
@@ -348,8 +385,12 @@ result = validated; return result
         "blocking_acceptance_ids": []
       },
       "oracle_sensitivity": {
-        "applicability": "NOT_APPLICABLE",
-        "reason": "Positive business behavior without a negative guard"
+        "applicability": "REQUIRED",
+        "fault_model": "One module keeps importing the legacy validator, so the absence claim is false while the scan still reports clean",
+        "perturbation_method": "Reintroduce the import in one module under the declared universe and rerun the case",
+        "restoration_method": "Remove that import and rerun the case",
+        "expected_flip": "PASS_TO_FAIL_TO_PASS",
+        "implementation_timing": "IMPLEMENTATION_REQUIRED"
       }
     }
   ],
@@ -414,81 +455,14 @@ result = validated; return result
 }
 ```
 <!-- sdd-contract:end -->
+
 ````
-
-The outer example uses a Markdown fence only for documentation. In the actual SDD, write the marker, JSON fence, and closing marker literally.
-
-## Worked program index (multi-SDD root)
-
-A program root carries this block between `<!-- sdd-program:start -->` and `<!-- sdd-program:end -->`, separate from any leaf `sdd-contract` block. The tree below is the smallest useful shape: one group root over two execution leaves, where `b` consumes the Asset `a` produces. Field rules are in [program split](../planning/program-split.md); this is what they look like assembled. The values are a fixture, not evidence for any repository, but the structure is the one `program-check` accepts.
-
-```json
-{
-  "protocol": "sdd-program/v1",
-  "id": "PG01",
-  "revision": "r1",
-  "nodes": [
-    {"id": "root", "parent": null, "kind": "group", "sdd": "root.sdd.md",
-     "estimate": {"design": [5, 10], "implementation": [0, 0], "integration": [0, 0], "verification": [0, 0], "conditional_verification": [0, 0], "basis": "group coordination only", "waiting": "none"}},
-    {"id": "a", "parent": "root", "kind": "execution", "sdd": "a.sdd.md",
-     "estimate": {"design": [5, 10], "implementation": [30, 45], "integration": [0, 0], "verification": [30, 45], "conditional_verification": [0, 0], "basis": "one batch in one package", "waiting": "none"}},
-    {"id": "b", "parent": "root", "kind": "execution", "sdd": "b.sdd.md",
-     "estimate": {"design": [5, 10], "implementation": [30, 45], "integration": [0, 0], "verification": [30, 45], "conditional_verification": [0, 0], "basis": "one batch in one package", "waiting": "a's commit"}}
-  ],
-  "metas": [
-    {"id": "EN01", "kind": "Entry", "owner": "root", "members": ["MA", "MB"], "requires": [],
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "root", "acceptance_ids": [], "method": "composition of both deliveries", "pass_condition": "both Bundles released"}}},
-
-    {"id": "MA", "kind": "Module", "owner": "a", "members": [], "requires": [], "source_id": "XQ01",
-     "origin": {"document": "a.sdd.md", "requirement_id": "XQ01"},
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "CA", "kind": "Chunk", "owner": "a", "members": ["MA"], "requires": [], "source_id": "BT01",
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "BA", "kind": "Bundle", "owner": "a", "members": ["CA"], "requires": [], "reads": [],
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "AA", "kind": "Asset", "owner": "a", "members": [], "requires": [], "path": "packages/a/value.ts",
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-
-    {"id": "MB", "kind": "Module", "owner": "b", "members": [], "requires": [], "source_id": "XQ01",
-     "origin": {"document": "b.sdd.md", "requirement_id": "XQ01"},
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "CB", "kind": "Chunk", "owner": "b", "members": ["MB"], "requires": [], "source_id": "BT01",
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "BB", "kind": "Bundle", "owner": "b", "members": ["CB"], "requires": ["AA"], "reads": [],
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "AB", "kind": "Asset", "owner": "b", "members": [], "requires": [], "path": "packages/b/value.ts",
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}}
-  ],
-  "execution": {"max_parallel": 2, "total_test_seconds": 200, "base_ref": "HEAD", "allocations": {"BA": 150, "BB": 50}},
-  "split_decision": {"source": "USER_STATED", "reference": "the user's reply choosing to split"}
-}
-```
 
 Reading it back:
 
-- **nodes** carry the tree. The root is `parent: null` and points at the total document itself; every other node names one parent. A group node's `implementation`, `integration` and `verification` ranges are zero — coordination is its only work. Each `estimate` holds five `[min, max]` minute ranges plus `basis` and `waiting`; `waiting` is separate from active work, so `b` records that it waits for `a`'s commit.
-- **metas** are five kinds, not five document levels. `MA`/`MB` are Modules, one per requirement, each binding its original document and requirement through `origin`. `CA`/`CB` are Chunks naming a `delivery_plan` batch through `source_id`. `BA`/`BB` are Bundles, one per execution SDD, and a Bundle's `requires` lists the Asset IDs it consumes — `BB` requires `AA`, which is what orders the waves. `AA`/`AB` are Assets naming a delivered repository-relative path.
-- **validators** appear on every Meta: `definition` is always `program-structure/v1`, and `implementation` names the owning node, the acceptance it rests on, and a `method`/`pass_condition` that explain the claim. Those two strings are explanation, never execution evidence.
-- **execution** proposes limits: `max_parallel`, the shared `total_test_seconds`, the `base_ref` children branch from, and `allocations` mapping every Bundle to its lifetime test seconds, summing to at most the total. A proposal is not the user's consent.
-- **split_decision** must cite a real user statement. `USER_STATED` needs the reply that answered the split question; `EXPLICIT_INSTRUCTION` needs the request that asked for the split. An author's own judgment is not a source, and `repo-facts.ts check` on the root reports `SPLIT_DECISION_UNRECORDED` without one.
+- **A decision is a requirement**, not a note. `JC01` uses `requirement_type: "decision"` and carries `authority`, `question`, `status` and — once `resolved` — `resolution` and `evidence`. Requirements that cannot start before it name it in their `dependencies`, which is how the graph records that the route waited.
+- **`claim.quantifier: "UNIVERSAL"` requires `claim.universe`**, a non-empty list naming the closed set the case inspects. A `SINGLE` claim must leave it absent. Declare the universe by the dimensions the oracle can actually observe: source, manifests, the lock graph, the installed graph, emitted output. A source scan cannot prove lock-graph absence, so a universe that names one must be inspected by a method that reads it.
+- **A universal absence claim declares `oracle_sensitivity`.** The fault model reintroduces exactly one member of the universe; if the case still passes, the scan does not observe what the claim says it does.
+- **`RUNTIME_RESOLUTION` in the `REQUIRED` form needs all five fingerprints — and still needs `reason`.** The `reason` field is checked whichever applicability is declared, so a `REQUIRED` block that omits it is rejected with `CONTRACT_RUNTIME_RESOLUTION_INVALID` exactly like a malformed `NOT_APPLICABLE` one. An installed resolver never proves source closure, which is why the two inventories stay separate.
 
-`bun <loop-skill-root>/scripts/main.ts program-check --program <absolute-root-SDD>` accepts this shape and returns the fingerprint, total and scheduled minutes, the waves (`BA` before `BB`, from the Asset edge) and the execution task count. It checks structure only: it runs no acceptance and replaces no leaf gate.
-
-## Guarded acceptance: the `REQUIRED` branch
-
-`YS01` above is a positive business path, so its `oracle_sensitivity` is `NOT_APPLICABLE` with a reason. A case that observes a guard takes the other branch instead; these are its exact fields:
-
-```json
-"oracle_sensitivity": {
-  "applicability": "REQUIRED",
-  "fault_model": "The pre-validation loop is removed, so a replay containing one read-only source writes the earlier writable sources before rejecting",
-  "perturbation_method": "Delete the validation loop that precedes the apply loop in BZ04 and rerun the case",
-  "restoration_method": "Reinstate the validation loop ahead of the first apply call and rerun the case",
-  "expected_flip": "PASS_TO_FAIL_TO_PASS",
-  "implementation_timing": "IMPLEMENTATION_REQUIRED"
-}
-```
-
-`applicability` is `REQUIRED` or `NOT_APPLICABLE`; no other value is accepted. `NOT_APPLICABLE` carries `reason` and nothing else. `REQUIRED` carries all five fields above, `expected_flip` is always the literal `PASS_TO_FAIL_TO_PASS`, and `implementation_timing` is `IMPLEMENTATION_REQUIRED` for a guard this delivery still has to build or `DESIGN_PROVEN` for one already probed in an isolated copy — `DESIGN_PROVEN` additionally requires a non-empty `evidence` array naming where that probe is recorded.
-
-<!-- reading-receipt: 71a1e5cb -->
+<!-- reading-receipt: 2d277e24 -->

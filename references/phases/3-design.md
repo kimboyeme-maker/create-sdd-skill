@@ -14,7 +14,7 @@ ID | description | Subject/invariant | Authoritative owner | Delegates/derived v
 
 Name the first column `ID`, not `Semantic ID`: only a column named exactly `ID` makes the row an identifier definition, so any other spelling silently exempts the ledger from ID uniqueness and prefix checks. Its IDs use a two-letter prefix outside the controller's defaults, registered in `presentation.prefixes` before the first row ([document presentation](../document-presentation.md)); `SDD_ID_OR_PREFIX_INVALID` names an unregistered one.
 
-A new helper or primitive needs targeted negative evidence that no compatible canonical owner exists. An unresolved competing owner keeps the SDD `in-review`. Protected artifacts close their custody chain with [artifacts and dependencies](../design/artifacts-and-dependencies.md).
+Every step's `**Location:**` must sit inside a root the contract declares in `ownership.packages`; the comparison at admission is by exact identifier, so a second root (a registry, a shared document, a sibling package) is declared as its own entry or that step can never be dispatched. A new helper or primitive needs targeted negative evidence that no compatible canonical owner exists. An unresolved competing owner keeps the SDD `in-review`. Protected artifacts close their custody chain with [artifacts and dependencies](../design/artifacts-and-dependencies.md).
 
 ## Status, IDs and derivable batches
 
@@ -22,7 +22,7 @@ A new helper or primitive needs targeted negative evidence that no compatible ca
 - Follow the repository ID scheme, otherwise [document presentation](../document-presentation.md); preserve existing IDs and record aliases on merge.
 - Each delivery batch must be derivable into one execution packet: one observable outcome, requirement and acceptance IDs, prerequisites, causal scope, write packages and stop conditions. Keep runtime owner, status, progress, blockers and assignment out of the SDD.
 - A file may receive several ordered operations from several requirements or batches. That is valid when dependencies order them, one semantic owner remains, and the final state is coherent; reject only unordered incompatible writes, competing owners, contradictory final states or orphan operations.
-- A Must-Ship authority choice uses `requirement_type: "decision"` with `decision` metadata (authority, question, `pending | resolved`, and resolution plus evidence when resolved); dependent requirements list its ID.
+- A Must-Ship authority choice uses `requirement_type: "decision"` with `decision` metadata (authority, question, `pending | resolved`, and resolution plus evidence when resolved); dependent requirements list its ID. `validate` enforces the shape: a missing field is `CONTRACT_DECISION_METADATA_REQUIRED`, any status outside the two values is `CONTRACT_DECISION_STATUS_INVALID`, and a `resolved` decision without its resolution and evidence is `CONTRACT_DECISION_RESOLUTION_REQUIRED`. A worked instance is in the [decision example](../examples/decision-example.md).
 - Execution-role feasibility (generator, signer, installer or verifier assignment, ephemeral key rotation, bounded local reinstall inside the approved artifact envelope) belongs to the design and Coordinator, not the user, unless it independently crosses an authority boundary.
 
 ## Canonical design content
@@ -67,4 +67,4 @@ Revise an existing SDD in place as a delta. Preserve stable IDs, accepted decisi
 - [ ] Abstractions own invariants; the target tree or subtree follows owners, exports and dependency direction.
 - [ ] An incremental revision preserved IDs, decisions and routing, and changed only the requested or causally required delta.
 
-<!-- reading-receipt: 809de355 -->
+<!-- reading-receipt: 83c2ef33 -->

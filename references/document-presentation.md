@@ -35,7 +35,7 @@ New executable SDDs add `"document_policy": "sdd-document/v1"` and a presentatio
 
 Index every batch, closure and gate definition. Child bindings must fit their batch. A row bound to `batch_ids` may only reference requirements and acceptance inside each bound batch, so a gate spanning several batches (such as the final `SHIP` row) leaves `batch_ids` empty; the `SHIP` rows together list every Must-Ship acceptance. Link cells hold IDs only; explanations such as "none" belong in `description`. A `batch` row always leaves `batch_ids` empty: batch order is `delivery_plan.depends_on`, and repeating it here is a second graph (`SDD_PRESENTATION_SECOND_GRAPH_FORBIDDEN`, which names the offending row ID). An optional index `description` must equal the table cell exactly; prefer omitting it. Executable rows reference existing requirements and acceptance. `gate: SHIP` denotes the final gate. A missing binding reads "待核实", never a fabricated success. Batch IDs in this table are the same IDs used by `delivery_plan.batches`.
 
-Validate new loop-ready documents with `validate --sdd <SDD> --document-policy current --design-policy current`. `document-check --sdd <SDD>` checks numbering, tables and index only and never claims loop readiness.
+Validate new loop-ready documents with `validate --sdd <SDD> --document-policy current --design-policy current`. The flag is load-bearing, not decoration: it selects how strictly the document is read. Under it a new executable document must declare `document_policy` and carry a `SHIP` row covering every Must-Ship acceptance; without it an existing document that never opted into the policy stays readable, which is how execution and status read it. `document-check --sdd <SDD>` checks numbering, tables and index only and never claims loop readiness.
 
 ## Compatibility and reporting
 
@@ -43,4 +43,4 @@ Existing SDDs keep their IDs, references and signed history; do not adopt the ne
 
 Progress is reported from the controller's `status` projection: batch overview first, then current closure and gate items, with stages `PENDING`, `ACTIVE`, `AWAITING_VERIFICATION`, `REWORK`, `DONE`, `UNKNOWN`. `DONE` requires authenticated acceptance and requirement evidence; a finished agent or implementation is not enough. Pipeline incidents, pause and waiting-user states are shown separately from product blockers.
 
-<!-- reading-receipt: 7f7d99ab -->
+<!-- reading-receipt: 61ac8fce -->

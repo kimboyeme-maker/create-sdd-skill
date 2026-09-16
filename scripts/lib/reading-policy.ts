@@ -14,6 +14,9 @@ export type ReadingConditions = {
   firstContract?: boolean
 }
 type ReadingContract = {
+  requirements?: { requirement_type?: unknown }[]
+  lineage?: { mode?: unknown }
+  architecture?: { protocol?: unknown }
   experience_contract?: unknown
   product_archetype?: unknown
   delivery_platforms?: string[]
@@ -58,6 +61,26 @@ const LANGUAGES: Record<string, string> = {
   bun: 'bun-node',
   node: 'bun-node'
 }
+/**
+ * Conditions an author never declares. They are read off the contract and the SDD's own directory,
+ * because a self-declared condition would be exactly the kind of unverified assertion this skill
+ * refuses elsewhere. A condition that cannot be derived here stays absent rather than guessed.
+ */
+export function derivedConditions(
+  contract: ReadingContract | null,
+  siblings: readonly string[] = []
+): ReadingConditions {
+  const requirements = Array.isArray(contract?.requirements) ? contract.requirements : []
+  return {
+    authority: requirements.some((item) => item?.requirement_type === 'decision'),
+    continuation: contract?.lineage?.mode === 'continuation',
+    multipleSurfaces:
+      contract?.architecture?.protocol === 'core-adapters/v1' ||
+      (contract?.delivery_platforms?.length ?? 0) > 1,
+    retrospectives: siblings.some((name) => name.endsWith('.retrospective.json'))
+  }
+}
+
 /** Cumulative requirements grow with discovered facts; author-supplied facts cannot unset start conditions. */
 export function requiredDocuments(
   phase: Phase,
@@ -78,13 +101,19 @@ export function requiredDocuments(
     const guide = LANGUAGES[language.toLowerCase()]
     if (guide) docs.push(`product/languages/${guide}.md`)
   }
-  add(0, conditions.authority, 'design/decision-authority.md')
+  add(0, conditions.authority, 'design/decision-authority.md', 'examples/decision-example.md')
   add(
     0,
     conditions.artifacts || contract?.shared_mechanism_writes?.length,
-    'design/artifacts-and-dependencies.md'
+    'design/artifacts-and-dependencies.md',
+    'examples/shared-mechanism-example.md'
   )
-  add(1, conditions.continuation, 'design/continuation-lineage.md')
+  add(
+    1,
+    conditions.continuation,
+    'design/continuation-lineage.md',
+    'examples/continuation-example.md'
+  )
   add(1, contract?.migration_applicability === 'REQUIRED', 'migration.md')
   add(2, conditions.typescriptToolchain, 'design/typescript-toolchain.md')
   add(2, conditions.multipleSurfaces, 'product/architecture/core-adapters.md')

@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 import { createHash } from 'node:crypto'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { loadContract, programBlock } from './lib/contract-source.ts'
-import { requiredDocuments } from './lib/reading-policy.ts'
+import { derivedConditions, requiredDocuments } from './lib/reading-policy.ts'
 
 /**
  * Reading receipts make create-sdd's document pointers enforceable without inlining them.
@@ -46,7 +46,7 @@ export function receiptEntries(text: string): Map<string, string> {
   return entries
 }
 
-async function evaluate(sdd: string) {
+export async function evaluate(sdd: string) {
   if (!existsSync(sdd))
     return {
       sdd,
@@ -61,7 +61,10 @@ async function evaluate(sdd: string) {
   const text = readFileSync(sdd, 'utf8')
   // An invalid contract still declares which documents were required, so it never shrinks the receipt.
   const { contract, error: contractError } = await loadContract(sdd, text)
-  const required = requiredDocuments('HANDOFF', contract)
+  // Conditions come from the contract and the SDD's own directory, never from the author.
+  const siblings = existsSync(dirname(sdd)) ? readdirSync(dirname(sdd)) : []
+  const conditions = derivedConditions(contract, siblings)
+  const required = requiredDocuments('HANDOFF', contract, conditions)
   const entries = receiptEntries(text)
   const missing = required.filter((path) => !entries.has(path))
   const unknown = [...entries.keys()].filter((path) => !existsSync(join(ROOT, path)))
@@ -75,6 +78,7 @@ async function evaluate(sdd: string) {
     sdd,
     valid,
     contract: contract !== null,
+    conditions,
     ...(contractError ? { error: contractError } : {}),
     required,
     missing,

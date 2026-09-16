@@ -61,7 +61,8 @@ Derive `ownership.packages` from repository manifests (Node `package.json` name,
 - presentation IDs, content tables and descriptions;
 - `delivery_plan`: batch size, test budgets, requirement and acceptance coverage, write conflicts, requirement order and shard partition;
 - `product_archetype`, `delivery_platforms`, `experience_contract` and `architecture`;
-- `inventory_authorities`, deferral metadata, behavior-named owning tests, and each acceptance case's atomic execution fields and oracle sensitivity.
+- `inventory_authorities`, deferral metadata, behavior-named owning tests, and each acceptance case's atomic execution fields and oracle sensitivity;
+- acceptance shape: every case carries a unique `id`, a non-empty `oracle`, `method`, `environment`, `requirement_ids` and `packages`, and the requirement→acceptance and acceptance→requirement links must name each other exactly (`CONTRACT_ACCEPTANCE_INVALID`, `CONTRACT_ACCEPTANCE_REQUIREMENT_LINK_MISMATCH`). A case reachable from one direction only is rejected: matching counts do not excuse an acceptance attached to the wrong requirement.
 - implementation-graph truth (producer bindings, path cycles, producers landing before their consumers and acceptance), a SHIP gate covering every Must-Ship acceptance, consumed-artifact producers, typed references that must exist, shared-mechanism write scope, migration inventory shape, and a `CONVERGED` claim that disagrees with its own fields.
 
 Coordinator admission rejects the rest before any lease: the design convergence receipt, lineage and inherited obligations, Must-Ship decision closure, early falsifier evidence, route and responsibility, verification scope and claim coverage, migration reader closure, semantic ownership and artifact custody. Run `validate` until clean and never weaken the design to satisfy a code.
@@ -72,6 +73,7 @@ Coordinator admission rejects the rest before any lease: the design convergence 
 
 - every lockfile or workspace that manages a package whose manifest the SDD edits appears in `shared_mechanism_writes: [{"mechanism", "target", "managers", "write_points", "owners"}]`, and each owner is inside modification authority;
 - acceptance runtimes agree with repository version pins unless `environment_exceptions: [{"tool", "reason"}]` names the tool;
+- every indexed step's `**Location:**` names a path inside a declared owner, reported as `STEP_WRITE_OUTSIDE_AUTHORITY` otherwise. Admission compares `modification_packages` against `ownership.packages` by exact identifier, so a location under no declared root is admissible nowhere; declare that root by its own approved identity (a package name, or an exact repository-relative root such as `docs/contracts`) rather than expecting one root to cover another;
 - migration symbols are literal patterns and every scan candidate is disposed;
 - external API imports have persisted grounding evidence.
 
@@ -81,7 +83,7 @@ It reports candidates and inconsistencies and never proves exhaustiveness; an un
 
 The exit gates of phases 1–4 and the [work decomposition](work-decomposition.md) rules apply unchanged. A loop-ready handoff additionally holds these:
 
-- `design_convergence` is `CONVERGED` with every unresolved list empty, `stable_after_last_normative_change: true`, and exactly one latest PASS per `SYNTHESIS`, `ADVERSARIAL` and `ACCEPTANCE_TOPOLOGY` lens performed after the last normative change. `validate` rejects a `CONVERGED` claim that disagrees with these fields, and admission rejects a contract whose recorded status is not `CONVERGED`. Classify before claiming it: an uncertainty the design must remove blocks convergence; acceptance evidence only implementation can produce is not a design unknown; Must-Ship work of a later batch remains a requirement, batch and dependency and closes its execution details at its own slice admission.
+- `design_convergence` is `CONVERGED` with every unresolved list empty, `stable_after_last_normative_change: true`, and the latest entry for each of `SYNTHESIS`, `ADVERSARIAL` and `ACCEPTANCE_TOPOLOGY` is a PASS with evidence. Earlier entries stay as history — a lens that failed and was rerun converges on its rerun — but a PASS followed by a later FAIL for the same lens is stale and the claim is rejected. `validate` rejects a `CONVERGED` claim that disagrees with these fields, and admission rejects a contract whose recorded status is not `CONVERGED`. Classify before claiming it: an uncertainty the design must remove blocks convergence; acceptance evidence only implementation can produce is not a design unknown; Must-Ship work of a later batch remains a requirement, batch and dependency and closes its execution details at its own slice admission.
 - `lineage.mode` is `fresh` (current evidence, no predecessors) or `continuation`. Only a contract whose unfinished delivery this SDD continues is a predecessor, with relation `delivery-predecessor`; shipped authorities, reusable capability sources and overlapping projects belong in `lineage.basis`, Linked SDDs or Agent Context. Lineage is immutable after initialization.
 - A continuation carries every inherited obligation with its own acceptance IDs, observed packages, method, environment and oracle; a `RESOLVED` disposition reruns the original failed method, and removing a package from the successor is not externality evidence.
 - `must-ship` means the loop cannot SHIP without independent Architect verification. A deferred requirement records owner, trigger, impact and `approved_by`, and a Must-Ship deferral needs `approved_by: "user"`. `non-goal` entries may omit acceptance; unfinished work is not a non-goal. A non-goal that removes or visibly degrades an outcome the user discussed records its authority basis (a `USER_STATED` fact or a resolved decision requirement); author trade-offs that leave user outcomes intact need no approval.
@@ -103,7 +105,10 @@ Product closure and execution-control compatibility are separate gates. Resolve 
   "document_presentation": "sdd-presentation/v1",
   "preparation": "readonly-grant/v1",
   "preparation_window": "contract-admitted/v1",
-  "prepared_checks": ["baseline_check", "packet_check"],
+  "prepared_checks": [
+    "baseline_check",
+    "packet_check"
+  ],
   "packet_modification_packages": true,
   "delivery_plan": "delivery-plan/v1",
   "bootstrap_helper": "three-process/v1",
@@ -135,4 +140,4 @@ A single SDD's report ends with one copyable launch instruction naming the docum
 
 Judge readiness from the evidence in hand, in both directions. A prerequisite without a producer, a failure path left to a future Operator or an unexecuted decisive probe blocks readiness. When every prerequisite has an evidenced producer and the decisive probes and branches have been executed, the route is ready: do not invent defects, request permissions the contract already grants, or open a successor to appear careful.
 
-<!-- reading-receipt: 97d0e0c5 -->
+<!-- reading-receipt: f5b90ecd -->

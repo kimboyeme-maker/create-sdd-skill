@@ -1,8 +1,10 @@
-# Loop-ready example
+# Shared mechanism example
 
-A fixture-shaped illustration of every required section and contract field; it is not evidence for any real repository.
+A complete, minimal SDD for work that edits a dependency manifest and whose two acceptance cases share one install directory. It exists because four contract shapes had no worked instance: `shared_mechanism_writes`, `execution.isolation: "SHARED_SAFE"` with `failure_containment`, `execution.consumes`, and `execution.timeout_reason`.
 
-## Worked loop-ready SDD
+The values are a fixture. Read it beside the [loop-ready example](loop-ready-example.md) for the baseline contract, [artifacts and dependencies](../design/artifacts-and-dependencies.md) for when a dependency operation is admissible at all, and [test budget](../planning/test-budget.md) for what raises a batch budget.
+
+## Worked shared-mechanism SDD
 
 ````markdown
 # Input validation design
@@ -134,22 +136,22 @@ result = validated; return result
 
 **Observable result:** Valid input returns and publishes the supplied value; YS01 observes both paths
 
-# Example SDD
+# Shared mechanism example SDD
 
 ## 交付事项
 
 | ID | description | requirement_ids | acceptance_ids | batch_ids | gate |
 | --- | --- | --- | --- | --- | --- |
-| PC01 | 完成输入检查并保持原有行为 | XQ01 | YS01 | | |
-| BH01 | 关闭输入缺失时的错误分支 | XQ01 | YS01 | PC01 | |
-| MJ01 | 完成最终独立验收 | XQ01 | YS01 | PC01 | SHIP |
+| PC01 | Add the dependency and prove the built bundle loads | XQ01 | YS01,YS02 | | |
+| BH01 | Close the packed-consumer load path | XQ01 | YS02 | PC01 | |
+| MJ01 | Complete final independent acceptance | XQ01 | YS01,YS02 | | SHIP |
 
 <!-- sdd-contract:start -->
 ```json
 {
   "protocol": "sdd-loop-delivery/v1",
   "revision": "SDD-v1",
-  "objective": "Land one observable feature",
+  "objective": "Add one dependency and prove the built artifact still validates",
   "implementation_logic": {
     "protocol": "implementation-logic/v1",
     "paths": [
@@ -159,7 +161,8 @@ result = validated; return result
           "XQ01"
         ],
         "acceptance_ids": [
-          "YS01"
+          "YS01",
+          "YS02"
         ],
         "inputs": [
           {
@@ -227,16 +230,24 @@ result = validated; return result
           "XQ01"
         ],
         "acceptance_ids": [
-          "YS01"
+          "YS01",
+          "YS02"
         ],
         "modification_packages": [
           "@demo/core"
         ],
         "depends_on": [],
-        "estimated_minutes": 25,
+        "estimated_minutes": 40,
         "test_budget": {
-          "minutes": 5,
-          "max_new_test_files": 0
+          "minutes": 13,
+          "max_new_test_files": 0,
+          "acceptance_basis": {
+            "reason": "a cold install and a packed smoke run dominate the measured time",
+            "acceptance_ids": [
+              "YS01",
+              "YS02"
+            ]
+          }
         }
       }
     ],
@@ -244,7 +255,8 @@ result = validated; return result
       {
         "id": "FV01",
         "acceptance_ids": [
-          "YS01"
+          "YS01",
+          "YS02"
         ]
       }
     ]
@@ -312,12 +324,13 @@ result = validated; return result
   "requirements": [
     {
       "id": "XQ01",
-      "title": "Main path",
+      "title": "The added dependency builds and loads",
       "kind": "must-ship",
       "status": "pending",
       "dependencies": [],
       "acceptance": [
-        "YS01"
+        "YS01",
+        "YS02"
       ]
     }
   ],
@@ -327,25 +340,66 @@ result = validated; return result
       "requirement_ids": [
         "XQ01"
       ],
-      "oracle": "returns the expected result",
+      "oracle": "the build emits the bundle without a resolver warning",
       "claim": {
         "id": "DL01",
-        "statement": "The supported runtime returns the expected result",
-        "dimension": "BEHAVIOR",
+        "statement": "The added dependency resolves and the bundle builds",
+        "dimension": "BUILD_OUTPUT",
         "quantifier": "SINGLE"
       },
-      "method": "pnpm --filter @demo/core test",
+      "method": "pnpm --filter @demo/core run build",
       "environment": "supported runtime",
       "packages": [
         "@demo/core"
       ],
       "execution": {
         "isolation": "INDEPENDENT",
-        "timeout_seconds": 60,
-        "readiness_oracle": "The supported runtime reports the result",
-        "state_boundary": "Fresh package test process",
-        "evidence_boundary": "AC-1 has its own test result",
+        "timeout_seconds": 1200,
+        "timeout_reason": "a cold install plus a full bundle exceeds the default ceiling on a first run; the case is already one claim and cannot be split further",
+        "readiness_oracle": "the build command reports its exit status",
+        "state_boundary": "Fresh install directory owned by this case",
+        "evidence_boundary": "YS01 keeps the build log tail",
         "blocking_acceptance_ids": []
+      },
+      "oracle_sensitivity": {
+        "applicability": "NOT_APPLICABLE",
+        "reason": "Positive business behavior without a negative guard"
+      }
+    },
+    {
+      "id": "YS02",
+      "requirement_ids": [
+        "XQ01"
+      ],
+      "oracle": "the packed consumer imports the built bundle and returns the expected result",
+      "claim": {
+        "id": "DL02",
+        "statement": "A packed consumer loads the built bundle",
+        "dimension": "BEHAVIOR",
+        "quantifier": "SINGLE"
+      },
+      "method": "pnpm --filter @demo/core run smoke:packed",
+      "environment": "supported runtime",
+      "packages": [
+        "@demo/core"
+      ],
+      "execution": {
+        "isolation": "SHARED_SAFE",
+        "timeout_seconds": 300,
+        "failure_containment": "The shared install directory is recreated from the frozen lockfile before this case runs, so a failed build cannot leave a partial tree that this case reads as success",
+        "readiness_oracle": "the smoke command reports its exit status",
+        "state_boundary": "The install directory YS01 owns, reset by its owner before use",
+        "evidence_boundary": "YS02 keeps its own smoke output",
+        "blocking_acceptance_ids": [
+          "YS01"
+        ],
+        "consumes": [
+          {
+            "artifact": "packages/demo/dist/index.js",
+            "produced_by": "YS01",
+            "candidate_binding": "the current candidate commit under verification"
+          }
+        ]
       },
       "oracle_sensitivity": {
         "applicability": "NOT_APPLICABLE",
@@ -410,85 +464,34 @@ result = validated; return result
         "heading": "Delivery & Verification"
       }
     }
-  }
+  },
+  "shared_mechanism_writes": [
+    {
+      "mechanism": "lockfile",
+      "target": "pnpm-lock.yaml",
+      "managers": [
+        "pnpm-workspace.yaml"
+      ],
+      "write_points": [
+        "packages/demo/package.json"
+      ],
+      "owners": [
+        "@demo/core"
+      ]
+    }
+  ]
 }
 ```
 <!-- sdd-contract:end -->
+
 ````
-
-The outer example uses a Markdown fence only for documentation. In the actual SDD, write the marker, JSON fence, and closing marker literally.
-
-## Worked program index (multi-SDD root)
-
-A program root carries this block between `<!-- sdd-program:start -->` and `<!-- sdd-program:end -->`, separate from any leaf `sdd-contract` block. The tree below is the smallest useful shape: one group root over two execution leaves, where `b` consumes the Asset `a` produces. Field rules are in [program split](../planning/program-split.md); this is what they look like assembled. The values are a fixture, not evidence for any repository, but the structure is the one `program-check` accepts.
-
-```json
-{
-  "protocol": "sdd-program/v1",
-  "id": "PG01",
-  "revision": "r1",
-  "nodes": [
-    {"id": "root", "parent": null, "kind": "group", "sdd": "root.sdd.md",
-     "estimate": {"design": [5, 10], "implementation": [0, 0], "integration": [0, 0], "verification": [0, 0], "conditional_verification": [0, 0], "basis": "group coordination only", "waiting": "none"}},
-    {"id": "a", "parent": "root", "kind": "execution", "sdd": "a.sdd.md",
-     "estimate": {"design": [5, 10], "implementation": [30, 45], "integration": [0, 0], "verification": [30, 45], "conditional_verification": [0, 0], "basis": "one batch in one package", "waiting": "none"}},
-    {"id": "b", "parent": "root", "kind": "execution", "sdd": "b.sdd.md",
-     "estimate": {"design": [5, 10], "implementation": [30, 45], "integration": [0, 0], "verification": [30, 45], "conditional_verification": [0, 0], "basis": "one batch in one package", "waiting": "a's commit"}}
-  ],
-  "metas": [
-    {"id": "EN01", "kind": "Entry", "owner": "root", "members": ["MA", "MB"], "requires": [],
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "root", "acceptance_ids": [], "method": "composition of both deliveries", "pass_condition": "both Bundles released"}}},
-
-    {"id": "MA", "kind": "Module", "owner": "a", "members": [], "requires": [], "source_id": "XQ01",
-     "origin": {"document": "a.sdd.md", "requirement_id": "XQ01"},
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "CA", "kind": "Chunk", "owner": "a", "members": ["MA"], "requires": [], "source_id": "BT01",
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "BA", "kind": "Bundle", "owner": "a", "members": ["CA"], "requires": [], "reads": [],
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "AA", "kind": "Asset", "owner": "a", "members": [], "requires": [], "path": "packages/a/value.ts",
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "a", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-
-    {"id": "MB", "kind": "Module", "owner": "b", "members": [], "requires": [], "source_id": "XQ01",
-     "origin": {"document": "b.sdd.md", "requirement_id": "XQ01"},
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "CB", "kind": "Chunk", "owner": "b", "members": ["MB"], "requires": [], "source_id": "BT01",
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "BB", "kind": "Bundle", "owner": "b", "members": ["CB"], "requires": ["AA"], "reads": [],
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}},
-    {"id": "AB", "kind": "Asset", "owner": "b", "members": [], "requires": [], "path": "packages/b/value.ts",
-     "validators": {"definition": "program-structure/v1", "implementation": {"owner": "b", "acceptance_ids": ["YS01"], "method": "the leaf acceptance command", "pass_condition": "YS01 passes"}}}
-  ],
-  "execution": {"max_parallel": 2, "total_test_seconds": 200, "base_ref": "HEAD", "allocations": {"BA": 150, "BB": 50}},
-  "split_decision": {"source": "USER_STATED", "reference": "the user's reply choosing to split"}
-}
-```
 
 Reading it back:
 
-- **nodes** carry the tree. The root is `parent: null` and points at the total document itself; every other node names one parent. A group node's `implementation`, `integration` and `verification` ranges are zero — coordination is its only work. Each `estimate` holds five `[min, max]` minute ranges plus `basis` and `waiting`; `waiting` is separate from active work, so `b` records that it waits for `a`'s commit.
-- **metas** are five kinds, not five document levels. `MA`/`MB` are Modules, one per requirement, each binding its original document and requirement through `origin`. `CA`/`CB` are Chunks naming a `delivery_plan` batch through `source_id`. `BA`/`BB` are Bundles, one per execution SDD, and a Bundle's `requires` lists the Asset IDs it consumes — `BB` requires `AA`, which is what orders the waves. `AA`/`AB` are Assets naming a delivered repository-relative path.
-- **validators** appear on every Meta: `definition` is always `program-structure/v1`, and `implementation` names the owning node, the acceptance it rests on, and a `method`/`pass_condition` that explain the claim. Those two strings are explanation, never execution evidence.
-- **execution** proposes limits: `max_parallel`, the shared `total_test_seconds`, the `base_ref` children branch from, and `allocations` mapping every Bundle to its lifetime test seconds, summing to at most the total. A proposal is not the user's consent.
-- **split_decision** must cite a real user statement. `USER_STATED` needs the reply that answered the split question; `EXPLICIT_INSTRUCTION` needs the request that asked for the split. An author's own judgment is not a source, and `repo-facts.ts check` on the root reports `SPLIT_DECISION_UNRECORDED` without one.
+- **`shared_mechanism_writes` names the serialization point, not the edit.** `target` is the file every batch would contend on, `write_points` are the manifests whose edit reaches it, `managers` are the workspace files that decide how it resolves, and `owners` must be inside the modification authority the contract already grants. `repo-facts.ts check` compares this against the repository's real lockfile-to-package mapping.
+- **`SHARED_SAFE` is a claim about containment, so it must state it.** `failure_containment` says what resets the shared state and why one case's failure cannot be read as another's success. Without that, two cases sharing a directory are not `SHARED_SAFE`; they are one case that should be split or serialized.
+- **A case that reads another's output declares `consumes`.** `produced_by` names the acceptance that builds it — which must also appear in `blocking_acceptance_ids`, because a consumer that cannot run when its producer fails is exactly a blocking edge. `candidate_binding` ties the artifact to the candidate under verification, so a stale build from an earlier attempt cannot satisfy it. An artifact from outside the delivery sets `produced_by: "external"` and names its `source` instead.
+- **`timeout_reason` is required only above the controller's ceiling**, and it must explain why the case cannot be narrowed rather than why the machine is slow. A long journey that could be split is not a reason.
+- **`test_budget.acceptance_basis`** appears for the same kind of reason: a budget above the default share cites the acceptance cases that consume it, so the number is traceable to measured work instead of a preference.
 
-`bun <loop-skill-root>/scripts/main.ts program-check --program <absolute-root-SDD>` accepts this shape and returns the fingerprint, total and scheduled minutes, the waves (`BA` before `BB`, from the Asset edge) and the execution task count. It checks structure only: it runs no acceptance and replaces no leaf gate.
-
-## Guarded acceptance: the `REQUIRED` branch
-
-`YS01` above is a positive business path, so its `oracle_sensitivity` is `NOT_APPLICABLE` with a reason. A case that observes a guard takes the other branch instead; these are its exact fields:
-
-```json
-"oracle_sensitivity": {
-  "applicability": "REQUIRED",
-  "fault_model": "The pre-validation loop is removed, so a replay containing one read-only source writes the earlier writable sources before rejecting",
-  "perturbation_method": "Delete the validation loop that precedes the apply loop in BZ04 and rerun the case",
-  "restoration_method": "Reinstate the validation loop ahead of the first apply call and rerun the case",
-  "expected_flip": "PASS_TO_FAIL_TO_PASS",
-  "implementation_timing": "IMPLEMENTATION_REQUIRED"
-}
-```
-
-`applicability` is `REQUIRED` or `NOT_APPLICABLE`; no other value is accepted. `NOT_APPLICABLE` carries `reason` and nothing else. `REQUIRED` carries all five fields above, `expected_flip` is always the literal `PASS_TO_FAIL_TO_PASS`, and `implementation_timing` is `IMPLEMENTATION_REQUIRED` for a guard this delivery still has to build or `DESIGN_PROVEN` for one already probed in an isolated copy — `DESIGN_PROVEN` additionally requires a non-empty `evidence` array naming where that probe is recorded.
-
-<!-- reading-receipt: 71a1e5cb -->
+<!-- reading-receipt: a3cee2e8 -->
