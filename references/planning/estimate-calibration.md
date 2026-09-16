@@ -24,11 +24,14 @@ in **Apply** are satisfied.
 
 | Date | Repository / lane | Batch | Estimated | Actual | Ratio | Note |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2026-09-16 | migai / logger | PC01 | 15 min | 6.5 min | 0.43 | One acceptance case in an existing host plus one document row. Below the five-minute floor for calibration use, and the batch was deliberately minimal. Recorded as `ESTIMATE_MISS` in `docs/logger/batch-overflow-coverage.sdd.md.retrospective.json`. |
+| 2026-09-16 | migai / logger | PC01 | 15 min | 10.8 min | 0.72 | Two acceptance cases: one new case in an existing test host, one document row with its own comparison oracle. Delivered to SHIP across four contract revisions. `docs/logger/batch-overflow-coverage.sdd.md.retrospective.json`. |
 
-The single sample so far says only that a deliberately tiny batch was over-estimated by roughly
-half. One reading cannot distinguish a systematic bias from the fact that this batch was chosen to
-be trivial, which is exactly why one sample is not calibration.
+One sample. It says a deliberately small batch came in under its estimate; it cannot say whether
+that is a systematic bias or a property of a batch chosen to be small, which is exactly why one
+sample is not calibration. Note also that this batch's elapsed time is dominated by evidence work —
+readbacks, signed runs, two sensitivity flips — rather than by writing the thirty lines of product
+change, so a lane median built from batches like it would mispredict a batch whose cost is the
+code itself.
 
 ## Anti-patterns
 
@@ -36,4 +39,4 @@ be trivial, which is exactly why one sample is not calibration.
 - Calibrating from one delivery or from batches shorter than five minutes.
 - Inflating every estimate to the cap to avoid overruns; it destroys wave planning and credit budgets.
 
-<!-- reading-receipt: bafb55f7 -->
+<!-- reading-receipt: ed7b1204 -->

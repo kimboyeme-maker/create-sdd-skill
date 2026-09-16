@@ -69,7 +69,7 @@ Coordinator admission rejects the rest before any lease: the design convergence 
 
 ## Repository facts
 
-`bun <create-sdd-root>/scripts/repo-facts.ts check --sdd <SDD>` compares declarations with the repository, for any ecosystem it recognizes:
+`bun <create-sdd-root>/scripts/repo-facts.ts check --sdd <SDD> [--repository <root>]` compares declarations with the repository, for any ecosystem it recognizes. `bun <create-sdd-root>/scripts/reading-receipt.ts check --sdd <SDD> [--repository <root>]` takes the same flag: output location and source repository are independent, so an SDD written to a scratch directory still derives its reading requirements from the repository it was authored against.
 
 - every lockfile or workspace that manages a package whose manifest the SDD edits appears in `shared_mechanism_writes: [{"mechanism", "target", "managers", "write_points", "owners"}]`, and each owner is inside modification authority;
 - acceptance runtimes agree with repository version pins unless `environment_exceptions: [{"tool", "reason"}]` names the tool;
@@ -77,7 +77,11 @@ Coordinator admission rejects the rest before any lease: the design convergence 
 - migration symbols are literal patterns and every scan candidate is disposed;
 - external API imports have persisted grounding evidence.
 
+It also returns `candidates`, which do **not** affect `valid`: pattern-based observations the author answers in the document rather than failures to fix. Today they are `CONJUNCTIVE_REQUIREMENT_SINGLE_ORACLE` (a Must-Ship title that joins two observable facts while only one has an oracle), `ACCEPTANCE_METHOD_ZERO_OBSERVATION` (a method that selects by name without asserting what it observed) and `PSEUDOCODE_SYMBOL_UNRESOLVED` (a call that neither the repository nor the step's own pseudocode defines). Prose and command text cannot carry a proof, so blocking on them would make authors reword correct designs to satisfy a keyword; answer the candidate, or say in the document why it does not apply.
+
 It reports candidates and inconsistencies and never proves exhaustiveness; an unrecognized ecosystem relies on the author's declarations.
+
+While a delivery is running, the SDD's bytes are its controller's normative source: the state records a fingerprint of them, and any edit makes the controller refuse to proceed until the Coordinator amends. So do not refresh an Authoring receipt row on an SDD under active delivery, even though editing a reference here makes that row stale. Refresh the idle documents, leave the running one, and reconcile it in the same amendment that carries its next revision.
 
 ## What no validator proves
 
@@ -140,4 +144,4 @@ A single SDD's report ends with one copyable launch instruction naming the docum
 
 Judge readiness from the evidence in hand, in both directions. A prerequisite without a producer, a failure path left to a future Operator or an unexecuted decisive probe blocks readiness. When every prerequisite has an evidenced producer and the decisive probes and branches have been executed, the route is ready: do not invent defects, request permissions the contract already grants, or open a successor to appear careful.
 
-<!-- reading-receipt: f5b90ecd -->
+<!-- reading-receipt: 0d899a33 -->

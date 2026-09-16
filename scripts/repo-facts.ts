@@ -15,6 +15,20 @@ import { loadContract, programBlock, sectionText } from './lib/contract-source.t
 
 type Item = Record<string, any>
 export type IIssue = { readonly code: string; readonly detail: string }
+/**
+ * What the check produces. `issues` are determinate: a declared path that does not exist, a write
+ * point no manifest manages, a program child that is missing. `candidates` are the pattern-based
+ * observations — a title that reads like a conjunction, a filtered command, an unresolved call —
+ * which say "answer this", not "you are wrong". Only `issues` decide `valid`: a heuristic that
+ * blocks delivery makes authors edit correct designs to satisfy a keyword, which is the opposite
+ * of what a check is for.
+ */
+export type FactReport = {
+  valid: boolean
+  issues: IIssue[]
+  candidates: IIssue[]
+  facts: Item
+}
 
 /** Directories that hold dependencies, VCS data or build output, never product sources. */
 const SKIP_DIRS = new Set([
@@ -45,6 +59,47 @@ const MANIFESTS = [
 ]
 /** Largest file scanned for migration candidates; larger files are reported, not read. */
 const SCAN_LIMIT_BYTES = 1_000_000
+/** Language and test-harness names that a repository need not declare for pseudocode to be real. */
+const PSEUDOCODE_BUILTINS = new Set([
+  'expect',
+  'describe',
+  'test',
+  'await',
+  'async',
+  'return',
+  'require',
+  'catch',
+  'throw',
+  'console',
+  'Promise',
+  'Array',
+  'Object',
+  'String',
+  'Number',
+  'Boolean',
+  'JSON',
+  'Math',
+  'Date',
+  'Error',
+  'Set',
+  'Map',
+  'parseInt',
+  'parseFloat',
+  'toMatchObject',
+  'toBeInstanceOf',
+  'toEqual',
+  'toBe',
+  'resolves',
+  'rejects',
+  'beforeEach',
+  'afterEach',
+  'push',
+  'slice',
+  'join',
+  'split',
+  'filter',
+  'includes'
+])
 
 /** Nearest ancestor holding `.git`, else the starting directory. */
 export function repositoryRoot(start: string): string {
@@ -278,8 +333,9 @@ async function checkProgramFacts(
   sdd: string,
   program: Item,
   repository?: string
-): Promise<{ valid: boolean; issues: IIssue[]; facts: Item }> {
+): Promise<FactReport> {
   const issues: IIssue[] = []
+  const candidates: IIssue[] = []
   const decision = program.split_decision
   if (
     !SPLIT_SOURCES.includes(decision?.source) ||
@@ -305,7 +361,12 @@ async function checkProgramFacts(
       }))
     )
   }
-  return { valid: issues.length === 0, issues, facts: { program: program.id ?? null, children } }
+  return {
+    valid: issues.length === 0,
+    issues,
+    candidates,
+    facts: { program: program.id ?? null, children }
+  }
 }
 
 /** Compare the SDD's declarations with repository facts; `asLeaf` ignores a program block. */
@@ -313,7 +374,7 @@ export async function checkRepositoryFacts(
   sdd: string,
   repository?: string,
   asLeaf = false
-): Promise<{ valid: boolean; issues: IIssue[]; facts: Item }> {
+): Promise<FactReport> {
   const text = readFileSync(sdd, 'utf8')
   const program = asLeaf ? { value: null } : programBlock(text)
   const { contract, error: contractError } = await loadContract(sdd, text)
@@ -321,6 +382,7 @@ export async function checkRepositoryFacts(
   const files = walk(root)
   const directories = packageDirectories(root, files)
   const issues: IIssue[] = []
+  const candidates: IIssue[] = []
   const facts: Item = {
     root,
     packages: [],
@@ -329,14 +391,21 @@ export async function checkRepositoryFacts(
   }
   // An unreadable block is reported, never treated as an absent one: the checks below would
   // otherwise describe a document this command could not actually read.
-  if (program.error) return { valid: false, issues: [{ code: program.error, detail: sdd }], facts }
+  if (program.error)
+    return { valid: false, issues: [{ code: program.error, detail: sdd }], candidates, facts }
   if (program.value) return checkProgramFacts(sdd, program.value, repository)
-  if (contractError) return { valid: false, issues: [{ code: contractError, detail: sdd }], facts }
+  if (contractError)
+    return { valid: false, issues: [{ code: contractError, detail: sdd }], candidates, facts }
   if (!contract)
-    return { valid: false, issues: [{ code: 'CONTRACT_REQUIRED', detail: sdd }], facts }
+    return { valid: false, issues: [{ code: 'CONTRACT_REQUIRED', detail: sdd }], candidates, facts }
   // Without a repository the facts below would be vacuous, so absence is a failure, not a pass.
   if (!existsSync(join(root, '.git')))
-    return { valid: false, issues: [{ code: 'REPOSITORY_NOT_FOUND', detail: dirname(sdd) }], facts }
+    return {
+      valid: false,
+      issues: [{ code: 'REPOSITORY_NOT_FOUND', detail: dirname(sdd) }],
+      candidates,
+      facts
+    }
 
   // Shared mechanisms: a dependency edit of an owned package declares every lockfile managing it.
   const owned = new Set<string>([
@@ -388,6 +457,96 @@ export async function checkRepositoryFacts(
       issues.push({ code: 'STEP_WRITE_OUTSIDE_AUTHORITY', detail: token })
     }
   }
+  // Three observations below were written from a delivery that shipped these defects past every
+  // other gate. They read prose and command text, which cannot carry a proof, so each one is a
+  // candidate the author answers in the document. None of them decides `valid`: a keyword that
+  // blocks delivery is answered by rewording the design, and a design reworded to satisfy a
+  // pattern is worse than the pattern going unanswered.
+
+  // A requirement whose title joins two observable facts needs an oracle for each of them. The
+  // rehearsal admitted "the code is covered AND the registry says so truthfully" with one
+  // acceptance case that observed only the first, so a PASS closed a requirement half of which
+  // nothing had ever looked at.
+  const CONJUNCTIONS = [/\band\b/i, /\band also\b/i, /，?\s*且/, /\s并且/, /\s以及/]
+  for (const requirement of Array.isArray(contract?.requirements) ? contract.requirements : []) {
+    const item = requirement as Item
+    if (item.kind !== 'must-ship' || typeof item.title !== 'string') continue
+    const linked = Array.isArray(item.acceptance) ? item.acceptance.length : 0
+    if (linked > 1) continue
+    if (CONJUNCTIONS.some((pattern) => pattern.test(item.title)))
+      candidates.push({ code: 'CONJUNCTIVE_REQUIREMENT_SINGLE_ORACLE', detail: String(item.id) })
+  }
+
+  // An acceptance method that selects by name must prove something was selected. Exit codes answer
+  // "did the run fail", not "was anything observed": a Vitest or Jest name filter matching nothing,
+  // and pytest's -k, all exit 0. A method that filters without asserting a count can pass on a tree
+  // where its own case was deleted.
+  //
+  // This is an early warning, not the guarantee. The decisive check lives in the delivery loop,
+  // which refuses to ship when an acceptance declaring IMPLEMENTATION_REQUIRED has a signed PASS
+  // from before its implementation — that rule needs no list of runner flags and cannot rot. These
+  // patterns exist to say so at authoring time; do not grow them into a catalogue of every runner.
+  const SELECTORS = [/(^|\s)-t\s/, /--testNamePattern/, /(^|\s)-k\s/, /--grep\b/, /--filter\s+"/]
+  const COUNT_ASSERTIONS = [
+    /numPassedTests/,
+    /numTotalTests/,
+    /--reporter[= ]json/,
+    /tests?\s+ran/i,
+    /grep\s+-c/,
+    /--require-count/
+  ]
+  for (const acceptance of Array.isArray(contract?.acceptance) ? contract.acceptance : []) {
+    const item = acceptance as Item
+    if (typeof item.method !== 'string') continue
+    if (!SELECTORS.some((pattern) => pattern.test(item.method))) continue
+    if (COUNT_ASSERTIONS.some((pattern) => pattern.test(item.method))) continue
+    candidates.push({ code: 'ACCEPTANCE_METHOD_ZERO_OBSERVATION', detail: String(item.id) })
+  }
+
+  // Pseudocode that calls a helper nobody has and nobody is writing is not a design an implementer
+  // can follow; the rehearsal's step called two invented functions. A name resolves three ways, and
+  // only a name that resolves none of them is worth asking about:
+  //
+  //  - the repository defines it, read as a definition rather than any occurrence of the name
+  //    followed by a paren, because a call site elsewhere would answer the question with itself;
+  //  - the step's own pseudocode declares or assigns it, which is how a design introduces a helper
+  //    it is about to write — the common shape, and the one a naive check punishes;
+  //  - it is a language or harness name no repository is expected to declare.
+  //
+  // A step whose Location is `Proposed` is deliberately not exempt. New code is exactly where an
+  // invented helper hides, and the rehearsal's defect lived in such a step.
+  const sourceCorpus = files
+    .filter((file) => /\.(ts|tsx|js|jsx|mjs|cjs|go|rs|py|java|kt|swift)$/.test(file))
+    .map((file) => read(join(root, file)))
+    .join('\n')
+  const definition = (name: string) =>
+    new RegExp(
+      `(?:function|class|def|fn|func)\\s+${name}\\b|(?:const|let|var)\\s+${name}\\b|\\b${name}\\s*[:=]\\s*(?:async\\s+)?(?:function\\b|\\()`
+    )
+  const logicPaths: Item[] = Array.isArray(contract?.implementation_logic?.paths)
+    ? contract.implementation_logic.paths
+    : []
+  for (const path of logicPaths) {
+    for (const step of Array.isArray(path?.steps) ? (path.steps as Item[]) : []) {
+      const item = step as Item
+      if (typeof item?.pseudocode !== 'string') continue
+      const called = new Set(
+        [...item.pseudocode.matchAll(/(?:^|[^.\w])([a-z][A-Za-z0-9_]{3,})\s*\(/g)].map(
+          (match) => match[1]!
+        )
+      )
+      for (const name of called) {
+        if (PSEUDOCODE_BUILTINS.has(name)) continue
+        const declares = definition(name)
+        if (declares.test(item.pseudocode) || declares.test(sourceCorpus)) continue
+        candidates.push({
+          code: 'PSEUDOCODE_SYMBOL_UNRESOLVED',
+          detail: `${String(item.id)}: ${name}`
+        })
+      }
+    }
+  }
+
   for (const point of writePoints) {
     const path =
       typeof point === 'string'
@@ -451,10 +610,13 @@ export async function checkRepositoryFacts(
     (specifier) => !corpus.includes(specifier)
   )
 
-  const unique = [
-    ...new Map(issues.map((issue) => [`${issue.code}|${issue.detail}`, issue])).values()
+  const dedupe = (list: IIssue[]) => [
+    ...new Map(list.map((issue) => [`${issue.code}|${issue.detail}`, issue])).values()
   ]
-  return { valid: unique.length === 0, issues: unique, facts }
+  const unique = dedupe(issues)
+  // Candidates never decide validity. They are questions the author answers in the document, and a
+  // question that blocks delivery is answered by editing the design to please a pattern.
+  return { valid: unique.length === 0, issues: unique, candidates: dedupe(candidates), facts }
 }
 
 if (import.meta.main) {

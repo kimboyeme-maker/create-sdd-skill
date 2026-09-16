@@ -68,17 +68,67 @@ const LANGUAGES: Record<string, string> = {
  */
 export function derivedConditions(
   contract: ReadingContract | null,
-  siblings: readonly string[] = []
+  siblings: readonly string[] = [],
+  repository: RepositoryFacts = {}
 ): ReadingConditions {
   const requirements = Array.isArray(contract?.requirements) ? contract.requirements : []
+  const languages = [
+    ...new Set(
+      (repository.extensions ?? [])
+        .map((extension) => EXTENSION_LANGUAGES[extension])
+        .filter((language): language is string => language !== undefined)
+    )
+  ]
   return {
     authority: requirements.some((item) => item?.requirement_type === 'decision'),
     continuation: contract?.lineage?.mode === 'continuation',
     multipleSurfaces:
       contract?.architecture?.protocol === 'core-adapters/v1' ||
       (contract?.delivery_platforms?.length ?? 0) > 1,
-    retrospectives: siblings.some((name) => name.endsWith('.retrospective.json'))
+    retrospectives: siblings.some((name) => name.endsWith('.retrospective.json')),
+    // The repository says which languages this work's own roots actually contain and whether a
+    // TypeScript configuration governs them; the author is never asked, because a self-declared
+    // language is unverified, and a repository-wide scan would load guides for untouched packages.
+    ...(languages.length ? { languages } : {}),
+    typescriptToolchain: repository.typescriptConfig === true,
+    // The worked example is for an author writing their first contract in this repository, and one
+    // contract elsewhere is what makes it no longer the first. An unreadable repository leaves this
+    // absent: "no repository" is not the same claim as "no contract yet".
+    ...(repository.existingContracts === undefined
+      ? {}
+      : { firstContract: repository.existingContracts === 0 })
   }
+}
+
+/** What the repository itself says, for conditions the contract cannot answer. */
+export type RepositoryFacts = Readonly<{
+  /** Source file extensions found under the roots this work owns, with the leading dot. */
+  extensions?: readonly string[]
+  /** Whether a TypeScript configuration governs those roots. */
+  typescriptConfig?: boolean
+  /** Documents other than this one that already carry a contract block. */
+  existingContracts?: number
+}>
+
+/**
+ * Source extension → the language guide it makes relevant. Extensions rather than manifests: a
+ * `package.json` says a directory is a Node package, not that anyone writes TypeScript in it, and a
+ * repository-wide manifest scan pulls in guides for packages this work never touches.
+ */
+const EXTENSION_LANGUAGES: Readonly<Record<string, string>> = {
+  '.ts': 'typescript',
+  '.tsx': 'typescript',
+  '.mts': 'typescript',
+  '.cts': 'typescript',
+  '.js': 'javascript',
+  '.jsx': 'javascript',
+  '.mjs': 'javascript',
+  '.cjs': 'javascript',
+  '.go': 'go',
+  '.rs': 'rust',
+  '.py': 'python',
+  '.java': 'java',
+  '.kt': 'kotlin'
 }
 
 /** Cumulative requirements grow with discovered facts; author-supplied facts cannot unset start conditions. */

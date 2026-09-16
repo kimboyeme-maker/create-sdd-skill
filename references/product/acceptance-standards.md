@@ -45,15 +45,20 @@ query returning an empty set all exit 0. An acceptance whose method can exit 0 w
 its claim is not a falsifier: deleting the case restores a green result, so the case cannot detect
 the loss of the coverage it exists to assert.
 
-Write the method so that absence fails. Pass the runner's own flag for it where one exists
-(`--passWithNoTests=false` in Vitest and Jest, `--suiteXmlFile` counts in others), or make the
-oracle assert the observed count rather than the exit status. State in the Oracle field what a zero
-observation looks like and why it cannot be mistaken for a pass.
+Write the method so that absence fails, and verify that it does before admitting it. Runner flags
+are usually not enough: Vitest's `--passWithNoTests=false` governs whether any test *file* was
+collected, so a name filter matching nothing inside a file that was collected still exits 0. The
+reliable form asserts the observed count. Emit machine-readable results and check them, for example
+`vitest run … --reporter=json` piped into a check that the passing count is the expected one and the
+failing count is zero. State in the Oracle field what a zero observation looks like and why it
+cannot be mistaken for a pass.
 
 The decisive check needs no knowledge of the runner: an acceptance whose sensitivity declares
 `implementation_timing: IMPLEMENTATION_REQUIRED` must **fail** when run before its implementation
 exists. Run it then and record the result. A pre-implementation PASS means the oracle is insensitive
-and the case is decorative, whatever its assertions say.
+and the case is decorative, whatever its assertions say. The delivery loop enforces this at its SHIP
+gate (`ACCEPTANCE_ORACLE_INSENSITIVE`), reading the signed runs already in its journal, so a case
+that slips past the authoring warning is still caught before anything ships.
 
 ## Sizing to the loop
 
@@ -69,4 +74,16 @@ and the case is decorative, whatever its assertions say.
 - A filtered test command whose runner treats "matched nothing" as success.
 - One end-to-end test standing in for every requirement.
 
-<!-- reading-receipt: df5c7997 -->
+
+## Boundaries on the oracle itself
+
+An oracle's guarantee is the drift it can actually detect, and saying so is part of writing it. A
+comparison built on the shapes a repository's own formatter produces detects the drift that
+repository can produce — write that boundary down rather than growing the oracle toward "any
+possible declaration". A parser nobody trusts is worse than a narrow check whose limit is stated.
+
+The same restraint applies to the checks in this skill: the authoring-time patterns are an early
+warning whose guarantee lives elsewhere, and a boundary recorded honestly outranks coverage claimed
+loosely.
+
+<!-- reading-receipt: b9b628a0 -->

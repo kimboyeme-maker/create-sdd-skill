@@ -1,9 +1,10 @@
 #!/usr/bin/env bun
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, extname, join, resolve } from 'node:path'
 import { loadContract, programBlock } from './lib/contract-source.ts'
-import { derivedConditions, requiredDocuments } from './lib/reading-policy.ts'
+import { derivedConditions, requiredDocuments, type RepositoryFacts } from './lib/reading-policy.ts'
+import { packageDirectories, repositoryRoot, walk } from './repo-facts.ts'
 
 /**
  * Reading receipts make create-sdd's document pointers enforceable without inlining them.
@@ -26,6 +27,57 @@ const tokenOf = (text: string) => createHash('sha256').update(body(text)).digest
 const references = () => [...new Bun.Glob('references/**/*.md').scanSync(ROOT)].sort()
 const read = (path: string) => readFileSync(join(ROOT, path), 'utf8')
 
+/**
+ * Facts the repository states about itself, for conditions neither the contract nor the SDD's own
+ * directory can answer: which languages are in play, whether a TypeScript toolchain is pinned, and
+ * whether any other document here already carries a contract. Reading fails softly — a missing or
+ * unreadable repository leaves the conditions absent rather than guessed, which is the same
+ * posture the policy takes everywhere else.
+ */
+function repositoryFacts(
+  sdd: string,
+  repository: string | undefined,
+  owned: readonly string[]
+): RepositoryFacts {
+  try {
+    const root = repository ? resolve(repository) : repositoryRoot(dirname(sdd))
+    // `repositoryRoot` falls back to its starting directory when nothing above it is a repository.
+    // Scanning that would describe a scratch directory as if it were the project, so an SDD written
+    // outside any repository simply derives nothing.
+    if (!existsSync(join(root, '.git'))) return {}
+    const files = walk(root)
+    const directories = packageDirectories(root, files)
+    // Languages come from the roots this work owns, not from the whole repository: a monorepo's
+    // other packages say nothing about the guidance this author needs.
+    const roots = owned
+      .map((name) => directories.get(name) ?? (existsSync(join(root, name)) ? name : undefined))
+      .filter((value): value is string => value !== undefined)
+    const inScope = (file: string) =>
+      roots.length === 0 || roots.some((dir) => dir === '.' || file.startsWith(`${dir}/`))
+    const extensions = [
+      ...new Set(
+        files
+          .filter(inScope)
+          .map((file) => extname(file))
+          .filter(Boolean)
+      )
+    ]
+    const typescriptConfig = files.some(
+      (file) => basename(file).startsWith('tsconfig') && (inScope(file) || !file.includes('/'))
+    )
+    const self = resolve(sdd)
+    const existingContracts = files.filter(
+      (file) =>
+        file.endsWith('.md') &&
+        resolve(join(root, file)) !== self &&
+        readFileSync(join(root, file), 'utf8').includes('<!-- sdd-contract:start -->')
+    ).length
+    return { extensions, typescriptConfig, existingContracts }
+  } catch {
+    return {}
+  }
+}
+
 /** Receipt entries from the SDD's "Authoring receipt" section. */
 export function receiptEntries(text: string): Map<string, string> {
   const entries = new Map<string, string>()
@@ -46,7 +98,7 @@ export function receiptEntries(text: string): Map<string, string> {
   return entries
 }
 
-export async function evaluate(sdd: string) {
+export async function evaluate(sdd: string, repository?: string) {
   if (!existsSync(sdd))
     return {
       sdd,
@@ -63,7 +115,16 @@ export async function evaluate(sdd: string) {
   const { contract, error: contractError } = await loadContract(sdd, text)
   // Conditions come from the contract and the SDD's own directory, never from the author.
   const siblings = existsSync(dirname(sdd)) ? readdirSync(dirname(sdd)) : []
-  const conditions = derivedConditions(contract, siblings)
+  const conditions = derivedConditions(
+    contract,
+    siblings,
+    repositoryFacts(sdd, repository, [
+      ...(contract?.ownership?.packages ?? []),
+      ...(contract?.delivery_plan?.batches ?? []).flatMap(
+        (batch: { modification_packages?: string[] }) => batch?.modification_packages ?? []
+      )
+    ])
+  )
   const required = requiredDocuments('HANDOFF', contract, conditions)
   const entries = receiptEntries(text)
   const missing = required.filter((path) => !entries.has(path))
@@ -87,15 +148,15 @@ export async function evaluate(sdd: string) {
   }
 }
 
-async function check(sdd: string) {
-  const root = await evaluate(sdd)
+async function check(sdd: string, repository?: string) {
+  const root = await evaluate(sdd, repository)
   // A program root is authored with every document of its tree; each node carries its own receipt.
   const program = existsSync(sdd) ? programBlock(readFileSync(sdd, 'utf8')).value : null
   const children = []
   for (const node of Array.isArray(program?.nodes) ? program.nodes : []) {
     if (typeof node?.sdd !== 'string') continue
     const path = resolve(dirname(sdd), node.sdd)
-    if (path !== resolve(sdd)) children.push(await evaluate(path))
+    if (path !== resolve(sdd)) children.push(await evaluate(path, repository))
   }
   const valid = root.valid && children.every((child) => child.valid)
   console.log(
@@ -111,8 +172,17 @@ async function check(sdd: string) {
 
 // Guarded so tests may import the row parser without running the CLI.
 if (import.meta.main) {
-  const [command, flag, value] = Bun.argv.slice(2)
-  if (command === 'check' && flag === '--sdd' && value) await check(value)
+  const [command, flag, value, repoFlag, repository] = Bun.argv.slice(2)
+  // Output location and source repository are independent: an SDD written to a scratch directory
+  // still describes the repository it was authored against, and `repo-facts` already takes this
+  // flag. Reading requirements derived from wherever the file happens to sit would be nonsense.
+  if (
+    command === 'check' &&
+    flag === '--sdd' &&
+    value &&
+    (repoFlag === undefined || (repoFlag === '--repository' && repository))
+  )
+    await check(value, repository)
   else if (command === 'stamp') {
     // Maintainers run this after editing references; tokens change only when content changes.
     for (const path of references()) {
@@ -129,7 +199,9 @@ if (import.meta.main) {
     console.log(JSON.stringify({ references: references().length, unstamped }))
     process.exit(unstamped.length ? 1 : 0)
   } else {
-    console.error('usage: reading-receipt.ts check --sdd <path> | stamp | verify')
+    console.error(
+      'usage: reading-receipt.ts check --sdd <path> [--repository <root>] | stamp | verify'
+    )
     process.exit(2)
   }
 }
