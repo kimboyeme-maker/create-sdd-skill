@@ -7,10 +7,11 @@ Load for every implementation SDD together with the platform and language guides
 | Field | Standard |
 | --- | --- |
 | Claim | one observable behavior bound to requirement IDs; never "works", "is fast" or "looks good" |
-| Method | the cheapest existing command that observes the claim, with exact arguments |
+| Method | the cheapest existing command that observes the claim, with exact arguments, run through the package manager the target package declares for itself — never the one the repository root uses. For a `mechanical` or `differential` oracle this field **is** the command: the loop binds argv to it and an execution authorization may name nothing else, so a sentence describing what to check is refused as `ACCEPTANCE_METHOD_NOT_EXECUTABLE` and, before that, is offered to the user as the command they are being asked to permit. Prose belongs to a `judgment` oracle, next to the criteria its reviewer applies |
 | Environment | runtime and version, device or simulator and OS/API level, browser, data fixture, network condition |
 | Oracle | the precise pass condition: exit code, asserted value, schema, threshold with unit, empty diff |
-| Oracle kind | `mechanical` (decidable from exit code or asserted output) or `judgment` (explicit criteria plus the evidence the judge records) |
+| Oracle kind | `mechanical` (decidable from exit code or asserted output), `judgment` (explicit criteria plus the evidence the judge records), or `differential` (the command is expected to stay red for what a declared baseline holds; the verdict is the empty difference against it) |
+| Baseline | required for a `differential` oracle: where the baseline observation lives, and what an identity is (for a type check: file, expression and code — never the error count) |
 | Sensitivity | the mutation or baseline state under which the oracle fails (proves it can detect the defect) |
 | Packages | only the packages the oracle observes |
 | Timeout | at most 900 seconds; budget counted in the batch's `test_budget` |
@@ -86,4 +87,4 @@ The same restraint applies to the checks in this skill: the authoring-time patte
 warning whose guarantee lives elsewhere, and a boundary recorded honestly outranks coverage claimed
 loosely.
 
-<!-- reading-receipt: b9b628a0 -->
+<!-- reading-receipt: f399b551 -->

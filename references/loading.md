@@ -26,7 +26,7 @@ Whoever writes the SDD, each phase leaves the same inspectable minimum:
 | 3 | Steps with producer bindings; guarantees linked to branches and acceptance; context-change and destructive-step policies |
 | 4 | Acceptance with oracle kind, consumed-artifact producers and shared-resource owners |
 | 5 | `delivery_plan`, `shared_mechanism_writes`, a SHIP gate covering all Must-Ship acceptance |
-| 6 | A convergence status consistent with its fields; `validate`, `reading-receipt.ts check` and `repo-facts.ts check` pass |
+| 6 | `design_convergence` is `CONVERGED`, or `IN_REVIEW` solely on a user decision carried by a decision requirement; `validate`, `reading-receipt.ts check` and `repo-facts.ts check` pass |
 
 ## Only when the condition holds
 
@@ -82,4 +82,4 @@ Read the owning document before fixing the SDD; do not patch a field until the d
 | Audit, or two invariants in tension | [invariants](invariants.md), [audit](audit.md); closure audits add [closure evidence](closure-evidence.md) |
 | Changing this skill's policy | [behavior evaluation](behavior-evaluation.md) |
 
-<!-- reading-receipt: b006bd2f -->
+<!-- reading-receipt: 79abb05b -->

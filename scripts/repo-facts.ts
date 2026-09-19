@@ -1,27 +1,61 @@
 #!/usr/bin/env bun
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
-import { basename, dirname, join, relative, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { loadContract, programBlock, sectionText } from './lib/contract-source.ts'
+import {
+  commandManagers,
+  declaredManager,
+  declaredManagers,
+  ECOSYSTEM,
+  LOCK_TOOL,
+  lockManagers,
+  resolveManagers,
+  workspaceClaims,
+  workspaceMembers
+} from './facts/managers.ts'
+import {
+  MANIFESTS,
+  packageDirectories as discoverPackages,
+  read,
+  repositoryRoot,
+  walk,
+  type IIssue,
+  type Item
+} from './facts/repository.ts'
+import { toolchainPins } from './facts/toolchain.ts'
 
 /**
- * Read-only repository facts for an SDD. Contracts declare what they touch; this check compares
- * those declarations with what the repository shows, across ecosystems:
- * - shared mechanisms that actually manage a changed package (lockfiles, workspaces);
- * - tool versions pinned by the repository versus versions the SDD's acceptance runs with;
- * - migration symbol scan candidates, each of which needs a disposition;
- * - module-path matches in evidence, which only identify candidates for review.
- * It reports candidates and inconsistencies; it never claims an inventory is exhaustive.
+ * Read-only repository facts for an SDD. Contracts declare what they touch; this file compares
+ * those declarations with what the repository shows. The repository half now lives beside it —
+ * discovery in `facts/repository.ts`, manager precedence in `facts/managers.ts`, pins in
+ * `facts/toolchain.ts` — because those answer the `initial` lifecycle event and never read a
+ * document, while everything here reads one.
  */
+export type { IIssue }
+/**
+ * Package directories, with the manager module supplying the member lists a Gradle or sbt
+ * subproject is named in. Keeping that edge here rather than inside discovery is what lets
+ * `facts/repository.ts` answer `initial` without knowing anything about precedence.
+ */
+export const packageDirectories = (root: string, files = walk(root)) =>
+  discoverPackages(root, files, workspaceMembers)
 
-type Item = Record<string, any>
-export type IIssue = { readonly code: string; readonly detail: string }
+export {
+  commandManagers,
+  declaredManager,
+  declaredManagers,
+  lockManagers,
+  repositoryRoot,
+  resolveManagers,
+  toolchainPins,
+  walk,
+  workspaceClaims,
+  workspaceMembers
+}
 /**
  * What the check produces. `issues` are determinate: a declared path that does not exist, a write
  * point no manifest manages, a program child that is missing. `candidates` are the pattern-based
- * observations — a title that reads like a conjunction, a filtered command, an unresolved call —
- * which say "answer this", not "you are wrong". Only `issues` decide `valid`: a heuristic that
- * blocks delivery makes authors edit correct designs to satisfy a keyword, which is the opposite
- * of what a check is for.
+ * observations, which say "answer this", not "you are wrong". Only `issues` decide `valid`.
  */
 export type FactReport = {
   valid: boolean
@@ -30,33 +64,6 @@ export type FactReport = {
   facts: Item
 }
 
-/** Directories that hold dependencies, VCS data or build output, never product sources. */
-const SKIP_DIRS = new Set([
-  'node_modules',
-  '.git',
-  'dist',
-  'build',
-  'target',
-  '.venv',
-  'venv',
-  '__pycache__',
-  '.react-router',
-  'coverage',
-  'out',
-  '.gradle',
-  '.next',
-  '.turbo'
-])
-/** A manifest path declared as a write point, or edited in a `BZ` step section, triggers manager checks. */
-const MANIFESTS = [
-  'package.json',
-  'Cargo.toml',
-  'go.mod',
-  'pyproject.toml',
-  'build.gradle',
-  'build.gradle.kts',
-  'pom.xml'
-]
 /** Largest file scanned for migration candidates; larger files are reported, not read. */
 const SCAN_LIMIT_BYTES = 1_000_000
 /** Language and test-harness names that a repository need not declare for pseudocode to be real. */
@@ -101,192 +108,6 @@ const PSEUDOCODE_BUILTINS = new Set([
   'includes'
 ])
 
-/** Nearest ancestor holding `.git`, else the starting directory. */
-export function repositoryRoot(start: string): string {
-  let cursor = resolve(start)
-  while (true) {
-    if (existsSync(join(cursor, '.git'))) return cursor
-    const parent = dirname(cursor)
-    if (parent === cursor) return resolve(start)
-    cursor = parent
-  }
-}
-
-/** Repository-relative files under `base`, skipping dependency and build directories. */
-export function walk(root: string, base = '.'): string[] {
-  const result: string[] = []
-  const visit = (dir: string) => {
-    let entries: import('node:fs').Dirent[]
-    try {
-      entries = readdirSync(join(root, dir), { withFileTypes: true })
-    } catch {
-      return
-    }
-    for (const entry of entries) {
-      const path = dir === '.' ? entry.name : `${dir}/${entry.name}`
-      if (entry.isDirectory()) {
-        if (!SKIP_DIRS.has(entry.name)) visit(path)
-      } else if (entry.isFile()) result.push(path)
-    }
-  }
-  if (existsSync(join(root, base)) && statSync(join(root, base)).isFile()) return [base]
-  visit(base)
-  return result
-}
-
-const read = (path: string) => {
-  try {
-    return readFileSync(path, 'utf8')
-  } catch {
-    return ''
-  }
-}
-
-/** `*` matches one path segment, `**` any number; used for workspace member globs. */
-function globMatch(pattern: string, path: string): boolean {
-  const clean = pattern.replace(/^\.\//, '').replace(/\/$/, '')
-  const expression = clean
-    .split('/')
-    .map((part) =>
-      part === '**' ? '.*' : part.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*')
-    )
-    .join('/')
-  return new RegExp(`^${expression}$`).test(path)
-}
-
-/** Package identity to repository-relative directory, from each ecosystem's manifest. */
-export function packageDirectories(root: string, files = walk(root)): Map<string, string> {
-  const map = new Map<string, string>()
-  for (const file of files) {
-    const dir = dirname(file) === '.' ? '.' : dirname(file)
-    const name = basename(file)
-    const text = () => read(join(root, file))
-    let identity: string | undefined
-    if (name === 'package.json') {
-      try {
-        identity = JSON.parse(text()).name
-      } catch {}
-    } else if (name === 'Cargo.toml')
-      identity = /\[package\][^[]*?\bname\s*=\s*"([^"]+)"/.exec(text())?.[1]
-    else if (name === 'go.mod') identity = /^module\s+(\S+)/m.exec(text())?.[1]
-    else if (name === 'pyproject.toml')
-      identity = /\[(?:project|tool\.poetry)\][^[]*?\bname\s*=\s*"([^"]+)"/.exec(text())?.[1]
-    else if (name === 'build.gradle' || name === 'build.gradle.kts' || name === 'pom.xml')
-      identity = basename(resolve(root, dir))
-    if (identity && !map.has(identity)) map.set(identity, dir)
-  }
-  return map
-}
-
-/** Tool versions pinned by the repository, with the file that pins them. */
-export function toolchainPins(root: string): { tool: string; version: string; source: string }[] {
-  const pins: { tool: string; version: string; source: string }[] = []
-  const mise = read(join(root, 'mise.toml'))
-  const tools = /\[tools\]([^[]*)/.exec(mise)?.[1] ?? ''
-  for (const match of tools.matchAll(/^\s*"?([\w-]+)"?\s*=\s*"([^"]+)"/gm))
-    pins.push({ tool: match[1]!, version: match[2]!, source: 'mise.toml' })
-  for (const match of read(join(root, '.tool-versions')).matchAll(/^([\w-]+)\s+(\S+)/gm))
-    pins.push({ tool: match[1]!, version: match[2]!, source: '.tool-versions' })
-  for (const file of walk(root).filter((path) => basename(path) === 'package.json')) {
-    try {
-      const manifest = JSON.parse(read(join(root, file)))
-      const manager = /^([\w-]+)@(.+)$/.exec(String(manifest.packageManager ?? ''))
-      if (manager)
-        pins.push({ tool: manager[1]!, version: manager[2]!, source: `${file} packageManager` })
-    } catch {}
-  }
-  const rust =
-    /channel\s*=\s*"([^"]+)"/.exec(read(join(root, 'rust-toolchain.toml')))?.[1] ??
-    read(join(root, 'rust-toolchain')).trim()
-  if (rust) pins.push({ tool: 'rust', version: rust, source: 'rust-toolchain' })
-  const python = read(join(root, '.python-version')).trim()
-  if (python) pins.push({ tool: 'python', version: python, source: '.python-version' })
-  const node = read(join(root, '.nvmrc')).trim()
-  if (node) pins.push({ tool: 'node', version: node.replace(/^v/, ''), source: '.nvmrc' })
-  return pins
-}
-
-/**
- * Lockfiles that actually manage a package directory. A lockfile in the package directory
- * manages it; a lockfile higher up manages it only when its workspace declares the package as a
- * member (pnpm importer, bun/npm workspace entry, Cargo or uv workspace members, go.work use).
- * A lockfile that merely mentions the package name does not manage it.
- */
-export function lockManagers(root: string, packageDir: string): string[] {
-  const managers: string[] = []
-  const locks = [
-    'pnpm-lock.yaml',
-    'bun.lock',
-    'bun.lockb',
-    'package-lock.json',
-    'yarn.lock',
-    'Cargo.lock',
-    'go.sum',
-    'go.work.sum',
-    'uv.lock',
-    'poetry.lock',
-    'Pipfile.lock',
-    'gradle.lockfile'
-  ]
-  let dir = packageDir
-  while (true) {
-    const rel = relative(dir === '.' ? '' : dir, packageDir === '.' ? '' : packageDir) || '.'
-    for (const lock of locks) {
-      const path = dir === '.' ? lock : `${dir}/${lock}`
-      if (!existsSync(join(root, path))) continue
-      if (dir === packageDir) {
-        managers.push(path)
-        continue
-      }
-      const text = read(join(root, path))
-      const manifest = read(join(root, dir, 'package.json'))
-      let members: string[] = []
-      if (lock === 'pnpm-lock.yaml') {
-        const importers = /^importers:\n([\s\S]*?)(?:^\S|$(?![\s\S]))/m.exec(text)?.[1] ?? ''
-        if (
-          new RegExp(`^  ${rel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:\\s*$`, 'm').test(importers)
-        )
-          managers.push(path)
-        continue
-      }
-      if (lock === 'bun.lock' && text.includes(`"${rel}": {`)) {
-        managers.push(path)
-        continue
-      }
-      if (lock === 'package-lock.json' && text.includes(`"${rel}": {`)) {
-        managers.push(path)
-        continue
-      }
-      if (lock === 'yarn.lock' || lock === 'bun.lockb') {
-        try {
-          const workspaces = JSON.parse(manifest).workspaces
-          members = Array.isArray(workspaces) ? workspaces : (workspaces?.packages ?? [])
-        } catch {}
-      } else if (lock === 'Cargo.lock') {
-        const block =
-          /\[workspace\][\s\S]*?members\s*=\s*\[([^\]]*)\]/.exec(
-            read(join(root, dir, 'Cargo.toml'))
-          )?.[1] ?? ''
-        members = [...block.matchAll(/"([^"]+)"/g)].map((match) => match[1]!)
-      } else if (lock === 'uv.lock') {
-        const block =
-          /\[tool\.uv\.workspace\][\s\S]*?members\s*=\s*\[([^\]]*)\]/.exec(
-            read(join(root, dir, 'pyproject.toml'))
-          )?.[1] ?? ''
-        members = [...block.matchAll(/"([^"]+)"/g)].map((match) => match[1]!)
-      } else if (lock === 'go.work.sum') {
-        members = [
-          ...read(join(root, dir, 'go.work')).matchAll(/^\s*(?:use\s+)?\.\/(\S+)\s*$/gm)
-        ].map((match) => match[1]!)
-      }
-      if (members.some((pattern) => globMatch(pattern, rel))) managers.push(path)
-    }
-    if (dir === '.') break
-    dir = dirname(dir) === '.' ? '.' : dirname(dir)
-  }
-  return managers
-}
-
 /** Every string an acceptance or runtime declaration says it runs with. */
 function runtimeStatements(contract: Item): string[] {
   const acceptance = Array.isArray(contract.acceptance) ? contract.acceptance : []
@@ -329,6 +150,11 @@ function evidenceCorpus(sdd: string, text: string, contract: Item | null): strin
 const SPLIT_SOURCES = ['USER_STATED', 'EXPLICIT_INSTRUCTION']
 
 /** A program root records who decided to split, and every execution SDD passes its own checks. */
+/** The sentence a user sends to a host session to start a program's delivery. */
+export function launchInstruction(programRoot: string): string {
+  return `使用 sdd-loop-delivery 启动 ${resolve(programRoot)} 的完整 workflow`
+}
+
 async function checkProgramFacts(
   sdd: string,
   program: Item,
@@ -365,7 +191,14 @@ async function checkProgramFacts(
     valid: issues.length === 0,
     issues,
     candidates,
-    facts: { program: program.id ?? null, children }
+    facts: {
+      program: program.id ?? null,
+      // The launch instruction is the one part of a program's output the user acts on, and it is
+      // the agent's to say, not the document's to store. Deriving it here puts the exact sentence
+      // in the agent's context at the moment it writes its reply, which is where it was being lost.
+      launch: launchInstruction(sdd),
+      children
+    }
   }
 }
 
@@ -426,7 +259,49 @@ export async function checkRepositoryFacts(
     const dir = directories.get(name) ?? (existsSync(join(root, name)) ? name : undefined)
     if (!dir) continue
     const managers = lockManagers(root, dir)
-    facts.packages.push({ package: name, dir, lock_managers: managers })
+    // Nearest declaration wins per ecosystem; the root answers only for ecosystems this package
+    // is silent about.
+    const declared = resolveManagers(root, dir)
+    const claims = workspaceClaims(root, dir)
+    const tools = [...new Set(managers.map((lock) => LOCK_TOOL[basename(lock)] ?? 'unknown'))]
+    const sole = Object.values(declared)
+    facts.packages.push({
+      package: name,
+      dir,
+      lock_managers: managers,
+      declared_managers: declared,
+      ...(claims.length
+        ? { claimed_by: claims.map((claim) => `${claim.dir}/${claim.file}:${claim.manager}`) }
+        : {}),
+      declared_manager: sole.length === 1 ? sole[0] : null,
+      manager_tools: tools,
+      // Managers that also claim this package from above. They lose to the package's own
+      // declaration; they are listed because a claim that is overridden is still a claim, and an
+      // author reading only the repository root would have followed it. Two routes carry one:
+      // a lockfile that manages this directory, and a workspace file that names it as a member —
+      // Maven and Gradle have only the second, so without it their losing side is invisible.
+      // Only within one ecosystem: a uv.lock beside a bun.lock supersedes nothing.
+      ...(() => {
+        const lost = (tool: string) => {
+          const ecosystem = ECOSYSTEM[tool]
+          return (
+            ecosystem !== undefined &&
+            declared[ecosystem] !== undefined &&
+            declared[ecosystem] !== tool
+          )
+        }
+        const superseded = [
+          ...new Set([...tools, ...claims.map((claim) => claim.manager)].filter(lost))
+        ]
+        return superseded.length ? { superseded_managers: superseded } : {}
+      })()
+    })
+    // A workspace above a package may also list it. That is not a tie: a `packageManager` field in
+    // the package's own manifest, backed by its own lockfile, is a statement about this package,
+    // while a workspace list is a statement about the workspace. The nearer and more specific one
+    // wins, and resolving it here is the point — an author handed two "supported" answers picks the
+    // one they read first, which is how a bun package gets a pnpm install. Record the overlap as a
+    // fact so it stays visible, and never as a question for the author to settle.
     const edited = MANIFESTS.some((manifest) => {
       const path = dir === '.' ? manifest : `${dir}/${manifest}`
       return writePoints.includes(path) || (dir !== '.' && stepText.includes(path))
@@ -457,6 +332,138 @@ export async function checkRepositoryFacts(
       issues.push({ code: 'STEP_WRITE_OUTSIDE_AUTHORITY', detail: token })
     }
   }
+  // A command in the document must use the manager the package it targets declares. The facts were
+  // already here — every package's manager and every acceptance's `packages` — and nothing compared
+  // them, so a document could declare `pnpm install` against a package whose own manifest says bun
+  // and pass every check. The failure then lands at execution, in someone else's repository state.
+  const managerOf = new Map<string, Record<string, string>>()
+  for (const entry of facts.packages as Item[])
+    managerOf.set(String(entry.package), (entry.declared_managers ?? {}) as Record<string, string>)
+  const commands: { id: string; command: string; packages: string[] }[] = [
+    ...(Array.isArray(contract?.acceptance) ? contract.acceptance : []).map((item: Item) => ({
+      id: String(item?.id),
+      command: typeof item?.method === 'string' ? item.method : '',
+      packages: Array.isArray(item?.packages) ? item.packages.map(String) : []
+    }))
+  ]
+  for (const entry of commands) {
+    if (!entry.command) continue
+    const used = commandManagers(entry.command)
+    if (!used.length) continue
+    for (const owner of entry.packages) {
+      const owners = managerOf.get(owner)
+      if (!owners) continue
+      for (const tool of used) {
+        // Only tools that compete for the same install are comparable. `uv pip install` names uv,
+        // and a Rust crate whose acceptance drives a JS harness is not installing anything wrong.
+        const expected = owners[ECOSYSTEM[tool] ?? '']
+        if (expected && expected !== tool)
+          issues.push({
+            code: 'COMMAND_PACKAGE_MANAGER_MISMATCH',
+            detail: `${entry.id} runs ${tool} against ${owner}, which declares ${expected}`
+          })
+      }
+    }
+  }
+
+  // Phase 2's exit gate says a handoff has zero unresolved information questions, zero
+  // route-critical unknowns, no blocking or material findings, and evidence from all three review
+  // lenses. It was prose only, so a document could violate every line of it and still pass all
+  // three authoring checks; the delivery loop then refuses the contract at admission, after a run
+  // has been initialised. That is this skill's own obligation, not the author's to remember, so it
+  // is checked here as a determinate failure rather than reported as a candidate.
+  //
+  // One shape of `IN_REVIEW` is legitimate and stays legitimate: a design whose only open item is a
+  // decision the user owns, recorded as a decision requirement. That is not unfinished work — it is
+  // work that cannot proceed without an answer, and the loop has a channel for exactly it.
+  const record = (value: unknown): Item | undefined =>
+    value !== null && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Item)
+      : undefined
+  const convergence = record(contract?.design_convergence)
+  if (convergence) {
+    const open = (key: string) =>
+      Array.isArray(convergence[key]) ? (convergence[key] as unknown[]).map(String) : []
+    const authorityOnly =
+      open('pending_authority_confirmations').length > 0 &&
+      ['unresolved_information_questions', 'route_critical_unknowns', 'blocking_findings'].every(
+        (key) => open(key).length === 0
+      ) &&
+      (contract?.requirements ?? []).some((item: Item) => item?.requirement_type === 'decision')
+    const lenses = ['SYNTHESIS', 'ADVERSARIAL', 'ACCEPTANCE_TOPOLOGY']
+    const passes = Array.isArray(convergence.review_passes)
+      ? (convergence.review_passes as Item[])
+      : []
+    for (const key of [
+      'unresolved_information_questions',
+      'route_critical_unknowns',
+      'blocking_findings',
+      'material_findings'
+    ])
+      for (const entry of open(key))
+        issues.push({ code: 'DESIGN_GATE_ITEM_OPEN', detail: `${key}: ${entry}` })
+    // A handoff needs exactly one current PASS per lens, not one somewhere in the history. Keeping
+    // earlier rounds is honest — they are what the design was reviewed against before — but a lens
+    // whose newest pass predates the current revision was not re-run, and counting it lets a
+    // document that re-reviewed two of three lenses present itself as fully reviewed.
+    //
+    // "Current" needs a marker the document carries. `stable_after_last_normative_change` says no
+    // change has happened *since the passes*, which is the author's own claim about the same thing
+    // and cannot separate a stale pass from a fresh one. The contract's own `revision` can: a pass
+    // records the revision it was performed against, and a revision bump is exactly what a
+    // normative change produces.
+    const revision = typeof contract?.revision === 'string' ? contract.revision : undefined
+    for (const lens of lenses) {
+      const forLens = passes.filter((pass) => record(pass)?.lens === lens)
+      if (!forLens.length) {
+        issues.push({ code: 'DESIGN_GATE_LENS_MISSING', detail: lens })
+        continue
+      }
+      // A history with no revision markers cannot be separated into rounds at all. One entry per
+      // lens is then the only shape that can be read unambiguously.
+      const unmarked = forLens.filter((pass) => typeof record(pass)?.revision !== 'string')
+      if (unmarked.length && revision) {
+        issues.push({
+          code: 'DESIGN_GATE_LENS_REVISION_MISSING',
+          detail: `${lens}: ${unmarked.length} pass(es) name no contract revision, so none can be shown to be current`
+        })
+        continue
+      }
+      const current = revision
+        ? forLens.filter((pass) => record(pass)?.revision === revision)
+        : forLens
+      if (!current.length) {
+        issues.push({
+          code: 'DESIGN_GATE_LENS_NOT_CURRENT',
+          detail: `${lens}: newest pass is for revision ${String(record(forLens.at(-1)!)?.revision)}, not ${revision}`
+        })
+        continue
+      }
+      if (current.length > 1) {
+        issues.push({
+          code: 'DESIGN_GATE_LENS_DUPLICATED',
+          detail: `${lens}: ${current.length} passes for revision ${String(revision)}; a round records one`
+        })
+        continue
+      }
+      if (current[0]!.result !== 'PASS')
+        issues.push({
+          code: 'DESIGN_GATE_LENS_NOT_PASSED',
+          detail: `${lens}: ${String(current[0]!.result)}`
+        })
+    }
+    if (convergence.stable_after_last_normative_change !== true)
+      issues.push({
+        code: 'DESIGN_GATE_UNSTABLE',
+        detail: 'stable_after_last_normative_change is not true'
+      })
+    if (convergence.status !== 'CONVERGED' && !authorityOnly)
+      issues.push({
+        code: 'DESIGN_NOT_CONVERGED',
+        detail: `status ${String(convergence.status)}: a handoff is CONVERGED, or IN_REVIEW solely on a pending authority confirmation carried by a decision requirement`
+      })
+  }
+
   // Three observations below were written from a delivery that shipped these defects past every
   // other gate. They read prose and command text, which cannot carry a proof, so each one is a
   // candidate the author answers in the document. None of them decides `valid`: a keyword that

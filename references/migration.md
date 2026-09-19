@@ -28,7 +28,7 @@ Package ownership is not migration closure. Whenever an owner, public path, wire
 
 The first decisive falsifier for a removal route is the reader inventory itself. A type-inference test, new API smoke, owner-package test, or package-level consumer list cannot prove module-level migration closure. Record the exact inventory method and result before implementation; if new readers appear, revise the migration DAG and workload before admission.
 
-Derive batches from reader dependencies, not from the desired final atomic invariant. The default staged shape is:
+Derive batches from reader dependencies, not from the desired final atomic invariant. **Each reader's requirements and acceptance must fit inside one batch**: admission binds a reader to a single execution packet and requires that packet to cover it, so a reader whose requirements are split across two batches has no admissible packet at all (`MIGRATION_READER_BATCH_COVERAGE_INVALID` at `validate`, `MIGRATION_READER_PACKET_COVERAGE_INVALID` at admission). Either re-cut the batch or split the reader into the entries the batches actually deliver. The default staged shape is:
 
 ```text
 new owner/contract → foundational readers → dependent attachment groups
@@ -45,4 +45,4 @@ Follow the repository's canonical error conventions when they exist. For changed
 
 Do not require an error registry or fixed file path in repositories that lack them. Intentional best-effort suppression is allowed only when its boundary, observability, and effect on the primary operation are explicit.
 
-<!-- reading-receipt: 5f910f76 -->
+<!-- reading-receipt: ecbe9f4c -->

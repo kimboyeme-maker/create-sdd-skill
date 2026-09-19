@@ -170,8 +170,10 @@ test('a program root records a sourced split decision and checks every execution
     'package.json': JSON.stringify({ name: 'svc' })
   })
   const path = join(root, 'root.sdd.md')
-  const program = (decision?: unknown) =>
-    `# Program\n\n<!-- sdd-program:start -->\n\`\`\`json\n${JSON.stringify({
+  // A program root states how to launch it, in its own body: see the launch test below.
+  const launch = (target: string) => `使用 sdd-loop-delivery 启动 ${target} 的完整 workflow\n\n`
+  const program = (decision?: unknown, body = launch(path)) =>
+    `# Program\n\n${body}<!-- sdd-program:start -->\n\`\`\`json\n${JSON.stringify({
       protocol: 'sdd-program/v1',
       id: 'PG01',
       nodes: [
@@ -197,8 +199,13 @@ test('a program root records a sourced split decision and checks every execution
     // The author's own judgment is not a decision source.
     writeFileSync(path, program({ source: 'INFERRED', reference: 'the work looked independent' }))
     expect((await checkRepositoryFacts(path)).issues[0]!.code).toBe('SPLIT_DECISION_UNRECORDED')
-    writeFileSync(path, program({ source: 'USER_STATED', reference: 'user reply: split it' }))
-    expect((await checkRepositoryFacts(path)).issues).toEqual([conflict])
+    const sourced = { source: 'USER_STATED', reference: 'user reply: split it' }
+    writeFileSync(path, program(sourced))
+    const sourcedReport = await checkRepositoryFacts(path)
+    expect(sourcedReport.issues).toEqual([conflict])
+    // The launch instruction is the agent's to say, not the document's to store, so the check hands
+    // it back rather than demanding it: it was being lost between deriving it and writing the reply.
+    expect(sourcedReport.facts.launch).toBe(`使用 sdd-loop-delivery 启动 ${path} 的完整 workflow`)
   } finally {
     rmSync(root, { recursive: true, force: true })
   }

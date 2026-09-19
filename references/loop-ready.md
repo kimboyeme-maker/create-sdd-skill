@@ -73,7 +73,9 @@ Coordinator admission rejects the rest before any lease: the design convergence 
 
 - every lockfile or workspace that manages a package whose manifest the SDD edits appears in `shared_mechanism_writes: [{"mechanism", "target", "managers", "write_points", "owners"}]`, and each owner is inside modification authority;
 - acceptance runtimes agree with repository version pins unless `environment_exceptions: [{"tool", "reason"}]` names the tool;
+- every command runs the package manager its target package declares, reported as `COMMAND_PACKAGE_MANAGER_MISMATCH` otherwise. Precedence is settled here rather than left to the author: a `packageManager` field in the package's own manifest, backed by its own lockfile, speaks about that package, while a workspace file above it speaks about the workspace, so the nearer and more specific declaration wins. This is not JavaScript-specific: a `pyproject.toml` states its manager through the tool table it carries (`[tool.uv]`, `[tool.poetry]`, `[tool.pdm]`, `[tool.rye]`, `[tool.hatch]`, `[tool.pipenv]`), broken by the lockfile beside it when two are present. A lockfile in the package's own directory is itself a declaration for any ecosystem no manifest there speaks for — a package carrying its own `bun.lock`, `pdm.lock` or `poetry.lock` has chosen, whatever the workspace above it says — while a `packageManager` field still outranks one, and two lockfiles of one ecosystem in one directory are a stray rather than a choice and decide nothing. Member lists honour negation: Cargo's `exclude` and pnpm's `!packages/x` carve directories back out of a glob, so `crates/*` plus `exclude = ["crates/scratch"]` leaves scratch unmanaged. `Cargo.toml` and `go.mod` have one manager each, so they declare truthfully but nothing in those ecosystems can disagree; the JVM is where the build file is a real choice, and a module carrying its own `pom.xml` under a Gradle settings file is the same shape as a bun package inside a pnpm workspace. A package that states two competing tools for one ecosystem and has no lockfile to break the tie declares nothing for it — the repository root answers only for ecosystems the package is silent about, never for one it left contested. Maven and Gradle have no lockfile to carry a parent's claim, so it is read from the member list instead (`<modules>`, `include`, sbt's `project.in(file(...))`) and reported as `claimed_by`; those lists are also where a Gradle or sbt subproject is named at all, since such directories hold no manifest of their own. `sbt` and `mill` join `gradle` and `mvn` in the JVM ecosystem, whose toolchain is pinned in the wrapper properties the build actually downloads (`gradle/wrapper/`, `.mvn/wrapper/`) as well as in `.java-version` and `.sdkmanrc`, and whose composite builds (`includeBuild`) claim a directory the same way `include` does. Ruby, PHP, .NET, Swift, Dart/Flutter, Elixir, Haskell, Julia, Zig and C/C++ are read the same way at lower fidelity — enough for their facts to be true and for a command naming the wrong tool to be caught — and Nix, like Bazel, gets an ecosystem of its own because it drives the others rather than competing with them. Bazel gets an ecosystem to itself: it drives the others rather than competing with them — a Bazel repository legitimately keeps the pnpm lockfile `rules_js` consumes — so it is recorded and never asserted over npm or Maven. Precedence applies inside one ecosystem only — a `uv.lock` beside a `bun.lock` supersedes nothing, and a Rust crate whose acceptance drives a JS harness is not running the wrong installer. A command is read at the head of each segment, so `uv pip install` names uv and `NPM_CONFIG_USERCONFIG=... pnpm install` names pnpm. `facts.packages[]` carries `declared_managers` (one entry per ecosystem), `declared_manager` (that value when exactly one ecosystem is declared, otherwise `null`), `manager_tools` and `superseded_managers` — read them instead of inferring the manager from the repository root, which is how a bun package acquires a pnpm install;
 - every indexed step's `**Location:**` names a path inside a declared owner, reported as `STEP_WRITE_OUTSIDE_AUTHORITY` otherwise. Admission compares `modification_packages` against `ownership.packages` by exact identifier, so a location under no declared root is admissible nowhere; declare that root by its own approved identity (a package name, or an exact repository-relative root such as `docs/contracts`) rather than expecting one root to cover another;
+- the phase-2 exit gate, as determinate failures rather than candidates: `DESIGN_GATE_ITEM_OPEN` for each unresolved information question, route-critical unknown, blocking or material finding; `DESIGN_GATE_LENS_MISSING` and `DESIGN_GATE_LENS_NOT_PASSED` for the synthesis, adversarial and acceptance-topology lenses; `DESIGN_GATE_UNSTABLE` for a design not stable after its last normative change; and `DESIGN_NOT_CONVERGED` for any status but `CONVERGED`. A design blocked solely on a decision the user owns, carried by a `requirement_type: "decision"` requirement, is exempt — waiting for an answer is not unfinished work;
 - migration symbols are literal patterns and every scan candidate is disposed;
 - external API imports have persisted grounding evidence.
 
@@ -136,6 +138,30 @@ Derive the contract only from explicit clauses, preserve stable IDs and add mech
 
 ## Reporting LOOP_READY
 
+`validate` reports `admissibility: {admissible, blockers}` beside its diagnostics. A draft stays
+structurally valid while it is being written — that is deliberate, and constraining it would make
+the command useless during authoring — so `valid: true` with `admissible: false` is the ordinary
+state of a document that is not finished. The blockers name what is still open in the author's own
+words: the status, each unresolved question, each missing or failing review lens, and stability
+after the last normative change. **Never report `LOOP_READY` while `admissible` is false**; the
+Coordinator refuses such a contract at admission, after a run has already been initialised.
+
+`admissible: true` is narrower than it sounds: those blockers report design convergence, not whether
+every admission rule would pass. The structural rules admission enforces — implementation graph,
+acceptance shape, executable methods for mechanical oracles, migration inventory and its
+reader-to-batch coverage — are checked as ordinary `validate` diagnostics instead, so a contract that
+passes `validate` has met them. Anything the loop can only see with an admission payload in hand
+(the fact closure, packet budgets, the authorization reference) still waits for the run. Treat a
+refusal that first appears at admission as a defect in this skill's checks and report it, rather than
+amending the contract mid-run: an amendment to acceptance scope costs a user decision, and the same
+fact was in the document all along.
+
+A program root is not validated this way at all: `validate` recognises the `sdd-program` index and
+answers with one `SDD_PROGRAM_ROOT` directive naming `program-check`, because the implementation
+checks would otherwise report a missing contract, missing sections and every child-owned ID as
+dangling — none of which the author can fix.
+
+
 For multi-SDD work, the total/group documents use `sdd-program/v1` and the delivery controller's `program-check` command; they are not dispatched as duplicate executable contracts. Only execution SDDs receive individual LOOP_READY receipts. Report structure validity, individual readiness and runtime delivery separately. Program runtime startup and continuation follow delivery's program-workflow reference and do not grant test, merge or budget authority.
 
 A clean `validate` and a compatible receipt are necessary, not sufficient. Re-read the human clauses as one design for guessed product choices, unsupported problem-to-solution jumps, route-invalidating assumptions, causal expansion, verification that includes non-causal repository health, contradictions, competing owners, unresolved primitive reuse, missing failure behavior, and oracles that only assert an implementation or test exists. Report `LOOP_READY` only when product closure, validation and compatibility all pass; it is still not implementation or runtime lease evidence.
@@ -144,4 +170,4 @@ A single SDD's report ends with one copyable launch instruction naming the docum
 
 Judge readiness from the evidence in hand, in both directions. A prerequisite without a producer, a failure path left to a future Operator or an unexecuted decisive probe blocks readiness. When every prerequisite has an evidenced producer and the decisive probes and branches have been executed, the route is ready: do not invent defects, request permissions the contract already grants, or open a successor to appear careful.
 
-<!-- reading-receipt: 0d899a33 -->
+<!-- reading-receipt: 9c33c9fb -->

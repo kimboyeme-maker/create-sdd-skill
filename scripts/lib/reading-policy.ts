@@ -56,6 +56,8 @@ const LANGUAGES: Record<string, string> = {
   python: 'python',
   java: 'jvm',
   kotlin: 'jvm',
+  scala: 'jvm',
+  groovy: 'jvm',
   javascript: 'bun-node',
   typescript: 'bun-node',
   bun: 'bun-node',
@@ -139,7 +141,30 @@ const EXTENSION_LANGUAGES: Readonly<Record<string, string>> = {
   '.rs': 'rust',
   '.py': 'python',
   '.java': 'java',
-  '.kt': 'kotlin'
+  '.kt': 'kotlin',
+  '.kts': 'kotlin',
+  '.scala': 'scala',
+  '.groovy': 'groovy',
+  // Languages with no guide of their own. Naming them still makes the derived fact true; the
+  // reading policy simply routes no language guide for them.
+  '.rb': 'ruby',
+  '.php': 'php',
+  '.cs': 'csharp',
+  '.fs': 'fsharp',
+  '.swift': 'swift',
+  '.dart': 'dart',
+  '.ex': 'elixir',
+  '.exs': 'elixir',
+  '.hs': 'haskell',
+  '.jl': 'julia',
+  '.zig': 'zig',
+  '.c': 'c',
+  '.h': 'c',
+  '.cpp': 'cpp',
+  '.cc': 'cpp',
+  '.hpp': 'cpp',
+  '.lua': 'lua',
+  '.rb.erb': 'ruby'
 }
 
 /** Cumulative requirements grow with discovered facts; author-supplied facts cannot unset start conditions. */

@@ -976,6 +976,131 @@
         "decisive_fact": "Product and controller runtimes are recorded separately.",
         "completion_oracle": "repo-facts reports no TOOLCHAIN_VERSION_CONFLICT."
       }
+    },
+    {
+      "id": "CSDD-CONVERGENCE-001",
+      "title": "An information question is closed or owned, never carried into handoff",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the open question can be answered by work this skill owns",
+      "bad": {
+        "task_mode": "design",
+        "request": "Produce a loop-ready SDD for a runtime integration.",
+        "starting_state": "The published release version of the main dependency and its call adaptation have not been checked against the repository; the design otherwise reads complete.",
+        "material_action": "Record the gap in design_convergence.unresolved_information_questions, leave status IN_REVIEW, and hand the document off.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "Reading the registry and the consumer call sites is work this skill performs in harvest and admission; nobody else is waiting to answer it.",
+        "completion_oracle": "repo-facts.ts check reports DESIGN_GATE_ITEM_OPEN and DESIGN_NOT_CONVERGED, and the handoff does not claim LOOP_READY."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Produce a loop-ready SDD for a runtime integration.",
+        "starting_state": "The same unchecked release version and call adaptation.",
+        "material_action": "Run the read-only checks, record the observed version and call shape as facts in the evidence companion, empty the open lists, and set status CONVERGED.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The question was answerable from the repository, so closing it is design work rather than a handoff note.",
+        "completion_oracle": "repo-facts.ts check returns valid true and the contract carries CONVERGED with the observation cited."
+      }
+    },
+    {
+      "id": "CSDD-CONVERGENCE-002",
+      "title": "A decision the user owns is a requirement, not an open question",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "who can answer the open item",
+      "bad": {
+        "task_mode": "design",
+        "request": "Produce a loop-ready SDD where one product choice is genuinely the user’s.",
+        "starting_state": "Two acceptable rejection behaviours exist and only the user can choose between them.",
+        "material_action": "Leave the choice in unresolved_information_questions with status IN_REVIEW and hand the document off.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "An information question states that nobody has looked yet; this item has been looked at and needs an answer only the user can give.",
+        "completion_oracle": "repo-facts.ts check reports DESIGN_NOT_CONVERGED because no decision requirement carries the open item."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Produce a loop-ready SDD where one product choice is genuinely the user’s.",
+        "starting_state": "The same two acceptable rejection behaviours.",
+        "material_action": "Record a requirement_type decision requirement with its authority, question and pending status, list the item under pending_authority_confirmations, and leave every other list empty.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Waiting for an answer is not unfinished design work, and the delivery loop has a user-decision channel for exactly this shape.",
+        "completion_oracle": "repo-facts.ts check returns valid true while the status stays IN_REVIEW, and the delivery raises the question as a USER_DECISION admission."
+      }
+    },
+    {
+      "id": "CSDD-CONVERGENCE-003",
+      "title": "All three review lenses are applied, not only the one that agrees",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the adversarial and acceptance-topology lenses were actually applied",
+      "bad": {
+        "task_mode": "design",
+        "request": "Converge a completed design.",
+        "starting_state": "A synthesis pass is recorded whose own evidence says it is a single-owner self-review.",
+        "material_action": "Claim convergence on that one pass and leave the adversarial and acceptance-topology lenses unrecorded.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "A lens with no recorded pass was not applied, and an absent result is not a clean one.",
+        "completion_oracle": "repo-facts.ts check reports DESIGN_GATE_LENS_MISSING for each unrecorded lens."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Converge a completed design.",
+        "starting_state": "The same synthesis pass.",
+        "material_action": "Apply the adversarial and acceptance-topology lenses to the final design and record each result with its evidence, rerunning any lens invalidated by a later normative change.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Each lens examines a different failure class, so convergence rests on all three being applied after the last normative change.",
+        "completion_oracle": "The contract carries the latest PASS per lens with evidence and repo-facts.ts check returns valid true."
+      }
+    },
+    {
+      "id": "CSDD-TOOLCHAIN-002",
+      "title": "A package is run with the manager it declares, not the one the repository root uses",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "which declaration the command follows when the repository makes two",
+      "bad": {
+        "task_mode": "design",
+        "request": "Design a change to a website package inside a monorepo.",
+        "starting_state": "The workspace file at the repository root lists the package as a pnpm member, while the package manifest declares packageManager bun and carries its own bun lockfile.",
+        "material_action": "Write the acceptance method and probes as pnpm commands because the repository root uses pnpm.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "A manifest declaration plus the package s own lockfile is a statement about that package; a workspace list above it is a statement about the workspace. The nearer and more specific one governs the package s commands.",
+        "completion_oracle": "repo-facts.ts check reports COMMAND_PACKAGE_MANAGER_MISMATCH and the document is not handed off until the commands use bun."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Design a change to a website package inside a monorepo.",
+        "starting_state": "The same two declarations.",
+        "material_action": "Read declared_managers from the package facts and write every command for that package with the entry for the ecosystem the command belongs to.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The skill resolves the precedence itself rather than asking the author to choose between two things that are not equally authoritative.",
+        "completion_oracle": "Every command for the package names its declared manager and repo-facts.ts check returns valid true."
+      }
+    },
+    {
+      "id": "CSDD-LAUNCH-001",
+      "title": "A finished program is reported with the sentence that starts it",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the launch instruction reaches the reply or only the document",
+      "bad": {
+        "task_mode": "design",
+        "request": "Regenerate the program with the updated skill.",
+        "starting_state": "Every document passes its checks and the program root already carries the launch sentence in its body from an earlier run.",
+        "material_action": "Report the documents, the estimates and the check results, and leave the launch sentence out of the reply because the document already holds it.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The instruction is what the user acts on. A document they have to go find it in is not a reply that hands it to them, and nothing in the reply says where to look.",
+        "completion_oracle": "The reply contains the exact string from lifecycle done next.must_echo, on its own line."
+      },
+      "good": {
+        "task_mode": "design",
+        "request": "Regenerate the program with the updated skill.",
+        "starting_state": "The same documents and the same checks.",
+        "material_action": "Run the lifecycle done hook and reproduce every must_echo string verbatim on its own line, every run, including when only regeneration happened.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The instruction is derivable at any time; the failure was losing it between being derivable and being said, which only the reply can fix.",
+        "completion_oracle": "The launch sentence appears verbatim in the reply and names the program root's absolute path."
+      }
     }
   ]
 }

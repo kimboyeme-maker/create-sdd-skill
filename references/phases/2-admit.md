@@ -63,7 +63,39 @@ Freeze the approved causal and modification boundary. A later failing root, brow
 
 After the information set closes, apply three lenses: synthesis of the route, adversarial challenge of architecture and causal assumptions, and acceptance execution topology. They are lenses, not separate documents or agent calls. Record findings as blocking, material or residual; one evidence-backed clean pass suffices. A normative change reopens only the affected conclusions. Never invent a failure to show diligence.
 
+All three are recorded, because an unrecorded lens was not applied and an absent result is not a clean one. Write the outcome into the contract as it is reached:
+
+```json
+"design_convergence": {
+  "status": "CONVERGED",
+  "unresolved_information_questions": [],
+  "pending_authority_confirmations": [],
+  "route_critical_unknowns": [],
+  "blocking_findings": [],
+  "material_findings": [],
+  "stable_after_last_normative_change": true,
+  "review_passes": [
+    {"id": "SP01", "lens": "SYNTHESIS", "result": "PASS", "revision": "<the contract's own revision>", "evidence": "what was examined and where"},
+    {"id": "SP02", "lens": "ADVERSARIAL", "result": "PASS", "revision": "<same>", "evidence": "the challenge and its answer"},
+    {"id": "SP03", "lens": "ACCEPTANCE_TOPOLOGY", "result": "PASS", "revision": "<same>", "evidence": "the execution shape checked"}
+  ]
+}
+```
+
+Earlier entries stay as history: a lens that failed and was rerun converges on its rerun. Each pass names the contract `revision` it was performed against, and the gate requires **exactly one pass per lens at the current revision**. Without that marker the entries cannot be separated into rounds, and a document that re-reviewed two of three lenses reads as fully reviewed because the third lens's stale pass fills the gap — which is what a real regenerated document did, carrying six passes the gate accepted. Reported as `DESIGN_GATE_LENS_REVISION_MISSING`, `DESIGN_GATE_LENS_NOT_CURRENT` and `DESIGN_GATE_LENS_DUPLICATED`. A contract with no `revision` of its own cannot be split into rounds either, so one entry per lens is the only shape it may carry.
+
+Evidence that describes its own limits — a single-owner self-review, say — is honest and still counts as that lens having been applied; it does not excuse the other two.
+
 ## Exit gate
+
+`repo-facts.ts check` enforces this list; it is not a reminder. An open information question, an
+open route-critical unknown, a blocking or material finding, a missing or failing review lens, or a
+design that is not stable after its last normative change each fail the check by name, and a status
+other than `CONVERGED` fails as `DESIGN_NOT_CONVERGED`. The one handoff that may stay `IN_REVIEW` is
+a design whose sole open item is a decision the user owns, carried by a `requirement_type:
+"decision"` requirement — that is not unfinished work, and the delivery loop has a channel for it.
+Everything else on this list is this skill's own work, and leaving it for the delivery to discover
+costs an initialised run and a refused admission.
 
 - [ ] Zero unresolved information questions, pending confirmations, route-critical unknowns, blocking or material findings.
 - [ ] Every design-relevant product dimension is closed or not applicable; every Must-Ship requirement has one semantic owner, dependency direction, authority state, causal and modification boundary, atomic acceptance claim, executable evidence route and executed route-critical falsifier.
@@ -75,4 +107,4 @@ After the information set closes, apply three lenses: synthesis of the route, ad
 - [ ] Every document this phase loaded is listed in the SDD's authoring receipt with its current token.
 - [ ] Remaining residual risks cannot invalidate Must-Ship behavior, ownership, scope, authority or verification, and are disclosed. Nothing was satisfied by downgrading, omitting, renaming or moving an item.
 
-<!-- reading-receipt: 5b2987dc -->
+<!-- reading-receipt: 204cec39 -->
