@@ -1101,6 +1101,31 @@
         "decisive_fact": "The instruction is derivable at any time; the failure was losing it between being derivable and being said, which only the reply can fix.",
         "completion_oracle": "The launch sentence appears verbatim in the reply and names the program root's absolute path."
       }
+    },
+    {
+      "id": "CSDD-FIXTURE-001",
+      "title": "A perturbation that flips nothing is a missing assertion",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "how the author reads a perturbation arm in which every assertion stayed green",
+      "bad": {
+        "task_mode": "design",
+        "starting_state": "A design fixture for a newly invented mechanism passes on its first run. The mechanism has two behaviours. Disabling the first flips two assertions; disabling the second flips none.",
+        "request": "Close the implementation logic for the mechanism the Must-Ship requirement rests on.",
+        "material_action": "Record both perturbations as performed, treat the arm that flipped nothing as evidence that the mechanism is robust there, and admit the design.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "An arm that flips nothing did not exercise the behaviour it disabled. The fixture contains no assertion for that half of the mechanism, so the design ships a behaviour no evidence covers — and in the observed trace that half was load-bearing: without it a consumer's error identity would have drifted silently.",
+        "completion_oracle": "Every perturbation arm declared in the challenge flips at least one named assertion, and the challenge records which."
+      },
+      "good": {
+        "task_mode": "design",
+        "starting_state": "The same fixture and the same two perturbation arms.",
+        "request": "Close the implementation logic for the mechanism the Must-Ship requirement rests on.",
+        "material_action": "Read the empty arm as a gap, add the assertion that exercises the second behaviour, rerun both arms until each flips its own assertions, and record what was perturbed and what flipped.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "The perturbation is a detector, not a ceremony. Its null result is the finding, and acting on it is what turns a green file into design evidence.",
+        "completion_oracle": "Every perturbation arm declared in the challenge flips at least one named assertion, and the challenge records which."
+      }
     }
   ]
 }

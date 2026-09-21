@@ -369,12 +369,13 @@ test('evidence refuses an inference wearing an observation s clothes', async () 
   }
 })
 
-test('a normative amendment after CONVERGED invalidates the claim that nothing changed', async () => {
+test('a normative amendment is refused while its review lens passes predate the revision', async () => {
   const root = repository(WORKSPACE)
   const run = startedRun(root)
   const sdd = join(root, 'change.sdd.md')
-  const converged = {
-    revision: 'SDD-v1',
+  /** Builds a converged contract whose lens passes name `reviewed` and whose document is `revision`. */
+  const converged = (revision: string, reviewed: string) => ({
+    revision,
     design_convergence: {
       status: 'CONVERGED',
       stable_after_last_normative_change: true,
@@ -384,25 +385,42 @@ test('a normative amendment after CONVERGED invalidates the claim that nothing c
         id: `SP0${index + 1}`,
         lens,
         result: 'PASS',
-        revision: 'SDD-v1',
+        revision: reviewed,
         evidence: 'design review notes'
       }))
     }
-  }
-  try {
+  })
+  /** Writes one contract document at the fixture path. */
+  const write = (contract: unknown) =>
     writeFileSync(
       sdd,
-      `# Change\n\n<!-- sdd-contract:start -->\n\`\`\`json\n${JSON.stringify(converged)}\n\`\`\`\n<!-- sdd-contract:end -->\n`
+      `# Change\n\n<!-- sdd-contract:start -->\n\`\`\`json\n${JSON.stringify(contract)}\n\`\`\`\n<!-- sdd-contract:end -->\n`
     )
-    const normative = await runHook('amend', {
+  try {
+    // The document moved to v2; the recorded passes still describe v1, so nothing re-reviewed the
+    // amended design and the convergence claim is stale.
+    write(converged('SDD-v2', 'SDD-v1'))
+    const stale = await runHook('amend', {
       run,
       sdd,
       reason: 'added an acceptance case',
       normative: true
     })
-    expect(normative.ok).toBe(false)
-    expect(normative.blocking.map((issue) => issue.code)).toContain('LIFECYCLE_CONVERGENCE_STALE')
-    expect(normative.next.must_do.join(' ')).toContain('three review lenses')
+    expect(stale.ok).toBe(false)
+    expect(stale.blocking.map((issue) => issue.code)).toContain('LIFECYCLE_CONVERGENCE_STALE')
+    expect(stale.next.must_do.join(' ')).toContain('three review lenses')
+    // Re-running the lenses and recording one PASS each at the amended revision is exactly what the
+    // refusal asked for, so reporting the amendment now succeeds with convergence intact. Clearing
+    // `stable_after_last_normative_change` instead is not the remedy: an unstable document is
+    // refused by the repository gate, which would leave a re-reviewed session with no way to report.
+    write(converged('SDD-v2', 'SDD-v2'))
+    const reviewed = await runHook('amend', {
+      run,
+      sdd,
+      reason: 'added an acceptance case',
+      normative: true
+    })
+    expect(reviewed.ok).toBe(true)
     // A typo is not a normative change and leaves the convergence claim standing.
     const cosmetic = await runHook('amend', { run, sdd, reason: 'fixed a typo', normative: false })
     expect(cosmetic.ok).toBe(true)

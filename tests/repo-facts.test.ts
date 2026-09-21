@@ -143,6 +143,46 @@ test('every scan candidate of a legacy symbol has a disposition, and symbols are
   }
 })
 
+test('a legacy symbol that matches most of the repository is reported once as too generic', async () => {
+  // Thirty modules, every one of them mentioning the word `plugin`. A real removal surface never
+  // looks like this; an ordinary word that slipped into a symbol list always does.
+  const files: Record<string, string> = { 'package.json': JSON.stringify({ name: 'svc' }) }
+  for (let index = 0; index < 30; index += 1)
+    files[`src/mod-${index}.ts`] = 'export const plugin = () => undefined\n'
+  const root = repository(files)
+  const path = join(root, 'change.sdd.md')
+  /** Writes one migration contract whose single legacy surface carries `symbols`. */
+  const write = (symbols: string[]) =>
+    writeFileSync(
+      path,
+      sdd('', {
+        migration_applicability: 'REQUIRED',
+        migration: {
+          inventory_roots: ['src'],
+          legacy_surfaces: [{ id: 'YL01', symbols }],
+          readers: [],
+          dismissed_candidates: []
+        }
+      })
+    )
+  try {
+    write(['plugin'])
+    const saturated = await checkRepositoryFacts(path)
+    // One narrowing instruction, not thirty identical findings that would bury every other issue.
+    expect(saturated.issues).toHaveLength(1)
+    expect(saturated.issues[0]!.code).toBe('MIGRATION_SYMBOL_TOO_GENERIC')
+    expect(saturated.issues[0]!.detail).toContain('matches 30 of 30 scanned files')
+    // A symbol that names an actual surface still reports its undisposed readers one by one.
+    writeFileSync(join(root, 'src/mod-0.ts'), 'export const legacyPluginBridge = 1\n')
+    write(['legacyPluginBridge'])
+    expect((await checkRepositoryFacts(path)).issues).toEqual([
+      { code: 'MIGRATION_CANDIDATE_UNDISPOSED', detail: 'src/mod-0.ts (legacyPluginBridge)' }
+    ])
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
 test('external interfaces in the API section without persisted evidence are reported as review candidates', async () => {
   const root = repository({ 'package.json': JSON.stringify({ name: 'svc' }) })
   const path = join(root, 'change.sdd.md')

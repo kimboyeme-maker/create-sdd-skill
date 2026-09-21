@@ -46,6 +46,51 @@ Observe the baseline of every gate used as an oracle or route decision before re
 
 Probes may run in a temporary directory, but the command, versions, environment, result and an output excerpt or attachment are persisted in the SDD's [evidence companion](../design/agent-context-map.md#evidence-companion); a path into a temporary directory is not evidence.
 
+### Build the fixture for the mechanism you are inventing
+
+A probe that only reads answers "is my premise about the repository true?". It cannot answer "does the
+mechanism I just designed actually carry the shapes it has to carry?" — and that is the question a
+design gets wrong in the expensive direction, because the pseudocode reads as though it works.
+
+So for every path that introduces a mechanism the repository does not already run — a new
+construction order, a new entry form, a new protocol or handoff, a new ownership boundary — on which
+a Must-Ship requirement depends, the challenge's `method` is an **executed fixture**, not an
+inspection. The fixture instantiates the designed mechanism, exercises it with the real shapes it
+must carry (each named consumer, each awkward caller, the boundary case the design claims to fix),
+and reports per-assertion. Where the mechanism does not exist yet, build the smallest thing that has
+its structure — if a shape cannot be expressed against that, the real implementation cannot express
+it either.
+
+A fixture that passes on the first run has proved nothing yet. Perturb it: break the ordering it
+depends on, restore the behaviour it claims to replace, and confirm the matching assertion flips.
+An assertion that cannot be made to fail is measuring nothing, and is rewritten until it can.
+Record, in the challenge, what was perturbed and what flipped.
+
+Read the perturbation results in both directions, because each direction catches a different defect:
+
+- **A perturbation that flips nothing is a missing assertion, not a passing fixture.** Disabling one
+  of the mechanism's behaviours and watching every assertion stay green means nothing in the fixture
+  exercises that behaviour. Add the assertion and rerun; do not delete the perturbation to make the
+  run look clean. This is how a design learns that one half of a mechanism it was about to ship is
+  load-bearing — the missing arm is usually the one the pseudocode treats as obvious.
+- **An assertion no perturbation reaches can still be vacuous.** Perturbation only falsifies the
+  assertions whose path it touches, so an assertion that is true by construction — a condition that
+  short-circuits, a comparison of a value with itself, a check that restates the setup — passes every
+  arm and proves nothing. For each assertion, name the fact it would catch if the mechanism were
+  wrong; an assertion with no such fact is rewritten, and one whose subject the fixture never
+  constructs is split so the setup itself is asserted first.
+
+Both readings are cheap and they are the point of running the fixture at all. A design that skips
+them has a green file and the same unexamined pseudocode it started with.
+
+Keep it proportional. This is design evidence, not a test suite and not a deliverable: one runnable
+file per mechanism, living beside the SDD with the rest of the evidence, no product source touched
+and no acceptance obligation created by its existence. A mechanism that is an ordinary application
+of something the repository already runs needs no fixture — cite the existing usage instead. The
+difficulty drivers already named in the design basis are the list to work from: if a driver has no
+fixture and no cited precedent, the logic is not closed, and the pseudocode that rests on it is a
+proposal rather than a design.
+
 - Owner, path or contract replacement and legacy removal: the first falsifier is the module-reader inventory in [migration](../migration.md).
 - Continuation of an unfinished delivery: load [continuation lineage](../design/continuation-lineage.md) first. An inherited failure has four dispositions only: a current rerun proves it resolved; an admitted requirement repairs it inside modification authority; causal evidence proves its package is outside every acceptance surface; or a user-owned decision changes the contract.
 
@@ -107,4 +152,4 @@ costs an initialised run and a refused admission.
 - [ ] Every document this phase loaded is listed in the SDD's authoring receipt with its current token.
 - [ ] Remaining residual risks cannot invalidate Must-Ship behavior, ownership, scope, authority or verification, and are disclosed. Nothing was satisfied by downgrading, omitting, renaming or moving an item.
 
-<!-- reading-receipt: 204cec39 -->
+<!-- reading-receipt: 736ebdd5 -->

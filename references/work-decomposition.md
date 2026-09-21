@@ -28,6 +28,12 @@ A batch is the smallest unit that:
 
 Cut along the implementation logic, not along files or layers. Invalid shapes: "all types", "all tests", "all docs", one batch per file, one batch per requirement by reflex, a test-only batch detached from its behavior. A migration keeps its reader DAG from [migration](migration.md): new owner → reader groups → exports and owning tests → zero-reader scan → removal.
 
+### Cut the batches and the paths together
+
+An `implementation_logic` path's acceptance may only be verified in a batch that lands after every batch carrying that path's own requirements **and** after every batch carrying the requirements of each path it consumes. A path whose requirements are spread over several batches therefore drags all of its acceptance behind the last of them, and the first acceptance that was supposed to close earlier is rejected as `IMPLEMENTATION_LOGIC_ACCEPTANCE_BEFORE_PRODUCER`.
+
+The shape that follows from this is one path per batch: the path's requirement set equals the batch's, its steps are the batch's work, and the cross-path inputs mirror the batch's `depends_on`. Cut them in the same pass rather than writing the paths first and discovering the ordering later — a path drawn per package or per theme, spanning three batches, has to be re-cut, and the steps move with it. Two batches may share a path only when neither closes acceptance before the other lands, which in practice means they are one batch.
+
 Estimate honestly from drivers, and write the basis in the human Delivery & Verification section: files and public signatures touched, new or migrated readers, new test hosts, probes to rerun, and review surface. Round up for unfamiliar code or cross-package edits. An estimate is planning evidence, never progress.
 
 ### Slice vertically, migrate by expand–contract
@@ -90,4 +96,4 @@ Run `validate` and read `deliveryPlan`. Report waves, lanes, serial minutes and 
 - Adding shards that split one browser journey or shared fixture across Architects.
 - Treating the plan as a promise that concurrent Operators exist in the current controller.
 
-<!-- reading-receipt: ff35d02f -->
+<!-- reading-receipt: 2c646379 -->

@@ -501,21 +501,34 @@ async function onAmend(payload: Record<string, unknown>): Promise<Result> {
       if (error) blocking.push(finding('LIFECYCLE_CONTRACT_UNREADABLE', error))
       const convergence = (contract as { design_convergence?: Record<string, unknown> } | null)
         ?.design_convergence
+      const repositoryFacts = await checkRepositoryFacts(sdd)
       // `CONVERGED` plus `stable_after_last_normative_change` is a claim about a moment that has
       // now passed. Nothing reset it, so a document could be edited after converging and still
       // present itself as settled — and the delivery controller would admit it on that claim.
+      //
+      // The boolean alone cannot carry that check. Clearing it to report the amendment makes the
+      // document unstable, which `repo-facts` then blocks on as `DESIGN_GATE_UNSTABLE`; leaving it
+      // set is blocked here. Both endings refuse a session that did re-review, which is the one
+      // case this event exists to record. The evidence that distinguishes them already exists:
+      // review lens passes carry the revision they were run against, and `repo-facts` reports a
+      // lens whose newest pass predates the current revision. Staleness is that finding, not the
+      // boolean, so an author who re-reviewed and recorded passes at the amended revision may
+      // report the amendment with convergence intact.
+      const lensStale = repositoryFacts.issues.some(
+        (issue) => issue.code === 'DESIGN_GATE_LENS_NOT_CURRENT'
+      )
       if (
         payload.normative === true &&
         convergence?.status === 'CONVERGED' &&
-        convergence?.stable_after_last_normative_change === true
+        convergence?.stable_after_last_normative_change === true &&
+        lensStale
       )
         blocking.push(
           finding(
             'LIFECYCLE_CONVERGENCE_STALE',
-            'a normative change after CONVERGED invalidates stable_after_last_normative_change and every review lens pass recorded before it'
+            'a normative change after CONVERGED invalidates every review lens pass recorded before it; re-run the three lenses, record one PASS each at the amended revision, then report the amendment'
           )
         )
-      const repositoryFacts = await checkRepositoryFacts(sdd)
       blocking.push(...repositoryFacts.issues)
       facts.repo_facts = { valid: repositoryFacts.valid }
       facts.convergence = convergence ?? null
@@ -1005,7 +1018,8 @@ if (import.meta.main) {
   const event = command as Event
   if (!EVENTS.includes(event)) {
     console.error(
-      `usage: lifecycle.ts <${EVENTS.join('|')}> --payload-file <path> | --payload <json>`
+      `usage: lifecycle.ts <${EVENTS.join('|')}> --payload-file <path> | --payload <json>\n` +
+        '       lifecycle.ts describe   # every event\u2019s payload fields'
     )
     console.error('       lifecycle.ts describe')
     process.exit(2)
@@ -1016,7 +1030,10 @@ if (import.meta.main) {
   if (flag === '--payload-file' && value) raw = readFileSync(resolve(value), 'utf8')
   else if (flag === '--payload' && value) raw = value
   else {
-    console.error(`usage: lifecycle.ts ${event} --payload-file <path> | --payload <json>`)
+    console.error(
+      `usage: lifecycle.ts ${event} --payload-file <path> | --payload <json>\n` +
+        `       lifecycle.ts describe   # ${event}\u2019s payload fields`
+    )
     process.exit(2)
   }
   let parsed: unknown

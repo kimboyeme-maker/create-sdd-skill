@@ -66,6 +66,12 @@ export type FactReport = {
 
 /** Largest file scanned for migration candidates; larger files are reported, not read. */
 const SCAN_LIMIT_BYTES = 1_000_000
+/**
+ * Smallest match count that can make a legacy symbol look generic. Below it, a symbol matching a
+ * large share of a tiny corpus is still worth listing file by file; above it, the share test in
+ * the migration scan decides whether the symbol names a surface or an ordinary word.
+ */
+const GENERIC_SYMBOL_MIN_HITS = 25
 /** Language and test-harness names that a repository need not declare for pseudocode to be real. */
 const PSEUDOCODE_BUILTINS = new Set([
   'expect',
@@ -614,13 +620,27 @@ export async function checkRepositoryFacts(
           issues.push({ code: 'MIGRATION_SYMBOL_UNSCANNABLE', detail: String(symbol) })
           continue
         }
+        const hits: string[] = []
         for (const file of scanned) {
           if (disposed.has(file)) continue
           const path = join(root, file)
           if (statSync(path).size > SCAN_LIMIT_BYTES) continue
-          if (read(path).includes(symbol))
-            issues.push({ code: 'MIGRATION_CANDIDATE_UNDISPOSED', detail: `${file} (${symbol})` })
+          if (read(path).includes(symbol)) hits.push(file)
         }
+        // A legacy symbol is a removal surface, so its undisposed matches are few and each one is
+        // worth naming. A symbol that matches a large share of the repository is not a surface —
+        // it is an ordinary word (`plugin`, `config`, `host`) that happens to appear in a symbol
+        // list. Emitting one finding per match then buries every other issue in the report under
+        // hundreds of identical lines, which is how a real defect stays invisible. Saturation is
+        // reported once, as the narrowing instruction it actually is.
+        if (hits.length > GENERIC_SYMBOL_MIN_HITS && hits.length * 5 > scanned.length)
+          issues.push({
+            code: 'MIGRATION_SYMBOL_TOO_GENERIC',
+            detail: `${symbol}: matches ${hits.length} of ${scanned.length} scanned files; a legacy symbol must name a removal surface, not an ordinary word — narrow it to the exact identifier, subpath or declaration site being retired`
+          })
+        else
+          for (const file of hits)
+            issues.push({ code: 'MIGRATION_CANDIDATE_UNDISPOSED', detail: `${file} (${symbol})` })
       }
   }
 

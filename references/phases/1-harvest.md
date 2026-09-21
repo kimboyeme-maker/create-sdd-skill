@@ -19,6 +19,18 @@ FACT-ID | kind | statement | source | dimension | confidence | invalidated_by
 
 Only `USER_STATED` and `OBSERVED` facts become normative. An `INFERRED` fact that controls owner, route, acceptance or plan needs a probe. An `ASSUMED` fact becomes an `INFORMATION_QUESTION`, an `AUTHORITY_CONFIRMATION` or a falsifier to run; it never silently becomes a requirement.
 
+### Handing the ledger to `lifecycle.ts evidence`
+
+The table above is how the ledger reads; the hook that records it takes different field names, and passing the table's names is rejected field by field. One payload row is:
+
+```json
+{"id": "F01", "claim": "<the statement>", "classification": "OBSERVED", "reference": "packages/app/src/entry.ts:42", "normative": true}
+```
+
+`classification` carries the `kind` value, `claim` the statement, `reference` the source, and `normative` is `true` exactly for `USER_STATED` and `OBSERVED`. The call also needs `documents: [{"sdd": "<absolute path>", "fact_ids": ["F01", ...]}]`, and every `sdd` path is absolute.
+
+**`reference` on an `OBSERVED` fact must be one repository path the hook can resolve**, optionally with `:line`. A command string, a "→ exit 0" transcript, a semicolon-joined list of several files or a bare tool name is rejected as `LIFECYCLE_OBSERVATION_UNRESOLVED`, however true the fact is. Cite the one file the fact is anchored in and put the command, the other paths and the output excerpt in the `claim` text or the evidence companion. A `USER_STATED` reference is the quote or the message, and an `INFERRED` or `ASSUMED` one says what it was reasoned from; only observations are resolved against the repository.
+
 ## Sources, in reading order
 
 1. The user request verbatim, plus any issue, note or prior conversation the user supplied.
@@ -71,4 +83,4 @@ After pass 6 report once: outcome and users; confirmed facts by dimension with c
 - Taking the first interpretation of a phrase as a constraint without writing what it does not imply.
 - Asking the user for a fact a read-only command can establish, or mixing a question with a confirmation.
 
-<!-- reading-receipt: 32e5425e -->
+<!-- reading-receipt: b07a3dd1 -->

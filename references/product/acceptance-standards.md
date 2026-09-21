@@ -61,6 +61,12 @@ and the case is decorative, whatever its assertions say. The delivery loop enfor
 gate (`ACCEPTANCE_ORACLE_INSENSITIVE`), reading the signed runs already in its journal, so a case
 that slips past the authoring warning is still caught before anything ships.
 
+## Two cases never share an identity
+
+Each case's `execution.evidence_boundary` must be unique across the whole contract; the validator normalizes the string before comparing, so "its own test result" written twice is one identity, not two (`ACCEPTANCE_EVIDENCE_BOUNDARY_DUPLICATE`). Name the artifact the case actually leaves — the package and file whose result it is — instead of a sentence that would fit any case.
+
+An `INDEPENDENT` case also owns its target: the `[method, environment]` pair must be unique (`ACCEPTANCE_INDEPENDENT_TARGET_REUSED`). Two claims that would run the same command in the same environment are either one claim, or two claims needing two narrower commands. Finding the collision late usually means a claim was written too broadly — split the claim, do not widen the command to make it look different.
+
 ## Sizing to the loop
 
 - One claim per case; a journey is split at its natural checkpoints when the whole run would exceed the timeout.
@@ -87,4 +93,4 @@ The same restraint applies to the checks in this skill: the authoring-time patte
 warning whose guarantee lives elsewhere, and a boundary recorded honestly outranks coverage claimed
 loosely.
 
-<!-- reading-receipt: f399b551 -->
+<!-- reading-receipt: 1ef8d5ed -->

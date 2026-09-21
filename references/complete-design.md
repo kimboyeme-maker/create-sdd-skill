@@ -72,7 +72,9 @@ Required when `product_archetype` has a user interface; otherwise omit. Use **Ar
 
 ### Platform and Architecture (every implementation SDD)
 
-Use **Platforms**, **Lifecycle and navigation**, **Capabilities and permissions**, **Distribution gates**, **Compatibility and performance budgets**, **Surfaces and core boundary**. Close the dimensions from [delivery platforms](product/platforms.md) and each loaded platform and language guide with decisions and evidence. When one core feeds several surfaces, include the use-case mapping table, error catalog mapping and import-boundary enforcement from [core and adapters](product/architecture/core-adapters.md). The contract `delivery_platforms` and `architecture` fields are the machine projection of this section; for a single-surface change this section may be a short evidenced paragraph inside Implementation Flow.
+Use **Platforms**, **Lifecycle and navigation**, **Capabilities and permissions**, **Distribution gates**, **Compatibility and performance budgets**, **Surfaces and core boundary**. Close the dimensions from [delivery platforms](product/platforms.md) and each loaded platform and language guide with decisions and evidence. When one core feeds several surfaces, include the use-case mapping table, error catalog mapping and import-boundary enforcement from [core and adapters](product/architecture/core-adapters.md). The contract `delivery_platforms` field is the machine projection of this section; for a single-surface change this section may be a short evidenced paragraph inside Implementation Flow.
+
+The contract's `architecture` field is **not** a general projection of this section. It is the [core and adapters](product/architecture/core-adapters.md) shape and nothing else: `protocol: "core-adapters/v1"`, a `core.packages` list, and a non-empty `adapters` array whose entries are thin translation layers over that core, on packages disjoint from it, scheduled after every core batch. The field is optional and omitting it is valid; declaring it without adapters is `ARCHITECTURE_ADAPTERS_REQUIRED`, and declaring peer packages as adapters invents a layer the repository does not have. A library whose consumers are independent products, a single-package change, and any design with no core/adapter split all omit it and say so in **Surfaces and core boundary** with the reason.
 
 ### Delivery & Verification
 
@@ -92,4 +94,4 @@ Validate proposed documents with the loop's `validate-draft` before anything is 
 
 Documents without `design_detail` are validated without section bindings; add it through a normal scoped amendment when the design is revised.
 
-<!-- reading-receipt: 2c0a4e3d -->
+<!-- reading-receipt: d598a64e -->
