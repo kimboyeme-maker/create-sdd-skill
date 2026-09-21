@@ -516,6 +516,19 @@ export async function checkRepositoryFacts(
     candidates.push({ code: 'ACCEPTANCE_METHOD_ZERO_OBSERVATION', detail: String(item.id) })
   }
 
+  // A REQUIRED sensitivity is an operation, not only a description. The paths its perturbation and
+  // restoration write are design facts, and a delivery that is not told about them meets the host's
+  // approval boundary one operation at a time, mid-lease: the observed run was refused twice before
+  // the user could grant reversible, already-scoped source edits. Asked as a candidate, because an
+  // empty list is a legitimate answer for a perturbation that touches no tracked file.
+  for (const acceptance of Array.isArray(contract?.acceptance) ? contract.acceptance : []) {
+    const item = acceptance as Item
+    const sensitivity = item?.oracle_sensitivity as Item | undefined
+    if (sensitivity?.applicability !== 'REQUIRED') continue
+    if (Array.isArray(sensitivity.perturbation_writes)) continue
+    candidates.push({ code: 'SENSITIVITY_WRITES_UNDECLARED', detail: String(item.id) })
+  }
+
   // Pseudocode that calls a helper nobody has and nobody is writing is not a design an implementer
   // can follow; the rehearsal's step called two invented functions. A name resolves three ways, and
   // only a name that resolves none of them is worth asking about:
@@ -551,6 +564,39 @@ export async function checkRepositoryFacts(
   const logicPaths: Item[] = Array.isArray(contract?.implementation_logic?.paths)
     ? contract.implementation_logic.paths
     : []
+
+  // A challenge is where a premise gets closed, and its shape cannot say whether anything ran. In
+  // the observed case an author reasoned that two predicates had the same truth set, wrote that
+  // conclusion into observed_result, cited the two source lines the reasoning was about, and closed
+  // it. The reasoning was wrong on every value past the boundary, the pseudocode it justified broke
+  // the overflow handling, and all four checks were green — the defect surfaced at admission.
+  //
+  // Two shapes are worth asking about, both as candidates because either can be legitimate:
+  // a CLOSED challenge that declares itself reasoned, and evidence that names only source files,
+  // which cites the subject of the reasoning rather than a record of anything happening.
+  // A fixture file is source too, so the question is not the extension but whether the path is a
+  // record of something happening. An evidence companion, a fixture and a probe are records; a file
+  // under the product tree is the subject the reasoning was about. A candidate that fired on both
+  // would be noise, and a noisy candidate is one nobody reads — which is the failure being fixed.
+  const SOURCE_FILE =
+    /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|rb|php|swift|c|h|cc|cpp|cs|dart|ex|exs|scala|sh)(:\d+)?$/i
+  const EVIDENCE_RECORD = /(^|[\\/])(evidence|fixtures?|probes?)([\\/]|$)|fixture|probe/i
+  const subjectOnly = (entry: string): boolean =>
+    SOURCE_FILE.test(entry) && !EVIDENCE_RECORD.test(entry)
+  for (const path of logicPaths) {
+    for (const value of Array.isArray(path?.challenges) ? (path.challenges as Item[]) : []) {
+      const challenge = value as Item
+      const where = `${String(path?.id ?? '?')}: ${String(challenge?.premise ?? '').slice(0, 60)}`
+      if (challenge?.result === 'CLOSED' && challenge?.provenance === 'REASONED')
+        candidates.push({ code: 'CHALLENGE_REASONED_BUT_CLOSED', detail: where })
+      const evidence = (Array.isArray(challenge?.evidence) ? challenge.evidence : []).filter(
+        (entry: unknown): entry is string => typeof entry === 'string' && entry.length > 0
+      )
+      if (evidence.length && evidence.every(subjectOnly))
+        candidates.push({ code: 'CHALLENGE_EVIDENCE_CITES_SUBJECT_ONLY', detail: where })
+    }
+  }
+
   for (const path of logicPaths) {
     for (const step of Array.isArray(path?.steps) ? (path.steps as Item[]) : []) {
       const item = step as Item

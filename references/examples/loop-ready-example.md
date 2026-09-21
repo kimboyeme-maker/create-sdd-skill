@@ -484,11 +484,16 @@ Reading it back:
   "fault_model": "The pre-validation loop is removed, so a replay containing one read-only source writes the earlier writable sources before rejecting",
   "perturbation_method": "Delete the validation loop that precedes the apply loop in BZ04 and rerun the case",
   "restoration_method": "Reinstate the validation loop ahead of the first apply call and rerun the case",
+  "perturbation_writes": ["packages/demo/src/replay.ts"],
+  "write_disposition": "TEMPORARY",
+  "restoration_check": "the candidate fingerprint equals its pre-perturbation value",
   "expected_flip": "PASS_TO_FAIL_TO_PASS",
   "implementation_timing": "IMPLEMENTATION_REQUIRED"
 }
 ```
 
-`applicability` is `REQUIRED` or `NOT_APPLICABLE`; no other value is accepted. `NOT_APPLICABLE` carries `reason` and nothing else. `REQUIRED` carries all five fields above, `expected_flip` is always the literal `PASS_TO_FAIL_TO_PASS`, and `implementation_timing` is `IMPLEMENTATION_REQUIRED` for a guard this delivery still has to build or `DESIGN_PROVEN` for one already probed in an isolated copy — `DESIGN_PROVEN` additionally requires a non-empty `evidence` array naming where that probe is recorded.
+`applicability` is `REQUIRED` or `NOT_APPLICABLE`; no other value is accepted. `NOT_APPLICABLE` carries `reason` and nothing else. `REQUIRED` carries `fault_model`, `perturbation_method`, `restoration_method`, `expected_flip` and `implementation_timing`; `expected_flip` is always the literal `PASS_TO_FAIL_TO_PASS`, and `implementation_timing` is `IMPLEMENTATION_REQUIRED` for a guard this delivery still has to build or `DESIGN_PROVEN` for one already probed in an isolated copy — `DESIGN_PROVEN` additionally requires a non-empty `evidence` array naming where that probe is recorded.
 
-<!-- reading-receipt: 71a1e5cb -->
+`perturbation_writes`, `write_disposition` and `restoration_check` declare the operation the perturbation performs, so the delivery can request every permission once instead of discovering them one lease at a time ([verification card](../phases/4-verify.md#a-perturbation-is-an-operation-so-declare-what-it-writes)). They are additive: a controller that does not read them still accepts the contract, and `repo-facts.ts check` reports a `REQUIRED` branch without `perturbation_writes` as a candidate rather than a failure.
+
+<!-- reading-receipt: 3c8545f0 -->

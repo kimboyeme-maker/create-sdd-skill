@@ -56,6 +56,8 @@ const validated = request.value;
 
 `MECHANICAL` steps replace Pseudocode with **Operation** containing the exact bounded operation and its postcondition. Behavioral decisions cannot be hidden as mechanical work. One step is a meaningful operation, not every source statement. Shared logic has one defined producer and references from dependents. Do not copy it under different step IDs.
 
+Before the step is finished, read its **Failure**, **State changes** and **Observable result** back against its own **Pseudocode**, claim by claim. The validator checks that each label is present and can never check that the labels describe the code beneath them, so a step whose Failure promises "identical to the previous behaviour" while its pseudocode ten lines above replaces the thrown object passes every gate with the contradiction sealed inside one section. This read-back costs a minute per step and is the only thing standing between a confident sentence and an admission refusal: a claim the pseudocode does not support is corrected in one of the two places before the step is called done.
+
 Source index example, inside existing `implementation_logic.paths[].steps`:
 
 ```json
@@ -78,7 +80,11 @@ The contract's `architecture` field is **not** a general projection of this sect
 
 ### Delivery & Verification
 
-Use **Batches and dependencies**, **Exit conditions**, **Acceptance**, **Executed probes**. Tie batches to existing requirements, implementation locations, prerequisite producer steps, admissible edit scope and observable exits. Derive the batches with [work decomposition](work-decomposition.md): state each batch's write packages, estimate basis, lane and dependencies, the serialization points you hoisted, and the resulting waves and critical path; the contract `delivery_plan` is the machine projection of exactly this text. Map each acceptance to its owning behavior. Record real decisive design probes with method, environment, failure condition, observed result and evidence location. The evidence location is the SDD's evidence companion, never only a temporary directory. Label demonstration fixtures as fixtures; do not copy their evidence claims into a real repository SDD.
+Use **Batches and dependencies**, **Exit conditions**, **Acceptance**, **Execution permissions**, **Executed probes**. Tie batches to existing requirements, implementation locations, prerequisite producer steps, admissible edit scope and observable exits.
+
+**Execution permissions** lists every operation the delivery needs beyond reading the repository and running the acceptance commands already named in **Acceptance**: temporary writes to product source for a declared perturbation and their restoration, writes outside the modification packages, cache or tool-directory writes, network access, installs, and anything else a host will stop to approve. For each one name the operation, the exact paths, whether the change is temporary or persistent, and how restoration is proven. A test budget is not a substitute — it authorizes running tests, not mutating a source file — and neither is a perturbation described only inside a `perturbation_method` sentence.
+
+This list exists because the alternative has a measured cost. A delivery whose design knew its perturbation paths but never projected them met the host's approval boundary one operation at a time, mid-lease, and was refused twice before the user could grant what was actually needed; the operations were reversible and already in scope, and the interruption was purely a disclosure gap. Collect them once, before the first lease, so the delivery can ask once. Declaring an operation is not being granted it: the host still approves or refuses, and a design may not promise that any approval will be given or bypassed. Derive the batches with [work decomposition](work-decomposition.md): state each batch's write packages, estimate basis, lane and dependencies, the serialization points you hoisted, and the resulting waves and critical path; the contract `delivery_plan` is the machine projection of exactly this text. Map each acceptance to its owning behavior. Record real decisive design probes with method, environment, failure condition, observed result and evidence location. The evidence location is the SDD's evidence companion, never only a temporary directory. Label demonstration fixtures as fixtures; do not copy their evidence claims into a real repository SDD.
 
 Compare every proposed public signature with its actual baseline, including constructors, optional/default parameters and exports. Breaking/N/A declarations must agree with that diff; a constructor is not private merely because examples instantiate it indirectly. For each introduced state field, an indexed step specifies its exact initial value before first read, then its writer/owner and cleanup transitions. Mentioning a constructor as a location does not define initialization. An implementation evaluator who must supply these decisions has found incomplete design, even if guessed code passes tests; record the failure and correct its canonical step before accepting the document.
 
@@ -94,4 +100,4 @@ Validate proposed documents with the loop's `validate-draft` before anything is 
 
 Documents without `design_detail` are validated without section bindings; add it through a normal scoped amendment when the design is revised.
 
-<!-- reading-receipt: d598a64e -->
+<!-- reading-receipt: 3268ea98 -->

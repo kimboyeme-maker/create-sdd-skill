@@ -61,6 +61,14 @@ and reports per-assertion. Where the mechanism does not exist yet, build the sma
 its structure — if a shape cannot be expressed against that, the real implementation cannot express
 it either.
 
+**A behaviour-preserving replacement needs the same fixture, and it is the case that gets skipped.**
+Rewriting an expression, merging two branches into one predicate, routing an existing call through a
+new helper, replacing a local implementation with a shared one: none of these invent a mechanism, all
+of them assert an equivalence, and an equivalence is the claim a reading is worst at. "It is an
+ordinary application of something the repository already runs" exempts a step only when that step
+replaces nothing. The moment the design says *instead of*, the incumbent behaviour is the thing under
+test and citing its source location proves only that it exists.
+
 A fixture that passes on the first run has proved nothing yet. Perturb it: break the ordering it
 depends on, restore the behaviour it claims to replace, and confirm the matching assertion flips.
 An assertion that cannot be made to fail is measuring nothing, and is rewritten until it can.
@@ -83,13 +91,72 @@ Read the perturbation results in both directions, because each direction catches
 Both readings are cheap and they are the point of running the fixture at all. A design that skips
 them has a green file and the same unexamined pseudocode it started with.
 
+#### A preservation fixture is differential, not assertional
+
+A fixture that asserts what the new design does will pass when the design is wrong, because the
+design is what wrote the assertions. Asserting "the hostile getter now becomes a typed rejection
+instead of escaping" is a faithful description of the intended mechanism and, if the incumbent
+preserved the original error, it is also a recorded regression with a PASS beside it. The fixture
+answered "does my design do what I designed?" and nobody asked the other question.
+
+So a preservation claim runs **both** implementations over one input set and asserts the difference is
+empty — the `differential` oracle kind from [acceptance standards](../product/acceptance-standards.md),
+applied at design time. Build the incumbent arm from the real code where it can be imported or copied
+verbatim, and from its observable contract where it cannot. Compare what the migration promised to
+preserve: returned value, thrown value's **identity** (`thrown === original`) and native type, the
+`cause` chain, call count and order, and which branch ran. Inputs come from the reachable set worked
+out below, and every input on which the arms differ is either a defect to fix or an intentional
+behaviour change that owes its own clause — never a diff quietly narrowed until it is empty.
+
 Keep it proportional. This is design evidence, not a test suite and not a deliverable: one runnable
 file per mechanism, living beside the SDD with the rest of the evidence, no product source touched
-and no acceptance obligation created by its existence. A mechanism that is an ordinary application
-of something the repository already runs needs no fixture — cite the existing usage instead. The
-difficulty drivers already named in the design basis are the list to work from: if a driver has no
+and no acceptance obligation created by its existence. A step that adds behaviour without replacing
+any needs no fixture when it is an ordinary application of something the repository already runs —
+cite the existing usage instead; a step that replaces behaviour does not qualify, whatever it reuses.
+The difficulty drivers already named in the design basis are the list to work from: if a driver has no
 fixture and no cited precedent, the logic is not closed, and the pseudocode that rests on it is a
 proposal rather than a design.
+
+#### An equivalence claim is falsified on its value set, not read off the two expressions
+
+Every "instead of" carries a hidden universal claim: *for every value this is evaluated on, old and
+new agree*. Reading the two forms side by side checks the shape; it never checks the quantifier. Close
+it with three lines in the challenge, in this order:
+
+1. **The reachable set.** What values does this expression actually see at run time? Not the declared
+   type — the values the surrounding code can produce. A depth counter guarded by an overflow branch
+   reaches every depth beyond the boundary, so a predicate that was true at exactly the boundary and a
+   predicate that is true from the boundary onward are different functions on a set the code visits.
+2. **The witness search.** Name one value where old and new differ. If one exists, the claim is false
+   and the design changes; the search succeeds far more often than the reading suggests it will. Only
+   if no witness can be constructed does the claim survive, and then say what made it impossible.
+3. **The surviving distinction.** Before merging two forms, state what each one means. Repeated
+   occurrences of one literal are not one concept: a threshold asking *am I past the boundary* and a
+   threshold asking *am I the frame at the boundary* share a number and nothing else, and "unify the
+   constant" destroys the second while the diff looks like a rename. The same holds for collapsing
+   several rejection reasons into one, or several error constructions into one — write down which
+   distinctions the incumbent made and which of them the new form still makes.
+
+A step whose challenge omits these has an unexamined universal claim in its pseudocode, however
+carefully the prose around it is written.
+
+#### Say where an `observed_result` came from
+
+A challenge record is `{premise, method, failure_condition, observed_result, implementation_resolution, result, evidence}`, and none of those fields distinguishes a result that was executed from one that was reasoned. Both read identically, both satisfy the controller, and the reasoned one is the one that ships a defect — the author who wrote "the truth sets are identical" into `observed_result` believed it, which is exactly why nothing downstream questioned it.
+
+Add `provenance` to every challenge, `"EXECUTED"` or `"REASONED"`:
+
+```json
+{"premise": "…", "method": "…", "failure_condition": "…", "provenance": "EXECUTED",
+ "observed_result": "…", "implementation_resolution": "…", "result": "CLOSED",
+ "evidence": ["feature.evidence.md#fixture-a"]}
+```
+
+- `EXECUTED` means something ran and its output was read. `evidence` then names where that run is recorded — the evidence companion entry, the fixture file, the command and its output excerpt.
+- `REASONED` means the conclusion came from reading. It is honest and often sufficient for a premise about repository structure, and it **may not carry `result: "CLOSED"` on a premise a Must-Ship requirement rests on**: either run it, or leave it open and let the gate say so.
+- `evidence` pointing only at the source files the reasoning was about is not evidence of anything happening; it is a citation of the subject. `repo-facts.ts check` reports these as candidates for the author to answer rather than failures to fix, because a citation can be legitimate context — answer it in the document or replace it with a run.
+
+The asymmetry this removes is worth naming: `oracle_sensitivity` already forces an acceptance guard to declare its fault model, its perturbation, its restoration and its expected flip, and `DESIGN_PROVEN` there demands a recorded probe. The design-side challenge had none of that, so the weakest evidence in the contract was attached to the claims the whole route rests on.
 
 - Owner, path or contract replacement and legacy removal: the first falsifier is the module-reader inventory in [migration](../migration.md).
 - Continuation of an unfinished delivery: load [continuation lineage](../design/continuation-lineage.md) first. An inherited failure has four dispositions only: a current rerun proves it resolved; an admitted requirement repairs it inside modification authority; causal evidence proves its package is outside every acceptance surface; or a user-owned decision changes the contract.
@@ -107,6 +174,8 @@ Freeze the approved causal and modification boundary. A later failing root, brow
 ## Review lenses and convergence gate
 
 After the information set closes, apply three lenses: synthesis of the route, adversarial challenge of architecture and causal assumptions, and acceptance execution topology. They are lenses, not separate documents or agent calls. Record findings as blocking, material or residual; one evidence-backed clean pass suffices. A normative change reopens only the affected conclusions. Never invent a failure to show diligence.
+
+The adversarial lens is the one that decays into a free-text PASS, because it is the author grading their own design with no required output. Give it a fixed subject so it cannot: **enumerate every behaviour this design replaces, and record the witness search for each.** One row per replaced behaviour — the incumbent form, the proposed form, the reachable value set, the witness found or the reason none exists. A `PASS` whose evidence names no replaced behaviour is an unapplied lens wearing a result, and a design that replaces nothing says so in one line instead. Findings from the other two lenses stay free-form; this list is what makes the adversarial one falsifiable by a reader who did not write the design.
 
 All three are recorded, because an unrecorded lens was not applied and an absent result is not a clean one. Write the outcome into the contract as it is reached:
 
@@ -152,4 +221,4 @@ costs an initialised run and a refused admission.
 - [ ] Every document this phase loaded is listed in the SDD's authoring receipt with its current token.
 - [ ] Remaining residual risks cannot invalidate Must-Ship behavior, ownership, scope, authority or verification, and are disclosed. Nothing was satisfied by downgrading, omitting, renaming or moving an item.
 
-<!-- reading-receipt: 736ebdd5 -->
+<!-- reading-receipt: 37ad4724 -->

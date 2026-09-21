@@ -1126,6 +1126,81 @@
         "decisive_fact": "The perturbation is a detector, not a ceremony. Its null result is the finding, and acting on it is what turns a green file into design evidence.",
         "completion_oracle": "Every perturbation arm declared in the challenge flips at least one named assertion, and the challenge records which."
       }
+    },
+    {
+      "id": "CSDD-EQUIVALENCE-001",
+      "title": "A replaced predicate is falsified on its value set, not read off the two forms",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the author searches for a value on which the incumbent and proposed forms differ",
+      "bad": {
+        "task_mode": "design",
+        "starting_state": "A migration step replaces an exact-equality guard with a not-less-than guard on the same literal, and the surrounding code reaches values above that literal.",
+        "request": "Close the implementation logic for the step that unifies the threshold.",
+        "material_action": "Compare the two predicates, conclude they agree at the boundary, record the conclusion in observed_result with the two source lines as evidence, and close the challenge.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The claim is universal over every value the expression is evaluated on, and the reading only checked the boundary. The two forms disagree on every value above it, that range is reachable by construction, and the exact-equality form was electing one frame to do work every frame would now do.",
+        "completion_oracle": "The challenge names the reachable value set and either a witness value where the forms differ or the reason no witness can be constructed."
+      },
+      "good": {
+        "task_mode": "design",
+        "starting_state": "The same step and the same surrounding code.",
+        "request": "Close the implementation logic for the step that unifies the threshold.",
+        "material_action": "Write down the reachable value set, search for a differing value, find one above the boundary, and change the step to keep both predicates instead of unifying them.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Repeated occurrences of one literal are not one concept. Asking what each form means surfaces that one asks whether the frame is past the boundary and the other asks whether it is the frame at the boundary.",
+        "completion_oracle": "The challenge names the reachable value set and either a witness value where the forms differ or the reason no witness can be constructed."
+      }
+    },
+    {
+      "id": "CSDD-PRESERVATION-001",
+      "title": "A preservation fixture that asserts the new design confirms its own regression",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the fixture runs the incumbent implementation beside the designed one",
+      "bad": {
+        "task_mode": "design",
+        "starting_state": "A design routes an existing throw site through a new shared validator. The incumbent attached a code to the thrown object and preserved its identity and native type; the design constructs a new error carrying the original on cause.",
+        "request": "Build the design evidence for the shared validator.",
+        "material_action": "Write a fixture that asserts the validator turns a hostile getter into a typed rejection, watch it pass, and record the challenge as closed because the mechanism behaves as designed.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The assertions were written from the design, so they pass when the design is wrong. This one states the regression as the expected outcome: identity and native type are exactly what the migration promised to preserve, and the green run is evidence for the defect.",
+        "completion_oracle": "The fixture runs both implementations over one input set and asserts an empty difference on returned value, thrown identity, native type and cause chain."
+      },
+      "good": {
+        "task_mode": "design",
+        "starting_state": "The same design and the same incumbent.",
+        "request": "Build the design evidence for the shared validator.",
+        "material_action": "Run the incumbent and the designed form over one input set, diff what the migration promised to preserve, and treat each differing input as a defect to fix or a behaviour change owing its own clause.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "A preservation claim is differential. Only the incumbent can say what preservation means, so a fixture without an incumbent arm cannot test the claim it exists to test.",
+        "completion_oracle": "The fixture runs both implementations over one input set and asserts an empty difference on returned value, thrown identity, native type and cause chain."
+      }
+    },
+    {
+      "id": "CSDD-PERMISSION-001",
+      "title": "A perturbation's writes are design facts, so the delivery can ask once",
+      "skill": "create-sdd",
+      "evidence_level": "trace",
+      "single_changed_fact": "whether the design projects the operations its declared perturbations perform",
+      "bad": {
+        "task_mode": "design",
+        "starting_state": "Two acceptance cases declare REQUIRED oracle sensitivity whose perturbation temporarily edits a product source file and restores it. The paths and the restoration check are known while the cases are written.",
+        "request": "Complete the verification design and hand the contract to the delivery.",
+        "material_action": "Describe the perturbation inside perturbation_method, list the test commands at startup, and leave the temporary source edit and its restoration for the delivery to encounter when it reaches them.",
+        "expected_decision": "REJECT",
+        "decisive_fact": "The delivery cannot request a permission it was never told about. It meets the host's approval boundary one operation at a time, mid-lease, and a reviewer without the plan reads the second attempt at an already-scoped reversible edit as a workaround retry; the observed run was refused twice for operations the user granted at once when they were finally described together.",
+        "completion_oracle": "Every REQUIRED sensitivity names perturbation_writes, write_disposition and restoration_check, and the Delivery & Verification section lists every operation beyond reading the tree and running the declared acceptance commands."
+      },
+      "good": {
+        "task_mode": "design",
+        "starting_state": "The same two cases and the same known paths.",
+        "request": "Complete the verification design and hand the contract to the delivery.",
+        "material_action": "Declare the written paths, whether each write is temporary, and how restoration is proven, then collect them with every other needed operation into the design's execution permissions so admission can request the whole set before the first lease.",
+        "expected_decision": "ALLOW",
+        "decisive_fact": "Disclosure is not authorization: the host still approves or refuses each operation. What it removes is the interruption caused by discovering a known fact late, which is a design omission rather than a host restriction.",
+        "completion_oracle": "Every REQUIRED sensitivity names perturbation_writes, write_disposition and restoration_check, and the Delivery & Verification section lists every operation beyond reading the tree and running the declared acceptance commands."
+      }
     }
   ]
 }

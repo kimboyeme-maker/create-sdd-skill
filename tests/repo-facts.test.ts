@@ -294,3 +294,121 @@ test('a step whose write location is outside every declared owner is reported', 
     rmSync(root, { recursive: true, force: true })
   }
 })
+
+test('a challenge closed on reading is asked about, and a fixture-backed one is not', async () => {
+  const root = repository({
+    'package.json': JSON.stringify({ name: 'root' }),
+    'packages/core/package.json': JSON.stringify({ name: '@demo/core' }),
+    'packages/core/src/entry.ts': 'export const depth = 256\n'
+  })
+  const path = join(root, 'change.sdd.md')
+  const challenge = (extra: Record<string, unknown>) => ({
+    premise: 'the replaced predicate agrees with the incumbent',
+    method: 'compare the two forms',
+    failure_condition: 'they disagree on a reachable value',
+    observed_result: 'the truth sets are identical',
+    implementation_resolution: 'unify the constant',
+    result: 'CLOSED',
+    ...extra
+  })
+  const contract = (challenges: unknown[]) => ({
+    ownership: { packages: ['@demo/core'] },
+    implementation_logic: { paths: [{ id: 'LJ01', challenges }] }
+  })
+  try {
+    // Evidence that names only the product source cites the subject of the reasoning, not a run.
+    writeFileSync(
+      path,
+      sdd(
+        '## BZ01 Unify the threshold\n\n**Location:** packages/core/src/entry.ts',
+        contract([challenge({ evidence: ['packages/core/src/entry.ts:1'] })])
+      )
+    )
+    const cited = await checkRepositoryFacts(path, root)
+    expect(cited.candidates).toContainEqual({
+      code: 'CHALLENGE_EVIDENCE_CITES_SUBJECT_ONLY',
+      detail: 'LJ01: the replaced predicate agrees with the incumbent'
+    })
+
+    // A fixture file is source too, and it is a record of something happening.
+    writeFileSync(
+      path,
+      sdd(
+        '## BZ01 Unify the threshold\n\n**Location:** packages/core/src/entry.ts',
+        contract([challenge({ evidence: ['docs/evidence/fixture-threshold.ts'] })])
+      )
+    )
+    const ran = await checkRepositoryFacts(path, root)
+    expect(
+      ran.candidates.filter((item) => item.code === 'CHALLENGE_EVIDENCE_CITES_SUBJECT_ONLY')
+    ).toEqual([])
+
+    // Declaring the conclusion as reasoned while closing it is the other shape worth asking about.
+    writeFileSync(
+      path,
+      sdd(
+        '## BZ01 Unify the threshold\n\n**Location:** packages/core/src/entry.ts',
+        contract([challenge({ provenance: 'REASONED', evidence: ['docs/evidence/notes.md'] })])
+      )
+    )
+    const reasoned = await checkRepositoryFacts(path, root)
+    expect(reasoned.candidates).toContainEqual({
+      code: 'CHALLENGE_REASONED_BUT_CLOSED',
+      detail: 'LJ01: the replaced predicate agrees with the incumbent'
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('a REQUIRED sensitivity is asked what its perturbation writes', async () => {
+  const root = repository({
+    'package.json': JSON.stringify({ name: 'root' }),
+    'packages/core/package.json': JSON.stringify({ name: '@demo/core' })
+  })
+  const path = join(root, 'change.sdd.md')
+  const sensitivity = (extra: Record<string, unknown>) => ({
+    ownership: { packages: ['@demo/core'] },
+    acceptance: [
+      {
+        id: 'YS01',
+        oracle_sensitivity: {
+          applicability: 'REQUIRED',
+          fault_model: 'the guard is removed',
+          perturbation_method: 'temporarily edit the guard in packages/core/src/entry.ts',
+          restoration_method: 'restore the guard',
+          expected_flip: 'PASS_TO_FAIL_TO_PASS',
+          implementation_timing: 'IMPLEMENTATION_REQUIRED',
+          ...extra
+        }
+      }
+    ]
+  })
+  try {
+    // The paths are known while the case is written; leaving them in prose hides an operation.
+    writeFileSync(
+      path,
+      sdd('## BZ01 Add the guard\n\n**Location:** packages/core/src', sensitivity({}))
+    )
+    const undeclared = await checkRepositoryFacts(path, root)
+    expect(undeclared.candidates).toContainEqual({
+      code: 'SENSITIVITY_WRITES_UNDECLARED',
+      detail: 'YS01'
+    })
+
+    // An empty list is a real answer: this perturbation touches no tracked file.
+    writeFileSync(
+      path,
+      sdd(
+        '## BZ01 Add the guard\n\n**Location:** packages/core/src',
+        sensitivity({ perturbation_writes: [] })
+      )
+    )
+    const declared = await checkRepositoryFacts(path, root)
+    expect(
+      declared.candidates.filter((item) => item.code === 'SENSITIVITY_WRITES_UNDECLARED')
+    ).toEqual([])
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
