@@ -25,7 +25,9 @@ const converged = {
 async function codes(
   convergence: unknown,
   requirements?: Item[],
-  revision?: string
+  revision?: string,
+  lineage?: Item,
+  packages?: string[]
 ): Promise<string[]> {
   const root = mkdtempSync(join(tmpdir(), 'design-gate-'))
   try {
@@ -34,7 +36,8 @@ async function codes(
     const path = join(root, 'change.sdd.md')
     mkdirSync(dirname(path), { recursive: true })
     const contract = {
-      ownership: { packages: ['.'] },
+      ownership: { packages: packages ?? ['.'] },
+      ...(lineage ? { lineage } : {}),
       ...(revision ? { revision } : {}),
       requirements: requirements ?? [{ id: 'XQ01', kind: 'must-ship', title: 'core' }],
       design_convergence: convergence
@@ -110,19 +113,30 @@ test('a lens needs one current pass, not one somewhere in its history', async ()
   const LENSES = ['SYNTHESIS', 'ADVERSARIAL', 'ACCEPTANCE_TOPOLOGY']
   const round = (revision: string, offset: number) =>
     LENSES.map((lens, index) => pass(`SP0${offset + index + 1}`, lens, revision))
+  // A document at its third revision owes the ledger of what those bumps changed; supplied here so
+  // this case measures the lens rule and nothing else.
+  const history = {
+    mode: 'fresh',
+    revision_ledger: [
+      { from: 'r1', to: 'r2' },
+      { from: 'r2', to: 'r3' }
+    ]
+  }
   // Two complete rounds, both marked: only the current one counts and the older is history.
   expect(
     await codes(
       { ...converged, review_passes: [...round('r2', 0), ...round('r3', 3)] },
       undefined,
-      'r3'
+      'r3',
+      history
     )
   ).toEqual([])
   // The newest round re-ran two lenses; the third's pass is from before the revision bump.
   const partial = await codes(
     { ...converged, review_passes: [...round('r2', 0), ...round('r3', 3).slice(0, 2)] },
     undefined,
-    'r3'
+    'r3',
+    history
   )
   expect(partial).toContain('DESIGN_GATE_LENS_NOT_CURRENT')
   expect(partial).not.toContain('DESIGN_GATE_LENS_MISSING')
@@ -148,4 +162,117 @@ test('a lens needs one current pass, not one somewhere in its history', async ()
   // A contract with no revision cannot be split into rounds either; one entry per lens is then the
   // only shape that reads unambiguously, and that is what the unmarked fixture already is.
   expect(await codes(converged)).toEqual([])
+})
+
+/**
+ * Scope growth between revisions of the same document.
+ *
+ * A handed-off design is the next session's raw material. One such session added nine requirements
+ * and two owned packages to a converged, loop-ready contract, re-ran the three lenses against its
+ * own enlarged version, and every authoring check still reported `valid` — the rule requiring user
+ * approval for an added requirement had nowhere to be recorded and nothing to be compared against,
+ * because the run that grows a document is never the run that wrote it. The ledger lives in the
+ * document for that reason.
+ */
+const marked = (revision: string) => ({
+  ...converged,
+  review_passes: converged.review_passes.map((pass) => ({ ...pass, revision }))
+})
+
+test('a revision after the first carries a ledger of what each bump added', async () => {
+  // No ledger at all: the document cannot say what the bump to v2 changed.
+  expect(await codes(marked('SDD-v2'), undefined, 'SDD-v2')).toContain('SCOPE_LEDGER_MISSING')
+  // The first revision owes nothing; there is no predecessor to have grown from.
+  expect(await codes(marked('SDD-v1'), undefined, 'SDD-v1')).not.toContain('SCOPE_LEDGER_MISSING')
+})
+
+test('a bump that adds a requirement or a package needs the authorization recorded with it', async () => {
+  const requirements = [
+    { id: 'XQ01', kind: 'must-ship', title: 'core' },
+    { id: 'XQ02', kind: 'must-ship', title: 'added later' }
+  ]
+  const grown = (authorization: string | null) => ({
+    mode: 'fresh',
+    revision_ledger: [
+      {
+        from: 'SDD-v1',
+        to: 'SDD-v2',
+        requirements_added: ['XQ02'],
+        packages_added: ['@scope/extra'],
+        authorization
+      }
+    ]
+  })
+  const unauthorized = await codes(marked('SDD-v2'), requirements, 'SDD-v2', grown(null), [
+    '.',
+    '@scope/extra'
+  ])
+  expect(unauthorized).toContain('SCOPE_GROWTH_UNAUTHORIZED')
+  const authorized = await codes(
+    marked('SDD-v2'),
+    requirements,
+    'SDD-v2',
+    grown('user said “also clean up the two base packages” on 2026-09-21'),
+    ['.', '@scope/extra']
+  )
+  expect(authorized).toEqual([])
+})
+
+test('a ledger that contradicts the contract it describes is refused', async () => {
+  // Claims an id the contract never contained, and a package nobody owns.
+  const fabricated = await codes(marked('SDD-v2'), undefined, 'SDD-v2', {
+    mode: 'fresh',
+    revision_ledger: [
+      {
+        from: 'SDD-v1',
+        to: 'SDD-v2',
+        requirements_added: ['XQ99'],
+        packages_added: ['@scope/never'],
+        authorization: 'recorded'
+      }
+    ]
+  })
+  expect(fabricated.filter((code) => code === 'SCOPE_LEDGER_CLAIM_INVALID')).toHaveLength(2)
+  // A ledger that stops short of the revision it is attached to describes a different document.
+  const behind = await codes(marked('SDD-v3'), undefined, 'SDD-v3', {
+    mode: 'fresh',
+    revision_ledger: [{ from: 'SDD-v1', to: 'SDD-v2', authorization: null }]
+  })
+  expect(behind).toContain('SCOPE_LEDGER_NOT_CURRENT')
+  // And one whose entries do not join describes no history at all.
+  const broken = await codes(marked('SDD-v3'), undefined, 'SDD-v3', {
+    mode: 'fresh',
+    revision_ledger: [
+      { from: 'SDD-v1', to: 'SDD-v2' },
+      { from: 'SDD-vX', to: 'SDD-v3' }
+    ]
+  })
+  expect(broken).toContain('SCOPE_LEDGER_BROKEN_CHAIN')
+})
+
+test('growth that a later revision withdrew is history, not a standing violation', async () => {
+  // A document that took back an unapproved expansion has corrected itself. Holding the record of
+  // it against the document forever would make deleting the entry cheaper than keeping it, which is
+  // the opposite of what a ledger is for.
+  const withdrawn = await codes(marked('SDD-v3'), undefined, 'SDD-v3', {
+    mode: 'fresh',
+    revision_ledger: [
+      {
+        from: 'SDD-v1',
+        to: 'SDD-v2',
+        requirements_added: ['XQ90'],
+        packages_added: ['@scope/extra'],
+        authorization: null
+      },
+      {
+        from: 'SDD-v2',
+        to: 'SDD-v3',
+        requirements_removed: ['XQ90'],
+        packages_removed: ['@scope/extra'],
+        authorization: 'user asked for the expansion to be withdrawn'
+      }
+    ]
+  })
+  // Neither the missing authorization nor the ids the contract no longer holds are held against it.
+  expect(withdrawn).toEqual([])
 })

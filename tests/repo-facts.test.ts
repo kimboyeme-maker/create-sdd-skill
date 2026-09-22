@@ -143,6 +143,98 @@ test('every scan candidate of a legacy symbol has a disposition, and symbols are
   }
 })
 
+test('a threshold in an implementation step must be backed by an acceptance that measures it', async () => {
+  // A delivery stopped on "<= 440 lines" written into a step's observable result while the
+  // requirement's only acceptance was behavioural and named no count. The candidate was complete at
+  // 502 lines and the acceptance was never run. Steps say how; acceptances say done.
+  const root = repository({ 'package.json': JSON.stringify({ name: 'svc' }) })
+  const path = join(root, 'change.sdd.md')
+  /** One document whose single step claims `observable`, with `oracle` as the only acceptance. */
+  const write = (observable: string, oracle: string) =>
+    writeFileSync(
+      path,
+      `#### BZ11 merge the two install paths\n\n**Observable result:** ${observable}\n\n` +
+        sdd('', { acceptance: [{ id: 'YS12', oracle, method: 'vitest run' }] })
+    )
+  try {
+    write('install-runtime.ts normally formatted ≤440 行', 'both paths throw the same code')
+    expect((await checkRepositoryFacts(path)).issues.map((issue) => issue.code)).toContain(
+      'STEP_THRESHOLD_NOT_IN_ACCEPTANCE'
+    )
+    // Backed by an acceptance that measures the same figure: nothing is owed.
+    write('config.ts 行数不超过 220', 'config.ts 行数不超过 220 且不含 new Proxy')
+    expect((await checkRepositoryFacts(path)).issues.map((issue) => issue.code)).not.toContain(
+      'STEP_THRESHOLD_NOT_IN_ACCEPTANCE'
+    )
+    // A structural outcome with no threshold at all is the shape the rule is steering toward.
+    write('两条路径复用同一段 shared-step，互不重复 registration 构造', 'both paths reuse one step')
+    expect((await checkRepositoryFacts(path)).issues.map((issue) => issue.code)).not.toContain(
+      'STEP_THRESHOLD_NOT_IN_ACCEPTANCE'
+    )
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('a challenge that closes on a fixture is refused when the fixture is not there', async () => {
+  // Phase 2 closes a newly invented mechanism with an executed fixture. Nothing checked that the
+  // file existed, so a challenge could close on `fixtures/thing.fixture.ts` that had never been
+  // written, or had been written for an earlier revision and removed since — a claim about a run
+  // nobody can repeat, indistinguishable from evidence.
+  const root = repository({
+    'package.json': JSON.stringify({ name: 'svc' }),
+    'src/thing.ts': 'export const thing = 1\n'
+  })
+  const path = join(root, 'change.sdd.md')
+  /** Writes one contract whose single challenge cites `evidence`. */
+  const write = (evidence: string[]) =>
+    writeFileSync(
+      path,
+      sdd('', {
+        implementation_logic: {
+          protocol: 'implementation-logic/v1',
+          paths: [
+            {
+              id: 'LJ01',
+              requirement_ids: ['XQ01'],
+              acceptance_ids: ['YS01'],
+              challenges: [
+                {
+                  premise: 'the adapter carries every consumer shape',
+                  method: 'ran the fixture',
+                  failure_condition: 'a shape cannot be expressed',
+                  observed_result: 'all shapes expressed',
+                  implementation_resolution: 'keep the adapter',
+                  result: 'CLOSED',
+                  evidence
+                }
+              ]
+            }
+          ]
+        }
+      })
+    )
+  try {
+    write(['fixtures/adapter.fixture.ts'])
+    expect((await checkRepositoryFacts(path)).issues.map((issue) => issue.code)).toContain(
+      'CHALLENGE_EVIDENCE_PATH_MISSING'
+    )
+    // A path that does resolve is evidence; prose that is not a path is left alone.
+    write(['src/thing.ts:1', 'the user said so on 2026-09-21'])
+    expect((await checkRepositoryFacts(path)).issues.map((issue) => issue.code)).not.toContain(
+      'CHALLENGE_EVIDENCE_PATH_MISSING'
+    )
+    // A companion beside the document resolves from the document's own directory.
+    writeFileSync(join(root, 'change.evidence.md'), 'probe output\n')
+    write(['change.evidence.md'])
+    expect((await checkRepositoryFacts(path)).issues.map((issue) => issue.code)).not.toContain(
+      'CHALLENGE_EVIDENCE_PATH_MISSING'
+    )
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
 test('a legacy symbol that matches most of the repository is reported once as too generic', async () => {
   // Thirty modules, every one of them mentioning the word `plugin`. A real removal surface never
   // looks like this; an ordinary word that slipped into a symbol list always does.

@@ -376,6 +376,9 @@ test('a normative amendment is refused while its review lens passes predate the 
   /** Builds a converged contract whose lens passes name `reviewed` and whose document is `revision`. */
   const converged = (revision: string, reviewed: string) => ({
     revision,
+    // A second revision owes the ledger of what the bump changed; this one changed nothing that
+    // grows scope, which is exactly what an entry with no additions records.
+    lineage: { mode: 'fresh', revision_ledger: [{ from: 'SDD-v1', to: revision }] },
     design_convergence: {
       status: 'CONVERGED',
       stable_after_last_normative_change: true,

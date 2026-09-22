@@ -114,6 +114,12 @@ const PSEUDOCODE_BUILTINS = new Set([
   'includes'
 ])
 
+/** The contract's lineage object, or an empty one; a document may omit it entirely. */
+function lineageOf(contract: Item): Item {
+  const value = (contract as Item | null)?.lineage
+  return value !== null && typeof value === 'object' && !Array.isArray(value) ? (value as Item) : {}
+}
+
 /** Every string an acceptance or runtime declaration says it runs with. */
 function runtimeStatements(contract: Item): string[] {
   const acceptance = Array.isArray(contract.acceptance) ? contract.acceptance : []
@@ -458,6 +464,95 @@ export async function checkRepositoryFacts(
           detail: `${lens}: ${String(current[0]!.result)}`
         })
     }
+    // Scope growth across revisions. A handed-off document is raw material for the next session,
+    // and nothing here could see what the previous revision contained: a later run added nine
+    // requirements and two owned packages to a converged, loop-ready design, re-ran the three
+    // lenses against its own enlarged version, and every check still said `valid`. The rule against
+    // it was already written — adding a requirement or a package needs explicit user approval — and
+    // it was unenforceable, because approval had nowhere to be recorded and growth had nothing to
+    // be compared against.
+    //
+    // The comparison cannot live in a run journal: the run that grows a document is not the run
+    // that wrote it. So the document carries its own ledger, one entry per revision bump, and the
+    // checks below are what a document can be asked about itself. Half of a claim here is
+    // verifiable — an id or package named as added has to be present — and the other half is the
+    // author's word that nothing else was added. That asymmetry is the point: an omission is no
+    // longer silence, it is a ledger that contradicts the revision it claims to describe.
+    const ledger = Array.isArray(lineageOf(contract).revision_ledger)
+      ? (lineageOf(contract).revision_ledger as Item[])
+      : null
+    if (revision && ledger === null && !/v0*1$/.test(revision))
+      issues.push({
+        code: 'SCOPE_LEDGER_MISSING',
+        detail: `revision ${revision} is not the first, so lineage.revision_ledger must record every bump that produced it`
+      })
+    if (ledger) {
+      const requirementIds = new Set(
+        (Array.isArray(contract.requirements) ? contract.requirements : []).map((item: Item) =>
+          String(item?.id)
+        )
+      )
+      const owned = new Set(
+        (Array.isArray(contract.ownership?.packages) ? contract.ownership.packages : []).map(
+          (name: unknown) => String(name)
+        )
+      )
+      /** Names a later entry withdrew; growth that was taken back is history, not live scope. */
+      const list = (entry: Item | undefined, key: string): string[] =>
+        Array.isArray(entry?.[key]) ? (entry[key] as unknown[]).map((v) => String(v)) : []
+      const withdrawnAfter = (index: number) =>
+        new Set(
+          ledger
+            .slice(index + 1)
+            .flatMap((later) => [
+              ...list(later, 'requirements_removed'),
+              ...list(later, 'packages_removed')
+            ])
+        )
+      let previous: string | undefined
+      for (const [index, entry] of ledger.entries()) {
+        const withdrawn = withdrawnAfter(index)
+        const from = String(entry?.from ?? '')
+        const to = String(entry?.to ?? '')
+        if (previous && from !== previous)
+          issues.push({
+            code: 'SCOPE_LEDGER_BROKEN_CHAIN',
+            detail: `entry ${from}→${to} does not continue from ${previous}`
+          })
+        previous = to
+        // Only what this entry added and nothing later took back still needs to be authorised: a
+        // document that withdrew an unapproved growth has corrected itself, and holding the record
+        // of it against the document forever would make honesty the expensive option.
+        const added = [
+          ...list(entry, 'requirements_added'),
+          ...list(entry, 'packages_added')
+        ].filter((name) => !withdrawn.has(name))
+        const authorization =
+          typeof entry?.authorization === 'string' ? entry.authorization.trim() : ''
+        if (added.length && !authorization)
+          issues.push({
+            code: 'SCOPE_GROWTH_UNAUTHORIZED',
+            detail: `${from}→${to} adds ${added.join(', ')} with no recorded user authorization`
+          })
+        for (const id of list(entry, 'requirements_added'))
+          if (!requirementIds.has(String(id)) && !withdrawn.has(String(id)))
+            issues.push({
+              code: 'SCOPE_LEDGER_CLAIM_INVALID',
+              detail: `${from}→${to} names requirement ${String(id)}, which the contract does not contain`
+            })
+        for (const name of list(entry, 'packages_added'))
+          if (!owned.has(String(name)) && !withdrawn.has(String(name)))
+            issues.push({
+              code: 'SCOPE_LEDGER_CLAIM_INVALID',
+              detail: `${from}→${to} names package ${String(name)}, which ownership.packages does not contain`
+            })
+      }
+      if (revision && previous && previous !== revision)
+        issues.push({
+          code: 'SCOPE_LEDGER_NOT_CURRENT',
+          detail: `the ledger ends at ${previous}, not at the contract's ${revision}`
+        })
+    }
     if (convergence.stable_after_last_normative_change !== true)
       issues.push({
         code: 'DESIGN_GATE_UNSTABLE',
@@ -594,6 +689,24 @@ export async function checkRepositoryFacts(
       )
       if (evidence.length && evidence.every(subjectOnly))
         candidates.push({ code: 'CHALLENGE_EVIDENCE_CITES_SUBJECT_ONLY', detail: where })
+      // The fixture rule in phase 2 says a newly invented mechanism is closed by an executed
+      // fixture, and a fixture is a file. Nothing checked that the file was there: a challenge
+      // could name `fixtures/thing.fixture.ts` and close on it while the path had never existed, or
+      // had been written for an earlier revision and removed since. A citation that resolves to
+      // nothing is not weaker evidence, it is a claim about a run nobody can repeat.
+      for (const entry of evidence) {
+        const cited =
+          /^([\w./@-]+\.(?:ts|tsx|mts|cts|js|mjs|cjs|jsx|json|md|mdx|py|rs|go))(?::\d+(?:-\d+)?)?$/.exec(
+            entry.trim()
+          )?.[1]
+        // A citation resolves either from the repository root, the way a source path is written, or
+        // from the document's own directory, the way its evidence companion and fixtures are.
+        if (cited && !existsSync(join(root, cited)) && !existsSync(join(dirname(sdd), cited)))
+          issues.push({
+            code: 'CHALLENGE_EVIDENCE_PATH_MISSING',
+            detail: `${where} cites ${cited}, which the repository does not contain`
+          })
+      }
     }
   }
 
@@ -688,6 +801,74 @@ export async function checkRepositoryFacts(
           for (const file of hits)
             issues.push({ code: 'MIGRATION_CANDIDATE_UNDISPOSED', detail: `${file} (${symbol})` })
       }
+  }
+
+  // A threshold written into an implementation step is not a completion criterion, and a delivery
+  // that treats it as one stops on a number nothing agreed to measure.
+  //
+  // One did. A step's `Observable result` carried "install-runtime.ts normally formatted <= 440
+  // lines"; the requirement's only acceptance was behavioural and named no file and no count. The
+  // Operator produced a complete candidate at 502 lines, the delivery declared no feasible route,
+  // and the acceptance that decides whether the requirement is met was never run. Three successive
+  // design estimates for that number — 430-450, 434-481, 404-440 — had all come in under the real
+  // figure, which is what estimates do; the defect was promoting one to a gate.
+  //
+  // Steps say how. Acceptances say done. So a measurable threshold in a step has to be backed by an
+  // acceptance that actually measures it: the same number has to appear in some oracle or method.
+  // Matching on the number keeps this honest about what it can check — it confirms the acceptance
+  // set talks about that figure at all, not that it measures the same subject — and it under-reports
+  // rather than guessing, because a step may legitimately count runners, codes or paths.
+  const stepBody = text.split('<!-- sdd-contract:start -->')[0] ?? ''
+  const acceptanceText = (Array.isArray(contract.acceptance) ? contract.acceptance : [])
+    .map((item: Item) => `${String(item?.oracle ?? '')} ${String(item?.method ?? '')}`)
+    .join(' ')
+  const THRESHOLD =
+    /(?:≤|<=|不超过|至多)\s*(\d+)|(\d+)\s*行以内|(?:减少|下降|降低)(?:至少|不少于)\s*(\d+)\s*%|(?:at most|no more than|not exceed)\s+(\d+)/gi
+  // Split rather than match a "to the next heading or end" lookahead: JavaScript has no \Z, and the
+  // nearest spelling of it silently matched nothing here.
+  for (const chunk of stepBody.split(/^#### /m).slice(1)) {
+    const id = /^(\w+)/.exec(chunk)?.[1]
+    const observable = /\*\*Observable result:\*\*([\s\S]*?)(?=\n\*\*|$)/.exec(chunk)?.[1]
+    if (!id || !observable) continue
+    for (const found of observable.matchAll(THRESHOLD)) {
+      const value = found.slice(1).find((group) => group !== undefined)
+      if (value && !acceptanceText.includes(value))
+        issues.push({
+          code: 'STEP_THRESHOLD_NOT_IN_ACCEPTANCE',
+          detail: `${id} states "${found[0]!.trim()}" as an observable result, and no acceptance oracle or method measures ${value}; a number that can fail a delivery belongs in an acceptance, not in a step`
+        })
+    }
+  }
+
+  // A derived total in prose is the one thing an amendment forgets. Every indexed object stayed
+  // consistent through a scope change — the ids were all present, the cross-references all
+  // resolved, `validate` said `valid: true` — while the paragraph that summarises them still
+  // reported the batch count, the serial chain and the minute total of the design before the
+  // change. A reader is then told two different sizes by the same document and has no way to know
+  // which one the delivery is running. Reported as review candidates rather than issues: the
+  // phrasing here is open, so this under-reports by design and must never block on a sentence it
+  // merely failed to parse.
+  const prose = text.split('<!-- sdd-contract:start -->')[0] ?? ''
+  const totals: [RegExp, number][] = [
+    [/(\d+)\s*(?:个)?批次/g, (contract.delivery_plan?.batches ?? []).length],
+    [/(\d+)\s+batches\b/gi, (contract.delivery_plan?.batches ?? []).length],
+    [/(\d+)\s*条[^。；，]{0,12}需求/g, (contract.requirements ?? []).length],
+    [/(\d+)\s+requirements\b/gi, (contract.requirements ?? []).length],
+    [/(\d+)\s*条[^。；，]{0,12}验收/g, (contract.acceptance ?? []).length],
+    [/(\d+)\s+acceptances?\b/gi, (contract.acceptance ?? []).length]
+  ]
+  for (const [pattern, actual] of totals) {
+    if (!actual) continue
+    for (const match of prose.matchAll(pattern)) {
+      const stated = Number(match[1])
+      // Only a number in the same order of magnitude is plausibly the same total; a sub-count in a
+      // breakdown ("14 of them write …") is a different claim and is left alone.
+      if (stated === actual || stated < actual / 2) continue
+      candidates.push({
+        code: 'PROSE_TOTAL_DISAGREES_WITH_CONTRACT',
+        detail: `"${match[0]}" in prose vs ${actual} in the contract block`
+      })
+    }
   }
 
   // Missing module-path matches are review candidates, not proof of missing or invalid interfaces.

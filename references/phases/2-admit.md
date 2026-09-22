@@ -169,6 +169,30 @@ Decisions about shared contracts, ownership and authority close across the whole
 
 Challenge an internally inconsistent proposal by separating the outcome from the proposed mechanism and surfacing the smallest decision. Do not encode a pattern only because it is familiar or invent alternatives for ceremony.
 
+Steps say how; acceptances say done. A measurable threshold that can fail a delivery — a line count,
+a percentage reduction, a size ceiling — belongs in an acceptance, never in a step's observable
+result. One delivery stopped on "install-runtime.ts normally formatted <= 440 lines" written into an
+implementation step, while the requirement's only acceptance was behavioural and named neither the
+file nor any count: a complete candidate at 502 lines was refused, and the acceptance that decides
+whether the requirement is met was never run. The number had reached the step through three
+successive design estimates — 430-450, 434-481, 404-440 — each of which came in under the eventual
+502. Estimates do that; the defect was promoting one to a gate. If a structural outcome matters,
+state the structure an acceptance can observe ("both paths reuse one shared step; neither repeats
+registration construction") rather than a count standing in for it.
+
+Record every revision bump in `lineage.revision_ledger`: one entry per bump, `{from, to,
+requirements_added, requirements_removed, packages_added, batches_added, authorization}`. A
+document that is not at its first revision owes this ledger, its entries chain, the last entry names
+the current revision, and an entry that adds a requirement or an owned package carries the user's
+own words authorizing it together with where they said them. This exists because a handed-off
+design is the next session's raw material and the run that grows a document is never the run that
+wrote it: without the ledger nothing could compare a revision against its predecessor, and a later
+run added nine requirements and two owned packages to a converged, loop-ready contract, re-ran the
+three lenses against its own enlarged version, and passed every check. Half of each entry is
+verified against the contract — an id or package named as added has to be there — and the other
+half is your word that nothing else was added. An omission is therefore not silence; it is a ledger
+that contradicts the revision it claims to describe.
+
 Freeze the approved causal and modification boundary. A later failing root, browser, consumer or repository gate is evidence to classify, not permission to make it Must-Ship. Adding or removing a package, outcome, requirement, oracle or modification authority needs explicit user approval, and is never used to legitimize work already done.
 
 ## Review lenses and convergence gate
@@ -221,4 +245,4 @@ costs an initialised run and a refused admission.
 - [ ] Every document this phase loaded is listed in the SDD's authoring receipt with its current token.
 - [ ] Remaining residual risks cannot invalidate Must-Ship behavior, ownership, scope, authority or verification, and are disclosed. Nothing was satisfied by downgrading, omitting, renaming or moving an item.
 
-<!-- reading-receipt: 37ad4724 -->
+<!-- reading-receipt: bb2a47af -->
