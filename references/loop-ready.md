@@ -1,6 +1,6 @@
 # Loop-ready SDD contract
 
-Load in phase 6 when `sdd-loop-delivery` will execute the SDD or the user asks for a machine-checkable delivery contract. Commands run as `bun <loop-skill-root>/scripts/main.ts <command>`. The contract was drafted in phase 5; this phase completes it. Field shapes are in the [worked example](examples/loop-ready-example.md); load it only for a first contract or an unclear field.
+Load in phase 6 when `sdd-loop-delivery` will execute the SDD or the user asks for a machine-checkable delivery contract. Document checks (`validate`, `validate-draft`, `document-check`, `document-next-id`) run as `bun <create-sdd-root>/scripts/validate.ts <command>`; controller commands (`program-check`, `configuration`, `capabilities`) run as `bun <loop-skill-root>/scripts/main.ts <command>`. The contract was drafted in phase 5; this phase completes it. Field shapes are in the [worked example](examples/loop-ready-example.md); load it only for a first contract or an unclear field.
 
 ## Contract block
 
@@ -170,4 +170,10 @@ A single SDD's report ends with one copyable launch instruction naming the docum
 
 Judge readiness from the evidence in hand, in both directions. A prerequisite without a producer, a failure path left to a future Operator or an unexecuted decisive probe blocks readiness. When every prerequisite has an evidenced producer and the decisive probes and branches have been executed, the route is ready: do not invent defects, request permissions the contract already grants, or open a successor to appear careful.
 
-<!-- reading-receipt: 8fb6649d -->
+## The only two endings
+
+Implementation-targeting output converges before it is handed off. An open information question or route-critical unknown is work this skill owns: close it by running the check, or, when only the user can answer, carry it as a `requirement_type: "decision"` requirement under `pending_authority_confirmations`. Those are the only two endings — recording the gap and handing the document on is not a third, and `repo-facts.ts check` fails the document by name when it happens. A design blocked solely on a user decision is a complete handoff; one blocked on work nobody has done is not.
+
+Independent review is subject to the user's agent and budget permissions; disclose when it was not performed. A review that runs must assess split rationale, source fidelity, execution ownership and implementability against the current candidate, not merely count IDs or receipts.
+
+<!-- reading-receipt: 70075523 -->

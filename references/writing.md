@@ -26,4 +26,8 @@ Prefer a compact mapping from normative clause → decision or implementation bo
 
 The SDD is the only normative work graph. Requirements, dependencies, acceptance and delivery batches must let the loop derive bounded packets, but the SDD stores no runtime packet state: no agent assignments, active or completed flags, percentages, runtime blockers, retry counters or checkpoint history. A derived packet may reorder or group linked work; it cannot add a requirement, oracle, consumer, package or authority absent from the SDD.
 
-<!-- reading-receipt: c9de4a27 -->
+## Output location
+
+Keep repository input and output location independent. Read the actual system `$TMPDIR` when the user asks for a sample there and write it there directly; absolute output paths are supported. Source paths stay repository-relative, and a cross-document link resolves from the document that refers to it. For an SDD kept outside the repository it describes, pass both: `repo-facts.ts check --sdd <absolute-SDD> --repository <absolute-repository>`, so where the document lives never changes which repository its claims are checked against.
+
+<!-- reading-receipt: a2d3b590 -->

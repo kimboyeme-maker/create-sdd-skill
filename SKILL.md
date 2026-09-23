@@ -9,14 +9,14 @@ Produce a design contract at the requested maturity: proposed design, document r
 
 ## Mainline boundary (hard)
 
-- The user's intent and requested deliverable are scope limits. Do not branch into unrequested features, refactors, tools, test development, coverage campaigns, benchmarks or speculative hardening, before or after the main result. Only a demonstrated prerequisite that blocks the requested result may be handled, inside existing modification authority.
-- Tests serve business outcomes and are never the deliverable unless requested. Reuse the cheapest relevant evidence; invent no test files, frameworks, mutation platforms or acceptance obligations to satisfy generic guidance. An unrelated failing test does not expand the SDD. User prohibitions on creating, editing or running tests override every testing or probe recommendation here; state the unverified limits instead. Design positive/negative examples clarify the intended outcome and what would depart from it; they create no test obligation. Classify execution by what it does, not its name or location: running a program to check implementation behavior is testing, including in a scratch consumer; type checks, builds and dependency resolution may supply design evidence within the user's authority.
-- Requirements, pseudocode and acceptance cover the user-owned delta. Adjacent defects and control-plane maintenance are recorded briefly, never promoted to Must-Ship. Add no second task graph, approval form or test program to enforce this.
-- Inherit the global mainline hook and `AGENTS.md` restrictions. Never evade a denial through another tool, script, agent, renamed probe, policy edit or fabricated consent. Only a real user instruction opens tests for the current turn. If hook enforcement is unavailable, say so and keep obeying the boundary.
+- The user's intent and requested deliverable are scope limits. Do not branch into unrequested features, refactors, tools, test development, coverage campaigns, benchmarks or speculative hardening. Only a demonstrated prerequisite that blocks the requested result may be handled, inside existing modification authority.
+- Tests serve business outcomes and are never the deliverable unless requested. Reuse the cheapest relevant evidence; invent no test files, frameworks or acceptance obligations to satisfy generic guidance. A user prohibition on creating, editing or running tests overrides every recommendation here; state the unverified limits instead. Classify execution by what it does, not its name or location: running a program to check implementation behaviour is testing, including in a scratch consumer; type checks, builds and dependency resolution may supply design evidence within the user's authority.
+- Requirements, pseudocode and acceptance cover the user-owned delta. Adjacent defects are recorded briefly, never promoted to Must-Ship.
+- Inherit the global mainline hook and `AGENTS.md` restrictions. Never evade a denial through another tool, script, agent, renamed probe, policy edit or fabricated consent. If hook enforcement is unavailable, say so and keep obeying the boundary.
 
 ## Delivery priorities
 
-Trade off as **usability/implementability > measured performance > feature breadth > test machinery >> optional security hardening**. This never permits omitting required behavior, fabricating PASS, leaking secrets, exceeding scope or unapproved irreversible actions. Prefer one usable end-to-end path and a conventional, recoverable implementation; add abstraction, configuration, compatibility or defensive machinery only for a current requirement or demonstrated failure, stating its benefit and cost in the design basis. Performance work needs a workload and an observable target. For stateful workflows, design the normal path and the shortest recovery from a rejected prerequisite across every entry point that enacts the same state change; rejection preserves committed state and leaves a valid repair path. Destructive steps follow confirmed commits and unrecognized data is preserved ([irreversible state changes](references/phases/3-design.md#irreversible-state-changes)).
+Trade off as **usability/implementability > measured performance > feature breadth > test machinery >> optional security hardening**. This never permits omitting required behaviour, fabricating PASS, leaking secrets, exceeding scope or unapproved irreversible actions. Add abstraction, configuration or defensive machinery only for a current requirement or a demonstrated failure, and state its cost ([design card](references/phases/3-design.md)).
 
 ## Design invariants
 
@@ -26,47 +26,57 @@ Correct violations at their cause instead of adding incident-specific clauses. F
 
 ## Repository fit
 
-Read applicable `AGENTS.md` files and repository SDD templates first. Repository conventions override this skill's default shape; preserve an existing document's language, terminology, headings and IDs unless replacement is requested. Repository-specific mechanisms become requirements only when repository evidence establishes them. Without the repository or implementation, limit claims to supplied evidence and mark unknowns; never invent owners, paths, commands or completion evidence.
+Read applicable `AGENTS.md` files and repository SDD templates first. Repository conventions override this skill's default shape; preserve an existing document's language, terminology, headings and IDs unless replacement is requested. Without the repository or implementation, limit claims to supplied evidence and mark unknowns; never invent owners, paths, commands or completion evidence.
 
 ## Modes
 
 Choose the narrowest matching mode; state the assumption when intent stays ambiguous after reading the supplied context.
 
-- **Create or refactor**: revise an existing target in place unless replacement is requested or evidence proves a new owning document is needed. [writing](references/writing.md).
-- **Merge**: consolidate while preserving decisions, provenance and stable IDs. [writing](references/writing.md), [merge](references/merge.md).
-- **Document-only audit**: completeness, consistency, ownership, testability, open decisions; no implementation claims. [audit](references/audit.md).
-- **Implementation or closure audit**: compare clauses with source, tests, metadata and reproducible evidence. [audit](references/audit.md), [closure evidence](references/closure-evidence.md).
-- **Migration design**: add [migration](references/migration.md).
-- **Program split**: assess both single- and multi-SDD suitability after the initial inventory; [program split](references/planning/program-split.md) is required before either choice. Shared prerequisites are dependency edges, not proof that consumers must merge. Propose boundaries with estimates and record the user's decision before creating child documents. Reuse an explicit split instruction without asking again. At most three levels; omit unnecessary groups. Meta references one authority graph, each Meta binds validators and each SDD has its own estimate. Only execution SDDs are Bundles.
-- **Loop-ready**: when `sdd-loop-delivery` is installed, implementation-targeting work defaults to loop-ready unless document-only output is requested: follow [loop-ready](references/loop-ready.md), emit the machine-checkable index including `delivery_plan`, and obtain the controller compatibility receipt. Do not ask the user to announce the later loop run; hand them its launch instruction instead.
+| Mode | What it does | Load |
+|---|---|---|
+| Create or refactor | Revise in place unless replacement is requested | [writing](references/writing.md) |
+| Merge | Consolidate, keeping decisions, provenance and IDs | [writing](references/writing.md), [merge](references/merge.md) |
+| Document-only audit | Completeness, ownership, testability, open decisions; no implementation claims | [audit](references/audit.md) |
+| Implementation or closure audit | Compare clauses with source, tests and reproducible evidence | [audit](references/audit.md), [closure evidence](references/closure-evidence.md) |
+| Migration design | Adds reader inventory and legacy-surface disposition | [migration](references/migration.md) |
+| Program split | Assess single- and multi-SDD suitability after the inventory; required before either | [program split](references/planning/program-split.md) |
+| Loop-ready | Default for implementation work when `sdd-loop-delivery` is installed | [loop-ready](references/loop-ready.md) |
 
 ## Workflow
 
-Create, refactor and merge work runs directly in the current task: read the requirements and relevant repository files, edit the requested SDD files, and run the local checks within user authorization.
+Create, refactor and merge work runs directly in the current task. Implementation-targeting work runs six phases; [progressive loading](references/loading.md) names their references and `scripts/lib/reading-policy.ts` defines what must be read. Receipt tokens identify document versions only: they do not authenticate tool reads or prove understanding.
 
-Implementation-targeting work runs six phases. [Progressive loading](references/loading.md) names their references; reading requirements are defined by `scripts/lib/reading-policy.ts`. Ordinary receipt tokens identify document versions only: they do not authenticate tool reads or prove understanding. Local checks establish document/contract consistency, not sandbox enforcement or perfect semantic understanding. Independent review remains subject to the user's agent and budget permissions; disclose when it was not performed.
+1. **Harvest** ([card](references/phases/1-harvest.md)): a cited fact ledger (`USER_STATED | OBSERVED | INFERRED | ASSUMED`) classifying `product_archetype`, `delivery_platforms` and languages. Only stated or observed facts become normative.
+2. **Admit** ([card](references/phases/2-admit.md)): record the agreed split and output set; close implementation logic with step-level pseudocode, run only authorized decisive checks, close authority decisions and pass the convergence gate.
+3. **Design** ([card](references/phases/3-design.md)): one owner per semantic subject, derivable batches, and the [complete design template](references/complete-design.md) sections. Plan Mode outputs the complete proposed SDD through read-only `validate-draft`, never a short plan instead.
+4. **Verify** ([card](references/phases/4-verify.md)): one claim per acceptance case, oracle sensitivity for guards, reused test hosts and causal delivery gates.
+5. **Decompose** ([work decomposition](references/work-decomposition.md)): lease-sized batches without write conflicts, lanes, verification shards and a `test_budget` each, recorded as `delivery_plan`. Numeric limits come from the controller's `configuration` output, never from memory.
+6. **Hand off** (loop-ready only): pass `validate` and the controller compatibility receipt, then report `LOOP_READY` with the copyable instruction that starts delivery.
 
-Keep repository input and output location independent. Read the actual system `$TMPDIR` when requested and write the sample there directly; absolute output paths are supported. Source paths remain repository-relative, and cross-document links resolve from their referring document. For an external SDD use `repo-facts.ts check --sdd <absolute-SDD> --repository <absolute-repository>` so output location does not change the source repository.
+## Commands
 
-1. **Harvest** ([card](references/phases/1-harvest.md)): a cited fact ledger (`USER_STATED | OBSERVED | INFERRED | ASSUMED`) from six bounded passes, classifying `product_archetype`, `delivery_platforms` and languages, plus separate information and authority queues. Only stated or observed facts become normative.
-2. **Admit** ([card](references/phases/2-admit.md)): record the agreed split and output set, including a reasoned single-SDD choice; close implementation logic with step-level pseudocode, normalize constraints, perform only authorized decisive checks — including an executed, perturbation-checked fixture for every newly invented mechanism a Must-Ship requirement rests on — close authority decisions and pass the convergence gate.
-3. **Design** ([card](references/phases/3-design.md)): one owner per semantic subject, derivable batches, and the [complete design template](references/complete-design.md) sections. Plan Mode outputs the complete proposed SDD and uses read-only `validate-draft`; it never replaces the document with a short plan.
-4. **Verify** ([card](references/phases/4-verify.md)): one claim per acceptance case, oracle sensitivity for guards, failure-isolation dry run, reused test hosts and causal delivery gates.
-5. **Decompose** ([work decomposition](references/work-decomposition.md)): lease-sized batches without write conflicts, lanes, prepared checks, final verification shards and a strict `test_budget` per batch, recorded as `delivery_plan`. Numeric limits belong to the delivery controller: read them from its `configuration` output's `limits` object, never from memory. Draft the contract block in this phase, even when the SDD stays `in-review`, and run `validate-draft`; report waves, serial minutes and critical path from its output.
-6. **Hand off** (loop-ready only; [loop-ready](references/loop-ready.md)): pass `validate` and the controller compatibility receipt, then report `LOOP_READY` together with the copyable instruction that starts its delivery.
+Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's header.
+
+| Command | Use |
+|---|---|
+| `lifecycle.ts <initial\|evidence\|generate\|process\|amend\|done>` | Marks the six authoring points; every `next.must_echo` string is reproduced verbatim on its own line in the reply ([lifecycle](references/lifecycle.md)) |
+| `validate.ts validate --sdd <SDD> --document-policy current --design-policy current` | This skill's document validator; requires the contract block |
+| `validate.ts validate-draft` | The same checks on a proposed document, before anything is written |
+| `validate.ts contract --sdd <SDD> --check` | Rebuilds the derivable contract fields from the prose and reports drift |
+| `validate.ts document-check` | Documents that do not target implementation; never a substitute for `validate` |
+| `repo-facts.ts check --sdd <SDD> [--repository <root>]` | Binds the document's claims to the repository |
+| `reading-receipt.ts check --sdd <SDD>` | Receipt coverage, including every node of a program root |
+| `type-probe.ts check --sdd <SDD>` | Type-checks the API section's declared surface; its output states what it does not prove |
 
 ## Output
 
-- Multi-SDD output includes per-SDD estimates, total work and concurrency-aware elapsed time, exact SDD-to-task mapping by wave, prerequisites/worktrees, integration ownership and a clickable full-workflow launch with a copyable fallback. Follow the program-split reference. Never auto-start from document creation or multiply test permission/budgets by child count.
-- Multi-SDD roots/groups use the delivery controller's `program-check --program <absolute-root-SDD>` command, not a fabricated executable contract. On the root, `reading-receipt.ts check` covers every node's receipt and `repo-facts.ts check` requires a sourced `split_decision` and checks every execution SDD; the six implementation phases and leaf LOOP_READY gates below apply to execution SDDs. Group overall completion follows its children's delivery, not the reverse.
-- Preserve each split requirement's original document/ID and unique execution Bundle; multiple batches may reference it inside that Bundle. Bind real integration work and Asset acceptance as specified in the program-split reference.
-
 - Create, refactor or merge: edit the target SDD and summarize decisions, unresolved items, verification plan and evidence limits.
 - Audit: findings ordered by severity with location, consequence and fix; no rewrite unless requested.
-- Extracting requirements from an older SDD does not inherit its protocol and does not cancel its product compatibility requirements. Independent review must assess split rationale, source fidelity, execution ownership and implementability against the current candidate, not merely count IDs or receipts.
-- SDDs are delivered at the maturity their actual checks support. Missing or unrun required checks remain disclosed and do not permit a `LOOP_READY` claim. Never claim system-level anti-bypass enforcement.
-- Implementation-targeting output converges before it is handed off. An open information question or route-critical unknown is work this skill owns: close it by running the check, or, when only the user can answer, carry it as a `requirement_type: "decision"` requirement under `pending_authority_confirmations`. Those are the only two endings — recording the gap and handing the document on is not a third, and `repo-facts.ts check` fails the document by name when it happens. A design blocked solely on a user decision is a complete handoff; one blocked on work nobody has done is not.
-- Report what was inspected, what remains unknown, and whether conclusions concern the document, the implementation or both. Never claim verification from a status label, planned command, test name or indirect evidence.
-- New output uses `sdd-loop-delivery/v1` and `sdd-contract` markers with Coordinator/Operator/Architect roles; read current runtime and constants from `bun <loop-skill-root>/scripts/main.ts configuration`.
-- Authoring runs mark six lifecycle points with `bun <create-sdd-root>/scripts/lifecycle.ts <initial|evidence|generate|process|amend|done>`; `initial` mints a run id every later call carries, and `done` refuses a run whose journal shows a phase was never called; each answers with repository-derived facts to use instead of inference, and every string in a result's `next.must_echo` is reproduced verbatim on its own line in the reply. A program's launch instruction reaches the user that way and no other: it belongs to the reply, is echoed every run including a regeneration that changed nothing else, and is never stored in the document instead. `done` is called twice: once to obtain the strings, once with its `echo_token` after the reply carries them, and only the second call can be `ok`. [lifecycle](references/lifecycle.md).
-- New documents use `sdd-document/v1` IDs and presentation ([document presentation](references/document-presentation.md)); implementation-targeting documents pass `bun <create-sdd-root>/scripts/reading-receipt.ts check --sdd <SDD>`, `bun <create-sdd-root>/scripts/repo-facts.ts check --sdd <SDD>` and `bun <loop-skill-root>/scripts/main.ts validate --sdd <SDD> --document-policy current --design-policy current`; `validate` is the delivery controller's command, not this skill's, and it requires the contract block. `document-check` is only for documents that do not target implementation and never stands in for `validate`.
+- Report what was inspected, what remains unknown, and whether conclusions concern the document, the implementation or both.
+- SDDs are delivered at the maturity their actual checks support. Missing or unrun required checks stay disclosed and do not permit a `LOOP_READY` claim.
+- Multi-SDD output, program roots and their launch instructions follow [program split](references/planning/program-split.md).
+- Keep repository input and output location independent ([writing](references/writing.md)).
+
+## What these checks do not prove
+
+Every command above checks structure and source binding. None of them proves that an agent read a reference, understood it, or followed it; that a design is good; that an implementation satisfies it; or that any sandbox or permission boundary was enforced. Never claim verification from a status label, a planned command, a test name or indirect evidence, and never claim system-level anti-bypass enforcement.
