@@ -3,12 +3,12 @@
   "note": "A round freezes these ceilings and its measured starting size when it opens. For ordinary rounds, `prune` rejects growth beyond the higher of those two values; inherited overage remains visible in `health` and cannot be worsened. An explicit budget-change round may revise ceilings and is RECORDED after clean checks, never credited with a repair. Historical raises and ratchets remain records; close no longer ratchets automatically.",
   "set_at": "2026-09-23",
   "ceilings": {
-    "SKILL.md.characters": 8774,
-    "references.lines": 4520,
-    "validator.lines": 6020,
+    "SKILL.md.characters": 9200,
+    "references.lines": 4600,
+    "validator.lines": 6480,
     "behavior_cases": 46,
-    "scripts.lines": 12720,
-    "tests.lines": 3960
+    "scripts.lines": 13200,
+    "tests.lines": 4150
   },
   "raises": [
     {
@@ -74,6 +74,46 @@
       "at": "2026-09-24",
       "round": "budget-change",
       "reason": "One owning test file for the v2 derivations frozen in round R-20260923163559 (derived Meta, repository semantics, priority and wave ordering)."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 6020,
+      "to": 6480,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "Step records (touches, after, closes) with a derived task view, a convergence check of host evidence against acceptance and revision, a bug intent (reproduction, root cause, regression acceptance) and an assessment document type. Each replaces prose a host had to interpret: tasks.md, converge and the bug/assess workflows of spec-kit, folded into the six phases and five Metas instead of added as parallel files."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 12720,
+      "to": 13200,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "Same growth as validator.lines, plus the --evidence flag in validate.ts."
+    },
+    {
+      "dimension": "references.lines",
+      "from": 4520,
+      "to": 4600,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "Authoring guidance for the task view, convergence, bug and assessment modes in v2-authoring.md and their fields in v2-contract.md."
+    },
+    {
+      "dimension": "tests.lines",
+      "from": 3960,
+      "to": 4150,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "Owning tests for task derivation, closure status and the bug and assessment checks frozen in round R-20260923170808."
+    },
+    {
+      "dimension": "SKILL.md.characters",
+      "from": 8774,
+      "to": 9200,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "Two new modes (bug fix, assessment) in the mode table and the --evidence convergence command; the entry is where a reader chooses a mode, so they cannot live only in references."
     }
   ],
   "introduced": [

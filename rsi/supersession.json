@@ -324,6 +324,36 @@
       "counterexample": "A non-implementation document defining D-01 twice: the second definition silently shadows the first.",
       "scope": "validate.ts document-check (documents that do not target implementation).",
       "tradeoff": "None added; the ledger now counts a rule that already ran."
+    },
+    {
+      "asset": "code:SDD_V2_CLOSURE_OPEN",
+      "added_at": "2026-09-24",
+      "round": "R-20260923171000",
+      "supersedes": [],
+      "supersedes_nothing_because": "New mechanical half of the closure audit (references/closure-evidence.md stays for what it cannot judge); nothing compared host evidence with v2 acceptance before.",
+      "counterexample": "CSDD-V2-CLOSURE-101: a revision-1 evidence report was accepted for a revision-2 document, so convergence was claimed on stale results.",
+      "scope": "validate --evidence on sdd/v2 leaves only; plain validate never emits it.",
+      "tradeoff": "The host must write an sdd-evidence/v1 report; free-text evidence is taken as written, only path-like references are checked."
+    },
+    {
+      "asset": "code:SDD_V2_CLOSURE_FAILED",
+      "added_at": "2026-09-24",
+      "round": "R-20260923171000",
+      "supersedes": [],
+      "supersedes_nothing_because": "Separates a reported FAIL (the design or the code must change) from missing evidence (the host must report), so converge knows which way to loop.",
+      "counterexample": "A2 reported FAIL while A1 passed: without a distinct status the result reads as merely incomplete and the host re-runs instead of amending.",
+      "scope": "validate --evidence on sdd/v2 leaves only; plain validate never emits it.",
+      "tradeoff": "One more status for hosts to handle; FAILED outranks OPEN."
+    },
+    {
+      "asset": "code:EVIDENCE_REQUIRES_V2_LEAF",
+      "added_at": "2026-09-24",
+      "round": "R-20260923171000",
+      "supersedes": [],
+      "supersedes_nothing_because": "Usage guard for the new --evidence flag: closure is defined against one sdd/v2 leaf's acceptance.",
+      "counterexample": "--evidence passed with a v1 contract or a program root: there is no leaf acceptance set to compare, and silently ignoring the flag would report a closure that was never checked.",
+      "scope": "validate.ts CLI.",
+      "tradeoff": "Program-level convergence is per child leaf, not one command on the root."
     }
   ]
 }

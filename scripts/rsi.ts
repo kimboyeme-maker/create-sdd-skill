@@ -603,7 +603,10 @@ export function codesIn(value: unknown, into: Set<string> = new Set()): Set<stri
     for (const [key, inner] of Object.entries(value)) {
       if (key === 'code' && typeof inner === 'string') into.add(inner)
       else if ((key === 'message' || key === 'detail') && typeof inner === 'string')
-        for (const match of inner.matchAll(/\b([A-Z][A-Z0-9_]{3,})\b/g)) into.add(match[1]!)
+        // A path fragment is not a code: temp directory suffixes and case IDs sit between `-`, `/`
+        // or `.`, and reading them made a rerun of the same candidate report different codes.
+        for (const match of inner.matchAll(/(?<![\w/.-])([A-Z][A-Z0-9_]{3,})(?![\w/.-])/g))
+          into.add(match[1]!)
       else codesIn(inner, into)
     }
   return into
