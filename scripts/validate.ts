@@ -239,18 +239,35 @@ export async function run(
  * dead, which is the opposite of what this measurement is for, so the inner codes are harvested too.
  */
 function codesOf(output: unknown): readonly string[] {
-  const diagnostics = (
-    output as { diagnostics?: readonly { code?: unknown; message?: unknown }[] } | undefined
-  )?.diagnostics
-  if (!Array.isArray(diagnostics)) return []
+  const shape = output as
+    | {
+        diagnostics?: readonly { code?: unknown; message?: unknown }[]
+        closure?: { findings?: readonly { code?: unknown; message?: unknown }[] }
+      }
+    | undefined
+  // An evidence closure reports its findings beside the diagnostics, not inside them; both are what
+  // this run decided, so both reach the ledger (OD-14).
+  const entries = [
+    ...(Array.isArray(shape?.diagnostics) ? shape.diagnostics : []),
+    ...(Array.isArray(shape?.closure?.findings) ? shape.closure.findings : [])
+  ]
   const codes: string[] = []
-  for (const entry of diagnostics) {
+  for (const entry of entries) {
     const code = String(entry?.code ?? '')
     if (code) codes.push(code)
     for (const match of String(entry?.message ?? '').matchAll(/\b([A-Z][A-Z0-9_]{3,})\b/g))
       codes.push(match[1]!)
   }
   return codes
+}
+
+/** Advisory codes a v2 handoff reports; they never block, so the ledger keeps them apart (OD-14). */
+function candidatesOf(output: unknown): readonly string[] {
+  const candidates = (output as { handoff?: { candidates?: readonly { code?: unknown }[] } })
+    ?.handoff?.candidates
+  return Array.isArray(candidates)
+    ? candidates.map((entry) => String(entry?.code ?? '')).filter(Boolean)
+    : []
 }
 
 if (import.meta.main) {
@@ -263,7 +280,8 @@ if (import.meta.main) {
       record({
         tool: `validate:${command}`,
         sddSha: documentDigest(readFileSync(sdd, 'utf8')),
-        codes: codesOf(output)
+        codes: codesOf(output),
+        candidateCodes: candidatesOf(output)
       })
     console.log(JSON.stringify(output))
     process.exit(exit)

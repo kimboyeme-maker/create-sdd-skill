@@ -806,6 +806,57 @@
       "observed_at": "2026-09-24",
       "owning_test": "tests/v2-document.test.ts",
       "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-RSI-TEL-101",
+      "defect_class": "telemetry-drops-candidates",
+      "statement": "A validate run whose handoff reports advisory candidates writes a telemetry line with an empty candidate_codes, so rule health never sees v2 advisory findings.",
+      "root_cause": "validate.ts builds the telemetry entry from codesOf(output), which reads only output.diagnostics, and passes no candidateCodes.",
+      "evidence": {
+        "file": "scripts/validate.ts",
+        "line": 263,
+        "quote": "record({"
+      },
+      "repository": "cases/fixtures/v2-repo",
+      "fixture": "cases/fixtures/v2-symbol-missing.md",
+      "negative_fixture": "cases/fixtures/v2-symbol-ok.md",
+      "detector": {
+        "command": "bun cases/fixtures/rsi-telemetry-probe.ts candidates <fixture> <repository>",
+        "expected_code": "RSI_TELEMETRY_CANDIDATES_RECORDED",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "plugin-host R2 authoring with sdd/v2, OD-14",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/rsi-debt.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-RSI-TEL-102",
+      "defect_class": "telemetry-drops-closure",
+      "statement": "A validate --evidence run whose closure reports findings writes a telemetry line without them, so implementation-time failures never reach rule health.",
+      "root_cause": "codesOf reads only output.diagnostics; the evidence closure places its codes under output.closure.findings.",
+      "evidence": {
+        "file": "scripts/validate.ts",
+        "line": 222,
+        "quote": "output: { ...result, closure },"
+      },
+      "repository": "cases/fixtures/v2-closure-duplicate",
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {}
+      },
+      "detector": {
+        "command": "bun cases/fixtures/rsi-telemetry-probe.ts closure <fixture> <repository>",
+        "expected_code": "RSI_TELEMETRY_CLOSURE_RECORDED",
+        "must_fire": true
+      },
+      "source_delivery": "plugin-host R2 authoring with sdd/v2, OD-14",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/rsi-debt.test.ts",
+      "introduced_detector_at": "2026-09-24"
     }
   ],
   "held_out": [
@@ -821,6 +872,14 @@
       "found_by": "real delivery, 2026-09-23",
       "status": "recorded, no detector yet",
       "next": "OD-03, OD-04 and OD-07 are mechanical and cheap — cases first. OD-02 needs the type probe extended to step pseudocode. OD-06 needs B3 structure. OD-01 and OD-05 are rulings before rules."
+    },
+    {
+      "id": "OD-09..OD-14",
+      "statement": "Six defect classes observed while authoring plugin-host-r2.sdd.md with sdd/v2 and amending a legacy website SDD; all passed every current check.",
+      "record": "rsi/observed-defects.md",
+      "found_by": "real authoring, 2026-09-24",
+      "status": "OD-14 pinned by CSDD-RSI-TEL-101/102; the rest recorded, no detector yet",
+      "next": "OD-09 (git check-ignore over acceptance inputs) and OD-10 (writes intersecting another SDD's ownership) are mechanical and cheap. OD-11 needs a CONVERGED-but-invalid report for v1 documents. OD-12 and OD-13 are rulings before rules."
     }
   ]
 }

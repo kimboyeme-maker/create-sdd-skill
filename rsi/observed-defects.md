@@ -173,3 +173,130 @@ Five of the seven are consistency questions between two places in one document. 
 that is not: it is a dependency the document could not have listed, because the thing depended on
 was a *shape* rather than a name. That is the gap worth thinking hardest about — a migration model
 built on symbols cannot see it at all.
+
+---
+
+## Findings from authoring plugin-host R2 with sdd/v2 (2026-09-24)
+
+Found while writing `docs/plugin-host/plugin-host-r2.sdd.md` (sdd/v2, 25 requirements, `validate`
+→ `STRUCTURALLY_READY`) and amending `docs/website/website-library-runtime.sdd.md` (legacy v1, r7).
+Same status as the entries above: inputs to `rsi.ts`, not rules.
+
+## OD-09 An acceptance or test reads a git-ignored path
+
+**Observed:** `packages/store-devtools/test/public-exports.test.ts` reads
+`docs/store/public-exports.baseline.json`, and `docs/` is ignored (`.gitignore:14` in the migai
+repository). On a clean checkout the file does not exist and the test fails. The repository's error
+registry `docs/contracts/error-codes.md` sits in the same ignored tree while an acceptance (R1's
+YS02) reads it.
+
+**Evidence:** `git check-ignore -v docs/store/public-exports.baseline.json` → `.gitignore:14:docs/`.
+
+**Why the checks missed it:** `validate` checks that Bundle `reads` exist in the resolved repository.
+An ignored file exists locally, so the check passes on the author's machine and nowhere else.
+
+**What a detector would need:** cheap and deterministic — run `git check-ignore` over the paths named
+in acceptance methods and step `touches`; any hit is a candidate ("this input will not exist in a
+clean checkout").
+
+## OD-10 A leaf's write set enters another SDD's ownership
+
+**Observed:** the first R2 draft carried a requirement to change `website/scripts/generate/signatures.ts`.
+The user had already assigned all website work to `docs/website/website-library-runtime.sdd.md`; the
+requirement had to be moved there (it became that document's XQ07).
+
+**Evidence:** R2 revision before the move listed `website/scripts/generate/signatures.ts` in
+`writes`; the website SDD owns `migaia-website`.
+
+**Why the checks missed it:** v2 validates one leaf's `writes` in isolation. Ownership conflicts are
+checked only between children of one program root, and these two documents share no root.
+
+**What a detector would need:** read the ownership other SDDs in the same repository declare
+(`writes`, v1 `ownership`/`modification_packages`) and intersect it with the leaf's `writes`; an
+intersection is a candidate naming the other document.
+
+## OD-11 A CONVERGED legacy document fails the current validator
+
+**Observed:** `website-library-runtime.sdd.md` at revision `2026-09-16-r6` declares design status
+CONVERGED, yet the current legacy `validate` reports `MIGRATION_READER_BATCH_COVERAGE_INVALID`
+(reader DY01 needs XQ02 and XQ06, split across PC02 and PC06). The r6 text was validated unchanged
+to confirm the diagnostic predates the r7 amendment.
+
+**Evidence:** `validate.ts validate --sdd <r6 copy> --document-policy current --design-policy current`
+→ `valid: false`, one diagnostic.
+
+**Why the checks missed it:** convergence was judged by the validator of its day. When a later rule
+tightens, nothing re-announces that an existing CONVERGED claim no longer holds; the document keeps
+reading as settled.
+
+**What a detector would need:** a v1 document whose recorded status is CONVERGED but which yields
+diagnostics is reported as "convergence predates the current validator" rather than as an ordinary
+invalid draft, so the reader knows the claim, not the draft, is stale.
+
+## OD-12 A predecessor's numeric facts go stale, or were wrong
+
+**Observed:** R1 §1.1 #4 stated 11 `context ? f(v, ctx) : f(v)` conditional calls in
+middleware-pipeline, three `isRecord` definitions in event-subscriber, and six assertions that a
+never-existing dependency is absent. Live source for R2 showed 4, 2 and 4 — and two of the six
+"vacuous" assertions are valid tree-shaking checks (the async entry must not bundle the sync runner).
+
+**Evidence:** `packages/middleware-pipeline/test/tree-shaking.test.ts:40-51`,
+`packages/event-subscriber/src/style.ts:209`, `packages/event-subscriber/src/channel.ts:96`.
+
+**Why the checks missed it:** the claims passed every check and all three lenses when R1 was written.
+A successor that cites a predecessor as `basis` inherits its prose without any prompt to re-read.
+
+**What a detector would need:** low reliability, recorded for judgement — list the predecessor's
+numeric or universal claims as "re-verify before reuse" items when a new SDD names it as basis.
+
+## OD-13 Host plan mode overrides the skill's Plan Mode rule
+
+**Observed:** `SKILL.md` says Plan Mode outputs the complete proposed SDD through `validate-draft`.
+When the host entered plan mode mid-authoring, the agent followed the host's instruction (write a
+short plan file, then exit plan mode) and produced a plan instead of the SDD draft.
+
+**Evidence:** this session's plan file `sorted-bubbling-lighthouse.md` held a step list, not a
+validated draft.
+
+**Why the checks missed it:** no check sees the reply, and the two instructions are not reconciled
+anywhere — both read as authoritative.
+
+**What a detector would need:** not a detector. A behaviour case, plus one SKILL.md line stating that
+under host plan mode the plan file carries the full draft that `validate-draft` accepted.
+
+## OD-14 sdd/v2 work reaches RSI only as diagnostic counts
+
+**Observed:** writing and validating a full SDD leaves exactly one kind of RSI trace — the codes in
+`validate`'s `diagnostics`. Three things never arrive:
+
+1. **v2 candidates.** The first R2 `validate` returned three `PSEUDOCODE_SYMBOL_UNRESOLVED`
+   candidates in `handoff.candidates`; its telemetry line records `candidate_codes: []`.
+   `validate.ts` builds the entry with `codesOf(output)`, which reads only `output.diagnostics`, and
+   passes no `candidateCodes`. Advisory findings are therefore invisible to rule health.
+2. **Authoring-time defects.** The v2 workflow (SKILL.md Report step, `references/v2-authoring.md`
+   §6) never asks the author to record a defect the checks missed; this file is referenced only from
+   `rsi.ts update`'s agenda text.
+3. **Implementation-time failures.** `rsi.ts ingest` reads retrospectives in the retired
+   `sdd-loop-delivery` format. v2 hosts report through `validate --evidence` (`sdd-evidence/v1`), and
+   the v2 closure feeds nothing to RSI, so a FAIL found while implementing never arrives.
+
+**Evidence:** telemetry line for R2's first run (2026-09-23T17:45:45Z, `codes:
+["SDD_V2_PROSE_DEFINITION_DUPLICATE"]`, `candidate_codes: []`) against the same run's handoff; the
+`record({ tool, sddSha, codes: codesOf(output) })` call at the end of `scripts/validate.ts`.
+
+**Correction recorded for honesty:** the investigation first concluded that telemetry writes were
+silently failing. They were not — the file's local mtime (01:50 +08:00) was read as if it were the
+UTC timestamps in the ledger (17:50Z), which are the same moment. A controlled rerun appended
+normally through both the `~/.codex` path and the `~/.claude` symlink.
+
+**Why the checks missed it:** each piece works on its own, and a channel that delivers nothing looks
+exactly like a quiet corpus — dormancy statistics read an absence of input as an absence of defects.
+
+**What a detector would need:** not a detector, three small wiring changes: pass
+`handoff.candidates` codes as `candidateCodes` in `validate.ts`; one Report-step line pointing
+authors here; let `validate --evidence` record FAIL and stale-revision closures.
+
+**Status (2026-09-24):** repaired. Round R-20260923180325 (case-amendment) pinned gaps 1 and 3 as
+`CSDD-RSI-TEL-101`/`102`, both failing on the unchanged code; round R-20260923180447 (improvement,
+ACCEPTED) made `validate.ts` record `handoff.candidates` as `candidate_codes` and `closure.findings`
+as `codes`, flipping both to PASS, and added the Report-step line in SKILL.md for gap 2.
