@@ -18,6 +18,7 @@ import {
   type ExecutionSlice,
   type Report
 } from './v2-meta.ts'
+import { symbolCandidates } from './v2-symbols.ts'
 import { ancestors, checkStepRecords, stepRecords } from './v2-tasks.ts'
 
 type DraftDocument = Readonly<{ path: string; content: string }>
@@ -60,6 +61,8 @@ export type V2Handoff = Readonly<{
   regression: readonly string[]
   /** The go assessment this SDD was seeded from, when it names one. */
   assessment: string | null
+  /** Advisory findings that never block, such as step calls declared nowhere in owned source. */
+  candidates: readonly { code: string; detail: string }[]
   /** Program root only: child IDs in dependency layers. */
   parallel_children?: readonly (readonly string[])[]
   read_order: readonly string[]
@@ -844,6 +847,17 @@ export function validateV2Document(
       selected_source_paths: selectedSourcePaths,
       ...(selected ? { execution_slice: slices.get(root ? selected.id : 'self') } : {}),
       meta_source: meta.source,
+      candidates: selected
+        ? symbolCandidates(
+            selected.index,
+            prose(selected.text, 'sdd-contract'),
+            repo,
+            slices.get(root ? selected.id : 'self')?.reads ?? [],
+            new Map(
+              selectedSourcePaths.map(({ step, path }) => [step, io.read(path).toString('utf8')])
+            )
+          )
+        : [],
       intent: selected?.index.intent === 'bug' ? 'bug' : 'feature',
       regression: list(selected?.index.regression).filter(nonempty),
       assessment,

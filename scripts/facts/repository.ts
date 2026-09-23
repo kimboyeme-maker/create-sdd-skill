@@ -293,3 +293,45 @@ export function packageDirectories(
 }
 
 /** Tool versions pinned by the repository, with the file that pins them. */
+
+/** Language and test-harness names that a repository need not declare for pseudocode to be real. */
+export const PSEUDOCODE_BUILTINS = new Set([
+  'expect',
+  'describe',
+  'test',
+  'await',
+  'async',
+  'return',
+  'require',
+  'catch',
+  'throw',
+  'console',
+  'Promise',
+  'Array',
+  'Object',
+  'String',
+  'Number',
+  'Boolean',
+  'JSON',
+  'Math',
+  'Date',
+  'Error',
+  'Set',
+  'Map',
+  'parseInt',
+  'parseFloat',
+  'toMatchObject',
+  'toBeInstanceOf',
+  'toEqual',
+  'toBe',
+  'resolves',
+  'rejects',
+  'beforeEach',
+  'afterEach',
+  'push',
+  'slice',
+  'join',
+  'split',
+  'filter',
+  'includes'
+])

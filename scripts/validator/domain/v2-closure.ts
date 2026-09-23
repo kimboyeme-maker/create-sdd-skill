@@ -16,6 +16,37 @@ export type ClosureStatus = 'CLOSED' | 'OPEN' | 'FAILED'
  * ran against and one `{acceptance, status, evidence}` row per case. A path-like `evidence` must
  * exist in the repository; a URL or free text is taken as written.
  */
+/** Whether `ref` names a commit in `repository`; read-only `git cat-file`. */
+const commit = (repository: string, ref: string) =>
+  Bun.spawnSync(['git', '-C', repository, 'cat-file', '-e', `${ref}^{commit}`]).exitCode === 0
+
+/**
+ * How strongly one PASS row proves behaviour. `verified`: the same `command` failed at `baseline`
+ * and passed at `commit`, both commits exist and the baseline is an ancestor (checked with
+ * read-only git). `claimed`: a FAIL-then-PASS pair with the command but without checkable commits.
+ * `none`: a PASS alone, which may never have been able to fail.
+ */
+function proofOf(row: Item, repository: string | null): { level: string; reason?: string } {
+  const base = object(row.baseline) ? row.baseline : null
+  if (!text(row.command) || !base || base.status !== 'FAIL' || !text(base.evidence))
+    return { level: 'none', reason: 'no failing baseline run of the same command' }
+  if (!text(row.commit) || !text(base.commit)) return { level: 'claimed' }
+  if (!repository || !commit(repository, row.commit) || !commit(repository, base.commit))
+    return { level: 'none', reason: 'baseline or change commit not found' }
+  const ordered = Bun.spawnSync([
+    'git',
+    '-C',
+    repository,
+    'merge-base',
+    '--is-ancestor',
+    base.commit,
+    row.commit
+  ]).exitCode
+  return ordered === 0 && base.commit !== row.commit
+    ? { level: 'verified' }
+    : { level: 'none', reason: 'baseline is not an earlier commit of the change' }
+}
+
 export function checkClosure(
   result: V2Result,
   index: Item,
@@ -40,21 +71,33 @@ export function checkClosure(
     )
   )
   const known = new Set(list(index.acceptance).filter(text))
+  // One row per acceptance: a repeated ID is ambiguous (FAIL then PASS must not close by order),
+  // so it blocks and neither row counts.
   const rows = new Map<string, Item>()
+  const repeated = new Set<string>()
   for (const row of list(input.results))
     if (object(row) && text(row.acceptance)) {
       if (!known.has(row.acceptance))
         report('SDD_V2_CLOSURE_OPEN', row.acceptance, 'evidence-unknown-acceptance')
+      else if (rows.has(row.acceptance)) repeated.add(row.acceptance)
       else rows.set(row.acceptance, row)
     }
+  for (const id of repeated) {
+    rows.delete(id)
+    report('SDD_V2_CLOSURE_OPEN', id, 'evidence-duplicate')
+  }
   const status = new Map<string, string>()
   const unsupported = new Set<string>()
+  const proof: { acceptance: string; level: string; reason?: string }[] = []
+  const regression = new Set(list(index.regression).filter(text))
   for (const id of known) {
     const row = rows.get(id)
     const value =
       row && ['PASS', 'FAIL', 'BLOCKED'].includes(String(row.status))
         ? String(row.status)
-        : 'MISSING'
+        : repeated.has(id)
+          ? 'DUPLICATE'
+          : 'MISSING'
     status.set(id, value)
     if (value === 'FAIL') report('SDD_V2_CLOSURE_FAILED', id, 'acceptance-failed')
     else if (value === 'PASS') {
@@ -63,7 +106,13 @@ export function checkClosure(
       if (!text(ref)) report('SDD_V2_CLOSURE_OPEN', id, 'pass-without-evidence')
       else if (repository && local && !existsSync(resolve(repository, ref)))
         report('SDD_V2_CLOSURE_OPEN', `${id}: ${ref}`, 'evidence-path-missing')
-      else continue
+      else {
+        const found = proofOf(row!, repository)
+        proof.push({ acceptance: id, ...found })
+        // A regression case must show it could fail; otherwise the fix proves nothing.
+        if (found.level !== 'none' || !regression.has(id)) continue
+        report('SDD_V2_CLOSURE_OPEN', `${id}: ${found.reason}`, 'regression-unproven')
+      }
       unsupported.add(id)
     } else if (required.has(id))
       report('SDD_V2_CLOSURE_OPEN', id, value === 'BLOCKED' ? 'blocked' : 'evidence-missing')
@@ -89,9 +138,13 @@ export function checkClosure(
       status: status.get(id)!
     })),
     entries,
+    proof,
+    behaviour_proven: [...required].every((id) =>
+      proof.some((p) => p.acceptance === id && p.level !== 'none')
+    ),
     mvp_closed: mvp.length ? mvp.every((id) => entries.find((e) => e.id === id)?.closed) : null,
     evidence_limits: [
-      'The report is the host’s claim: this check compares IDs, revision and evidence locations, not whether the evidence proves the behaviour.'
+      'The report is the host’s claim. `verified` proof checks that the commits exist and are ordered, not that the command tests the requirement or that the logs are genuine.'
     ]
   }
 }

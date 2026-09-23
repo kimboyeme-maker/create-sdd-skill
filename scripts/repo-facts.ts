@@ -17,6 +17,7 @@ import {
 import {
   MANIFESTS,
   packageDirectories as discoverPackages,
+  PSEUDOCODE_BUILTINS,
   read,
   repositoryRoot,
   walk,
@@ -75,48 +76,6 @@ const SCAN_LIMIT_BYTES = 1_000_000
  * the migration scan decides whether the symbol names a surface or an ordinary word.
  */
 const GENERIC_SYMBOL_MIN_HITS = 25
-/** Language and test-harness names that a repository need not declare for pseudocode to be real. */
-const PSEUDOCODE_BUILTINS = new Set([
-  'expect',
-  'describe',
-  'test',
-  'await',
-  'async',
-  'return',
-  'require',
-  'catch',
-  'throw',
-  'console',
-  'Promise',
-  'Array',
-  'Object',
-  'String',
-  'Number',
-  'Boolean',
-  'JSON',
-  'Math',
-  'Date',
-  'Error',
-  'Set',
-  'Map',
-  'parseInt',
-  'parseFloat',
-  'toMatchObject',
-  'toBeInstanceOf',
-  'toEqual',
-  'toBe',
-  'resolves',
-  'rejects',
-  'beforeEach',
-  'afterEach',
-  'push',
-  'slice',
-  'join',
-  'split',
-  'filter',
-  'includes'
-])
-
 /** The contract's lineage object, or an empty one; a document may omit it entirely. */
 function lineageOf(contract: Item): Item {
   const value = (contract as Item | null)?.lineage

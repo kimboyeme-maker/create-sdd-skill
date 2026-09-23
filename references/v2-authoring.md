@@ -21,7 +21,7 @@ This page fills each of the six authoring phases with the practices that make a 
 - **Principle check.** When `principles` is non-empty, add a `## Principle Check` (or `## 原则检查`) section. For each principle file, say whether the design complies. For any deviation, give the justification and the simpler alternative that was rejected: spec-kit's Complexity Tracking. Trade off in this order: usability and implementability, then measured performance, then feature breadth, then test machinery, and optional hardening last. Add abstraction, configuration or defensive machinery only for a current requirement or a demonstrated failure.
 - **Key entities**, when data is involved: fields, relationships, validation rules and state transitions, in one `## Key Entities` section (spec-kit's `data-model.md`). If an entity file is delivered, it is an Asset.
 - **Interfaces.** For every export, give its schema or signature location in prose (for example an OpenAPI file, a `.proto` or a TypeScript fence). The export's Asset is that file (spec-kit's `contracts/`). Consumers pin the exact version.
-- Steps name their inputs, outputs and the file paths they touch, so a host can work without inventing locations.
+- Steps name their inputs, outputs and the file paths they touch, so a host can work without inventing locations. Every call in a step's prose or pseudocode (including a step defined in a `step_sources` document) must be declared in the source the leaf writes or reads, or in the SDD itself; `validate` lists the rest as `PSEUDOCODE_SYMBOL_UNRESOLVED` candidates. When a step creates a function, declare it in the step's pseudocode (`function loadGreeting(locale)`) so the candidate means "missing", not "new".
 
 ## 4 Verify — observable acceptance
 
@@ -59,6 +59,10 @@ This page fills each of the six authoring phases with the practices that make a 
     "results": [{ "acceptance": "A1", "status": "PASS", "evidence": "reports/a1.log" }] }
   ```
 
+  Report each acceptance once: a repeated ID blocks the closure whatever the order, because a FAIL followed by a PASS must not close by position.
+
+  **Behaviour proof.** A PASS only shows the check passed, not that it could fail. Add the failing baseline of the same check: `"command": "bun test a1", "commit": "<change sha>", "baseline": {"status": "FAIL", "evidence": "reports/a1-before.log", "commit": "<base sha>"}`. `closure.proof` rates each PASS `verified` (both commits exist and the baseline is an ancestor, checked with read-only git), `claimed` (the pair without commits) or `none`; `behaviour_proven` says whether every must-ship case has at least a claimed proof. For an `intent: bug` leaf, every `regression` case needs one, or the closure stays `OPEN`.
+
   `closure.status` is `CLOSED` when every must-ship acceptance has a PASS with evidence at the current revision, `FAILED` when any result is FAIL, otherwise `OPEN` (missing, blocked, stale revision, or a path-like evidence that does not exist). It also reports which Entries and whether the MVP are closed. A FAIL or a changed expectation returns as a revision: bump `revision`, log a user decision under `## Clarifications`, amend in place with IDs kept, and let the host report again. The check compares IDs, revision and evidence locations; it cannot tell whether the evidence proves the behaviour.
 
 ## Bug fix — the same six phases, proving the defect
@@ -92,4 +96,4 @@ An idea that is not yet worth an SDD gets an assessment: a document whose `sdd-c
 | Bundle | One executable SDD and its reads and required Assets | One feature (`specs/###-name/`) |
 | Asset | A versioned delivered file: interface, schema, entity model or code | `contracts/`, `data-model.md`, source |
 
-<!-- reading-receipt: d6a61036 -->
+<!-- reading-receipt: da01b909 -->

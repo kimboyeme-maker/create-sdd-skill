@@ -703,6 +703,109 @@
       "observed_at": "2026-09-24",
       "owning_test": "tests/v2-document.test.ts",
       "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-SYMBOL-101",
+      "defect_class": "step-symbol-unresolved",
+      "statement": "A v2 step whose pseudocode calls `loadGreeting()` — defined nowhere in the owned source or the SDD — reaches the host as ready; the v1 candidate check never ran on v2 documents.",
+      "root_cause": "PSEUDOCODE_SYMBOL_UNRESOLVED reads v1 implementation_logic only; v2 step prose and fences were never scanned.",
+      "evidence": {
+        "file": "scripts/repo-facts.ts",
+        "line": 731,
+        "quote": "for (const step of Array.isArray(path?.steps) ? (path.steps as Item[]) : [])"
+      },
+      "repository": "cases/fixtures/v2-repo",
+      "fixture": "cases/fixtures/v2-symbol-missing.md",
+      "negative_fixture": "cases/fixtures/v2-symbol-ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "PSEUDOCODE_SYMBOL_UNRESOLVED",
+        "must_fire": true
+      },
+      "source_delivery": "create-sdd v2 semantic review 2026-09-24",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-PROOF-101",
+      "defect_class": "regression-behaviour-unproven",
+      "statement": "A bug fix closes with a PASS for its regression case although nothing shows the same check failed before the fix, so the case may never have detected the bug.",
+      "root_cause": "Closure compares IDs, revision and evidence location only; no row records a failing baseline for the same command.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-closure.ts",
+        "line": 1,
+        "quote": "not whether the evidence proves the behaviour"
+      },
+      "repository": "cases/fixtures/v2-closure",
+      "fixture": {
+        "base": "cases/fixtures/v2-bug.md",
+        "overlay": {}
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-bug.md",
+        "overlay": {
+          "intent": "feature",
+          "regression": []
+        }
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "source_delivery": "create-sdd v2 semantic review 2026-09-24",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-CLOSURE-102",
+      "defect_class": "duplicate-evidence-last-row-wins",
+      "statement": "An evidence report listing A1 twice, FAIL then PASS, closes as CLOSED: the later row silently replaces the failure, so the result depends on row order.",
+      "root_cause": "Closure stores rows in a Map keyed by acceptance ID; a repeated ID overwrites the earlier row.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-closure.ts",
+        "line": 74,
+        "quote": "else rows.set(row.acceptance, row)"
+      },
+      "repository": "cases/fixtures/v2-closure-duplicate",
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {}
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "source_delivery": "user review of create-sdd v2 closure and symbols, 2026-09-24",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-SYMBOL-102",
+      "defect_class": "external-step-symbols-unscanned",
+      "statement": "A step defined in an external plan through step_sources calls `loadGreeting()`, declared nowhere, and no symbol candidate appears; the check covers only steps written in the SDD body.",
+      "root_cause": "symbolCandidates reads step text from the leaf body only; step_sources targets are never scanned.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-symbols.ts",
+        "line": 63,
+        "quote": "const step = stepText(body, id)"
+      },
+      "repository": "cases/fixtures/v2-repo",
+      "fixture": "cases/fixtures/v2-external-missing.md",
+      "negative_fixture": "cases/fixtures/v2-external-ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "PSEUDOCODE_SYMBOL_UNRESOLVED",
+        "must_fire": true
+      },
+      "source_delivery": "user review of create-sdd v2 closure and symbols, 2026-09-24",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
     }
   ],
   "held_out": [

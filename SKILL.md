@@ -76,4 +76,4 @@ Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's head
 
 ## What these checks do not prove
 
-Structure and source checks do not prove semantic completeness, implementation, agent reading or permission enforcement. A design-ready SDD grants no authority to run tests, commit, merge, publish or deploy. Report missing checks and open choices as limits, not as PASS.
+Structure and source checks do not prove semantic completeness, implementation, agent reading or permission enforcement. Symbol candidates are regex-based advice. A `verified` behaviour proof checks commits and their order, not that the command tests the requirement. A design-ready SDD grants no authority to run tests, commit, merge, publish or deploy. Report missing checks and open choices as limits, not as PASS.

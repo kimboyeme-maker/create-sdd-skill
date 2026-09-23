@@ -277,3 +277,81 @@ test('assessment decisions gate the follow-up SDD', () => {
     rmSync(root, { recursive: true, force: true })
   }
 })
+
+test('step calls declared nowhere in owned source or the SDD are symbol candidates', () => {
+  const root = workspace({ 'packages/change/a.ts': 'export function known() {}\n' })
+  try {
+    const steps = `${body.replace('- S1 Build the base.', '- S1 Build the base.\n\n  ```ts\n  known()\n  missingHelper()\n  ```')}`
+    const result = validateV2Document(join(root, 'change.sdd.md'), leaf(steps, index))!
+    expect(result.diagnostics).toEqual([])
+    expect(result.handoff.candidates).toEqual([
+      { code: 'PSEUDOCODE_SYMBOL_UNRESOLVED', detail: 'S1: missingHelper' }
+    ])
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('behaviour proof: a failing baseline of the same command, commits checked in git', () => {
+  const root = workspace({}, false)
+  const git = (...args: string[]) =>
+    Bun.spawnSync(['git', '-C', root, ...args])
+      .stdout.toString()
+      .trim()
+  try {
+    git('init', '-q')
+    git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'base')
+    const base = git('rev-parse', 'HEAD')
+    git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'fix')
+    const head = git('rev-parse', 'HEAD')
+    const bug = { ...tasked, intent: 'bug', regression: ['A1'] }
+    const text = leaf(`${taskedBody}\n\n## Reproduction\n\nRun.\n\n## Root Cause\n\nTypo.`, bug)
+    const result = validateV2Document(join(root, 'change.sdd.md'), text)!
+    expect(result.diagnostics).toEqual([])
+    const row = (extra: Record<string, unknown>) => [
+      { acceptance: 'A1', status: 'PASS', evidence: 'ci 7', command: 'bun test a', ...extra },
+      { acceptance: 'A2', status: 'PASS', evidence: 'ci 8' }
+    ]
+    const run = (extra: Record<string, unknown>) =>
+      checkClosure(
+        result,
+        bug,
+        { protocol: 'sdd-evidence/v1', sdd: 'change', revision: '1', results: row(extra) },
+        realpathSync(root)
+      )
+    const failed = { status: 'FAIL', evidence: 'ci 6' }
+    expect(run({}).status).toBe('OPEN')
+    const verified = run({ commit: head, baseline: { ...failed, commit: base } })
+    expect(verified.status).toBe('CLOSED')
+    expect(verified.proof[0]).toEqual({ acceptance: 'A1', level: 'verified' })
+    expect(verified.behaviour_proven).toBe(false)
+    expect(run({ baseline: failed }).proof[0]!.level).toBe('claimed')
+    expect(run({ commit: base, baseline: { ...failed, commit: head } }).status).toBe('OPEN')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('repeated evidence rows block closure in either order', () => {
+  const root = workspace({})
+  try {
+    const result = validateV2Document(join(root, 'change.sdd.md'), leaf(taskedBody, tasked))!
+    const rows = [
+      { acceptance: 'A1', status: 'FAIL', evidence: 'ci 1' },
+      { acceptance: 'A1', status: 'PASS', evidence: 'ci 2' },
+      { acceptance: 'A2', status: 'PASS', evidence: 'ci 3' }
+    ]
+    for (const results of [rows, [rows[1], rows[0], rows[2]]]) {
+      const closure = checkClosure(
+        result,
+        tasked,
+        { protocol: 'sdd-evidence/v1', sdd: 'change', revision: '1', results },
+        root
+      )
+      expect(closure.status).toBe('OPEN')
+      expect(closure.acceptance.find((row) => row.id === 'A1')!.status).toBe('DUPLICATE')
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
