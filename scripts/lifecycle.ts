@@ -23,7 +23,6 @@ import { evaluate as evaluateReceipt } from './reading-receipt.ts'
 import { type Item } from './facts/repository.ts'
 import {
   checkRepositoryFacts,
-  launchInstruction,
   packageDirectories,
   repositoryRoot,
   resolveManagers,
@@ -47,28 +46,20 @@ import {
  *    repository actually says — and `next`, which names what must happen before the run continues.
  *
  * `next.must_echo` is the part with teeth: strings the session is required to reproduce verbatim in
- * its reply. The launch instruction for a program lives there, because it is what the user acts on
- * and it was being lost between being derivable and being said.
+ * its reply, because each was being lost between being derivable and being said.
  */
 const ROOT = resolve(import.meta.dir, '..')
 /** create-sdd owns the document validator; it is invoked as a CLI so this hook reports its verdict. */
 const VALIDATE = resolve(ROOT, 'scripts', 'validate.ts')
 /**
- * `program-check` still lives in the delivery skill: it reads repository state (worktree roots) as
- * well as the program index. Until that part moves, a program root is checked there when the skill
- * is installed and disclosed as unchecked when it is not.
- */
-const LOOP_MAIN = resolve(ROOT, '..', 'sdd-loop-delivery', 'scripts', 'main.ts')
-
-/**
- * Runs the delivery controller's own validator over a document. The contract shape, the delivery
- * plan and the design gate all belong to that skill and change with it, so reimplementing any part
- * of it here would drift; spawning it is how this stays a report of what the controller says.
+ * Runs this skill's validator over a leaf document as a CLI, so the hook reports its verdict rather
+ * than a second reading of the contract.
  *
- * A sibling skill that is not installed is disclosed, never counted as a pass — the same rule the
- * release review uses, and for the same reason: a silent skip reads as coverage nobody has.
+ * A program root carries an index of documents, not a contract. Its structural check lived in the
+ * retired delivery skill, so a root is disclosed as not validated here — never counted as a pass;
+ * `repo-facts` and `reading-receipt` still check it on `done`.
  */
-async function loopValidate(
+async function runValidate(
   sdd: string
 ): Promise<{ ran: boolean; ok: boolean; diagnostics: Finding[]; skipped?: string }> {
   // A program root carries an index of documents, not a contract, and is checked with a different
@@ -76,27 +67,26 @@ async function loopValidate(
   // leaf validator turned that answer into a blocking diagnostic against a root that was correct: a
   // fault in this hook, not in the document it refused.
   const program = programBlock(readFileSync(sdd, 'utf8')).value !== null
-  if (program && !existsSync(LOOP_MAIN))
+  if (program)
     return {
       ran: false,
       ok: false,
       diagnostics: [],
-      skipped: 'program-check lives in sdd-loop-delivery, which is not installed beside create-sdd'
+      skipped:
+        'program roots are not leaf contracts; their structural check retired with the delivery skill'
     }
   const proc = Bun.spawn(
-    program
-      ? ['bun', LOOP_MAIN, 'program-check', '--program', sdd]
-      : [
-          'bun',
-          VALIDATE,
-          'validate',
-          '--sdd',
-          sdd,
-          '--document-policy',
-          'current',
-          '--design-policy',
-          'current'
-        ],
+    [
+      'bun',
+      VALIDATE,
+      'validate',
+      '--sdd',
+      sdd,
+      '--document-policy',
+      'current',
+      '--design-policy',
+      'current'
+    ],
     { stdout: 'pipe', stderr: 'pipe' }
   )
   const [out, err] = await Promise.all([
@@ -105,7 +95,6 @@ async function loopValidate(
   ])
   await proc.exited
   try {
-    // `validate` answers with diagnostics, `program-check` with `valid` and a structural summary.
     const parsed = JSON.parse(out) as {
       valid?: boolean
       diagnostics?: { code?: string; detail?: string; message?: string }[]
@@ -610,7 +599,7 @@ async function onGenerate(payload: Record<string, unknown>): Promise<Result> {
         for (const path of receipt.missing)
           blocking.push(finding('LIFECYCLE_RECEIPT_MISSING', path))
         for (const path of receipt.stale) blocking.push(finding('LIFECYCLE_RECEIPT_STALE', path))
-        const validation = await loopValidate(sdd)
+        const validation = await runValidate(sdd)
         facts.validate = validation.skipped
           ? { skipped: validation.skipped }
           : { valid: validation.ok }
@@ -704,7 +693,7 @@ async function onDone(payload: Record<string, unknown>): Promise<Result> {
     .map((path) => absolute(path, 'documents', blocking))
     .filter((path): path is string => path !== null)
   const statuses = []
-  /** Lines the reply has to carry beyond the launch instruction. */
+  /** Lines the reply has to carry, each derivable here and lost if it is not said. */
   const surfaced: string[] = []
   /** What each document's receipt says it needed, for the over-claim comparison below. */
   const receipts = new Map<string, string[]>()
@@ -765,9 +754,6 @@ async function onDone(payload: Record<string, unknown>): Promise<Result> {
       for (const sdd of documents)
         if (!nodes.includes(sdd) && sdd !== program)
           advisory.push(finding('LIFECYCLE_DOCUMENT_OUTSIDE_PROGRAM', sdd))
-      // The one thing the user acts on. It is derivable, and it was being lost between being
-      // derivable and being said, so it is returned as something the reply must contain verbatim.
-      echo.push(launchInstruction(program))
     }
   }
   // A terminal report is the one action no check can observe: this skill cannot see the reply. So
@@ -858,9 +844,8 @@ async function onDone(payload: Record<string, unknown>): Promise<Result> {
       ...elapsed(journal)
     }
   }
-  // The launch instruction was the first thing found to be lost between being derivable and being
-  // said; it is not the only one. Everything gathered above travels the same way and is covered by
-  // the same token, so acknowledging the echo means having read all of it. Assembled here, after
+  // Everything gathered above is covered by the same token, so acknowledging the echo means having
+  // read all of it. Assembled here, after
   // the journal has contributed its assumptions — an echo built earlier would omit them.
   echo.push(...surfaced)
   const token = echo.length ? echoToken(echo) : undefined

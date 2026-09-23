@@ -52,7 +52,7 @@ Load [verification planning](planning/verification-planning.md) for packet check
 
 ## Step 6: record and evaluate
 
-For an approved multi-SDD design, apply [program split](planning/program-split.md): map requirements to Modules, these batches to Chunks, each execution SDD to one Bundle, and explicit output paths to Assets. Keep parent/group coordination separate from execution ownership; include each SDD's own estimate and the wave-to-task handoff. The program's total test allocation is shared, never copied into each child or reset by integration. Run the delivery controller's `program-check --program <absolute-root-SDD>` command in addition to each leaf's normal checks; do not claim source-level independence from declared paths alone.
+For an approved multi-SDD design, apply [program split](planning/program-split.md): map requirements to Modules, these batches to Chunks, each execution SDD to one Bundle, and explicit output paths to Assets. Keep parent/group coordination separate from execution ownership; include each SDD's own estimate and the wave-to-task handoff. The program's total test allocation is shared, never copied into each child or reset by integration. Run each leaf's normal checks; do not claim source-level independence from declared paths alone.
 
 Add the plan beside `implementation_logic` in the contract:
 
@@ -96,4 +96,4 @@ Run `validate` and read `deliveryPlan`. Report waves, lanes, serial minutes and 
 - Adding shards that split one browser journey or shared fixture across Architects.
 - Treating the plan as a promise that concurrent Operators exist in the current controller.
 
-<!-- reading-receipt: 269fe605 -->
+<!-- reading-receipt: 3371cad3 -->

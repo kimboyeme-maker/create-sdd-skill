@@ -19,9 +19,9 @@ Each acceptance `execution.timeout_seconds` stays within `configuration.limits.a
 2. Extend an existing fixture rather than creating a new harness.
 3. Create a file only with a named reuse candidate that was rejected and a real `TEST_LAYER`, `RUNTIME`, `ISOLATION` or `REPOSITORY_MODULE` boundary. Name it for the behavior, never for a round, packet, attempt or fix.
 
-## What the loop enforces
+## What validate enforces
 
-The delivery controller owns enforcement: budget and sprawl limits at `validate` and admission, measured `test-run` timing, bounded retries and credit. Its [test budget rules](../../../sdd-loop-delivery/references/execution.md#test-budget) are the single statement; do not restate them in an SDD.
+`validate` enforces the budget and sprawl limits and is their single statement; do not restate them in an SDD.
 
 ## Gate failures outside the batch
 
@@ -32,4 +32,4 @@ A failing suite that cannot falsify or mask the batch's acceptance is recorded a
 - Bad: "Fix date parsing in billing" budgets 40 minutes and three new files to make the whole repository suite green.
 - Good: the same batch budgets 5 minutes and no new file for one regression in the existing billing parser suite; the unrelated reporting failure is listed as scope-external.
 
-<!-- reading-receipt: 65909bd9 -->
+<!-- reading-receipt: be966ef3 -->

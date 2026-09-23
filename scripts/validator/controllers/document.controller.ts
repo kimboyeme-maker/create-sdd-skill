@@ -62,7 +62,7 @@ function validateText(
         {
           code: 'SDD_PROGRAM_ROOT',
           line: 1,
-          message: `this document carries an sdd-program index, so it is validated as a program: run program-check --program ${sdd}`
+          message: `this document carries an sdd-program index: it is a program root, not a leaf contract (${sdd})`
         }
       ],
       requiredSections: REQUIRED

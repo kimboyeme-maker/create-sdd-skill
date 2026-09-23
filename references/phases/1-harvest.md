@@ -4,7 +4,7 @@ Load at the start of implementation-targeting create, refactor or merge work. Th
 
 ## Treat the first reading as a hypothesis
 
-Restate the observable user outcome, the business or user purpose behind it, the supplied mechanism, explicit constraints, exclusions and the apparent authority boundary. Mark every inferred statement as a hypothesis. A disposable working draft may expose missing facts; it is never an SDD revision, decision record, acceptance contract or `LOOP_READY` evidence.
+Restate the observable user outcome, the business or user purpose behind it, the supplied mechanism, explicit constraints, exclusions and the apparent authority boundary. Mark every inferred statement as a hypothesis. A disposable working draft may expose missing facts; it is never an SDD revision, decision record, acceptance contract or readiness evidence.
 
 ## Fact ledger
 
@@ -83,4 +83,4 @@ After pass 6 report once: outcome and users; confirmed facts by dimension with c
 - Taking the first interpretation of a phrase as a constraint without writing what it does not imply.
 - Asking the user for a fact a read-only command can establish, or mixing a question with a confirmation.
 
-<!-- reading-receipt: b07a3dd1 -->
+<!-- reading-receipt: 0329ef94 -->

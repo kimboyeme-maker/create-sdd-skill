@@ -38,8 +38,8 @@ Every result has the same shape:
 `blocking` stops the run; `advisory` is worth acting on but decides nothing by itself. `facts` is
 what the repository actually says — use it instead of inferring. `next.must_do` names what has to
 happen before continuing. **`next.must_echo` holds strings the reply must reproduce verbatim, each
-on its own line.** That is what carries a program's launch instruction to the user: it is derivable
-at any time, and it was being lost between being derivable and being said.
+on its own line.** Each is derivable at any time and was being lost between being derivable and
+being said.
 
 ## The run journal
 
@@ -121,7 +121,7 @@ for the one thing that only matters once a document claims convergence.
 
 `CONVERGED` together with `stable_after_last_normative_change: true` is a claim about a moment, and
 nothing reset it when that moment passed: a document could be edited after converging and still
-present itself as settled, and the delivery controller would admit it on that claim. A normative
+present itself as settled, and a reader would take it at its word. A normative
 amendment against a converged contract is `LIFECYCLE_CONVERGENCE_STALE`; the lenses have to be run
 again. A non-normative one leaves the claim standing, and the reply says which it was.
 
@@ -133,15 +133,10 @@ sharing a name:
 - **before** the file exists, the only checkable things are where it goes and what must be read to
   write it. The answer is `facts.reading_baseline` — assemble the receipt from it rather than
   reconstructing one afterwards.
-- **after** it exists, the document itself is checked: repository facts and the reading receipt. The
-  delivery controller's own validator is spawned here and its diagnostics are returned as blocking —
-  `validate --document-policy current --design-policy current` for a document with a contract, and
-  `program-check` for a root carrying an `sdd-program` index. A root is not a leaf: sending it to the
-  leaf validator turns the controller's own `SDD_PROGRAM_ROOT` answer into a blocking diagnostic
-  against a document that was correct. It is spawned rather than reimplemented:
-the contract shape, the delivery plan and the design gate belong to that skill and change with it.
-A sibling skill that is not installed is disclosed as `LIFECYCLE_VALIDATE_SKIPPED`, never counted as
-a pass.
+- **after** it exists, the document itself is checked: repository facts, the reading receipt and
+  `validate --document-policy current --design-policy current`, spawned as a CLI so its diagnostics
+  come back as blocking. A program root carries no leaf contract; it is disclosed as
+  `LIFECYCLE_VALIDATE_SKIPPED`, never counted as a pass.
 
 ## `process` — at each phase transition inside one document
 
@@ -156,14 +151,10 @@ the contract fills in.
 
 Runs the repository-facts and reading-receipt checks over every reported document, and for a program
 compares the reported set against the program's own node list in both directions: fewer documents
-than nodes means one was lost, more means one was written that nothing will schedule. Returns the
-launch instruction, and more, in `must_echo`, with an `echo_token` beside it, and is **not** `ok`.
+than nodes means one was lost, more means one was written that nothing will schedule. Returns what
+must not be lost in `must_echo`, with an `echo_token` beside it, and is **not** `ok`. Everything
+gathered there is covered by the same token — acknowledging means having read all of it:
 
-The launch instruction was the first thing found to be lost between being derivable and being said.
-It is not the only one, and everything that travels the same way is gathered into the same list and
-covered by the same token — acknowledging means having read all of it:
-
-- the program's launch instruction;
 - every **superseded manager** claim: the losing lockfile still exists, and a reader who follows the
   workspace file instead of the package will install with it;
 - every **deferred must-ship**: work the user agreed to ship and will not get, recorded in the
@@ -183,11 +174,11 @@ to its model shows them at the moment they are needed.
 
 ## What these hooks do not do
 
-They do not execute the delivery controller's `validate`, do not start a delivery, and do not write
+They do not start a delivery and do not write
 anything outside the run journal. They cannot make a session call them: a session that runs no hook
 at all is invisible to them, exactly as one that never runs `repo-facts.ts` is invisible to that.
 What the journal closes is the weaker case — a session that calls the last hook and skips the rest. A green `done`
 means the documents pass this skill's own checks — not that the design is
 right, that an agent read what it receipted, or that the work has been approved.
 
-<!-- reading-receipt: 21c52621 -->
+<!-- reading-receipt: db956e21 -->

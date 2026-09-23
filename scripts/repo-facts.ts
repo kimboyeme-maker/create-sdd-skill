@@ -164,11 +164,6 @@ function evidenceCorpus(sdd: string, text: string, contract: Item | null): strin
 const SPLIT_SOURCES = ['USER_STATED', 'EXPLICIT_INSTRUCTION']
 
 /** A program root records who decided to split, and every execution SDD passes its own checks. */
-/** The sentence a user sends to a host session to start a program's delivery. */
-export function launchInstruction(programRoot: string): string {
-  return `使用 sdd-loop-delivery 启动 ${resolve(programRoot)} 的完整 workflow`
-}
-
 async function checkProgramFacts(
   sdd: string,
   program: Item,
@@ -207,10 +202,6 @@ async function checkProgramFacts(
     candidates,
     facts: {
       program: program.id ?? null,
-      // The launch instruction is the one part of a program's output the user acts on, and it is
-      // the agent's to say, not the document's to store. Deriving it here puts the exact sentence
-      // in the agent's context at the moment it writes its reply, which is where it was being lost.
-      launch: launchInstruction(sdd),
       children
     }
   }

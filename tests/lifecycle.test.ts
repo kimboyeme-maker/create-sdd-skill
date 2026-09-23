@@ -211,9 +211,7 @@ test('process checks the precondition of the phase being entered, not that it wa
   }
 })
 
-test('done returns the launch instruction as something the reply must contain', async () => {
-  // The instruction is derivable and was being lost between being derivable and being said. It is
-  // not stored in the document — it belongs to the reply — so the hook hands it back as `must_echo`.
+test('done compares the documents a program reports with the nodes it schedules', async () => {
   const root = repository(WORKSPACE)
   const run = startedRun(root)
   const program = join(root, 'root.sdd.md')
@@ -233,10 +231,9 @@ test('done returns the launch instruction as something the reply must contain', 
     )
     writeFileSync(child, '# A\n')
     const result = await runHook('done', { run, program, documents: [child] })
-    expect(result.next.must_echo).toEqual([
-      `使用 sdd-loop-delivery 启动 ${program} 的完整 workflow`
-    ])
-    expect(result.next.must_do.join(' ')).toContain('verbatim')
+    expect(result.blocking.map((issue) => issue.code)).not.toContain(
+      'LIFECYCLE_PROGRAM_NODE_NOT_REPORTED'
+    )
     // A program that reports fewer documents than it scheduled has lost one; a run that reports
     // more has written something nobody will schedule. Both are silent without this comparison.
     const short = await runHook('done', { run, program, documents: [join(root, 'other.sdd.md')] })
@@ -270,35 +267,37 @@ test('a terminal report is the one action no check can observe, so it is acknowl
   // into a run with no complete state.
   const root = repository(WORKSPACE)
   const run = startedRun(root)
-  const program = join(root, 'root.sdd.md')
-  const child = join(root, 'a.sdd.md')
+  const sdd = join(root, 'a.sdd.md')
   try {
-    writeFileSync(
-      program,
-      `# Program\n\n<!-- sdd-program:start -->\n\`\`\`json\n${JSON.stringify({
-        protocol: 'sdd-program/v1',
-        id: 'PG01',
-        nodes: [
-          { id: 'root', parent: null, kind: 'group', sdd: 'root.sdd.md' },
-          { id: 'a', parent: 'root', kind: 'execution', sdd: 'a.sdd.md' }
-        ],
-        split_decision: { source: 'USER_STATED', reference: 'user reply: split it' }
-      })}\n\`\`\`\n<!-- sdd-program:end -->\n`
-    )
-    writeFileSync(child, '# A\n')
-    const first = await runHook('done', { run, program, documents: [child] })
+    writeFileSync(sdd, '# A\n')
+    // An unverified assumption is one of the strings the reply has to carry.
+    await runHook('evidence', {
+      run,
+      repository: root,
+      documents: [{ sdd, fact_ids: ['F1'] }],
+      facts: [
+        {
+          id: 'F1',
+          claim: 'the cache survives a restart',
+          classification: 'ASSUMED',
+          reference: 'no restart was exercised',
+          normative: false
+        }
+      ]
+    })
+    const first = await runHook('done', { run, documents: [sdd] })
     expect(first.ok).toBe(false)
     expect(first.blocking.map((issue) => issue.code)).toContain('LIFECYCLE_ECHO_PENDING')
     const token = first.next.echo_token!
     expect(token).toMatch(/^[0-9a-f]{8}$/)
-    // Scoped to the echo: whether the child document itself is complete is a different question,
+    // Scoped to the echo: whether the document itself is complete is a different question,
     // answered by the other findings in the same result.
-    const acknowledged = await runHook('done', { run, program, documents: [child], echoed: token })
+    const acknowledged = await runHook('done', { run, documents: [sdd], echoed: token })
     expect(acknowledged.blocking.map((issue) => issue.code)).not.toContain('LIFECYCLE_ECHO_PENDING')
     // Once acknowledged there is nothing left to echo; repeating it would duplicate the line.
     expect(acknowledged.next.must_echo).toEqual([])
     // A token from some other run does not identify these strings.
-    const wrong = await runHook('done', { run, program, documents: [child], echoed: 'deadbeef' })
+    const wrong = await runHook('done', { run, documents: [sdd], echoed: 'deadbeef' })
     expect(wrong.blocking.map((issue) => issue.code)).toContain('LIFECYCLE_ECHO_PENDING')
   } finally {
     discardMinted()
@@ -467,10 +466,9 @@ test('the run journal separates a phase that was performed from one that was nev
   }
 })
 
-test('done carries everything that would otherwise be lost, not only the launch instruction', async () => {
-  // The launch instruction was the first thing found to be lost between being derivable and being
-  // said. A superseded manager claim, a deferred must-ship and an unverified assumption travel the
-  // same way, and the same token covers all of them: acknowledging means having read them.
+test('done carries everything that would otherwise be lost between being derived and being said', async () => {
+  // A superseded manager claim, a deferred must-ship and an unverified assumption travel the same
+  // way, and the same token covers all of them: acknowledging means having read them.
   const root = repository(WORKSPACE)
   const sdd = join(root, 'change.sdd.md')
   try {
@@ -636,14 +634,12 @@ test('a program root is validated as a program, not sent to the leaf validator',
     minted.add(started.run!)
     writeFileSync(
       sdd,
-      `# Program\n\n使用 sdd-loop-delivery 启动 ${sdd} 的完整 workflow\n\n<!-- sdd-program:start -->\n\`\`\`json\n${JSON.stringify(
-        {
-          protocol: 'sdd-program/v1',
-          id: 'PG01',
-          nodes: [{ id: 'root', parent: null, kind: 'group', sdd: 'root.sdd.md' }],
-          split_decision: { source: 'USER_STATED', reference: 'user reply: split it' }
-        }
-      )}\n\`\`\`\n<!-- sdd-program:end -->\n`
+      `# Program\n\n<!-- sdd-program:start -->\n\`\`\`json\n${JSON.stringify({
+        protocol: 'sdd-program/v1',
+        id: 'PG01',
+        nodes: [{ id: 'root', parent: null, kind: 'group', sdd: 'root.sdd.md' }],
+        split_decision: { source: 'USER_STATED', reference: 'user reply: split it' }
+      })}\n\`\`\`\n<!-- sdd-program:end -->\n`
     )
     const after = await runHook('generate', { run: started.run!, phase: 'after', sdd })
     expect(after.blocking.map((issue) => issue.code)).not.toContain('SDD_PROGRAM_ROOT')

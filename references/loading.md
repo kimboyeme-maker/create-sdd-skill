@@ -11,7 +11,7 @@ Implementation-targeting create, refactor and merge work runs in phases. Load a 
 | 3 Design | [design card](phases/3-design.md), [complete design template](complete-design.md), [writing guide](writing.md), [document presentation](document-presentation.md) | template sections written |
 | 4 Verify | [verification card](phases/4-verify.md), [acceptance standards](product/acceptance-standards.md) | verification gate holds |
 | 5 Decompose | [work decomposition](work-decomposition.md) | `validate` reports the delivery plan |
-| 6 Hand off (loop-ready only) | [loop-ready](loop-ready.md), [Agent Context map](design/agent-context-map.md) | `LOOP_READY`, or the named blocker |
+| 6 Report | [contract and readiness](loop-ready.md), [Agent Context map](design/agent-context-map.md) | readiness reported, or the named blocker |
 
 `scripts/lib/reading-policy.ts` owns the phase and conditional reading requirements; `reading-receipt.ts check` applies them, and the tables below explain the routing. Receipt tokens identify document versions; they do not authenticate a read.
 
@@ -82,4 +82,4 @@ Read the owning document before fixing the SDD; do not patch a field until the d
 | Audit, or two invariants in tension | [invariants](invariants.md), [audit](audit.md); closure audits add [closure evidence](closure-evidence.md) |
 | Changing this skill's policy | [behavior evaluation](behavior-evaluation.md) |
 
-<!-- reading-receipt: 79abb05b -->
+<!-- reading-receipt: 2327ed6a -->

@@ -6,7 +6,7 @@ This is the canonical content template for create/refactor/merge work intended f
 
 Plan Mode forbids writing the requested artifact; it does not reduce design depth. Output the complete proposed SDD, including its canonical implementation steps, machine index and any new routing document text. Never deliver merely “a plan to write an SDD.” Run safe read-only discovery and probes; do not implement production code or create temporary SDDs as a workaround for mode restrictions. Submit exact proposed Markdown through `validate-draft`'s stdin overlay. Existing linked evidence is read from disk. Proposed source files are design, not existing API evidence.
 
-The validator returns DOCUMENT_VALID and reports structural/source-binding checks only. The author separately completes forward step execution and acceptance-to-entry reconstruction, checking actual interfaces, consumers, prerequisites, ownership and reachable failure paths. Only when these checks and all decisive permitted probes have actual supporting evidence may the author report `LOOP_READY (design ready; not persisted; Coordinator admission pending)`. List concrete unresolved evidence/authority when this is not possible; continue solving discoverable gaps, never invent probe results or hand them to Operator as unspecified investigation.
+The validator returns DOCUMENT_VALID and reports structural/source-binding checks only. The author separately completes forward step execution and acceptance-to-entry reconstruction, checking actual interfaces, consumers, prerequisites, ownership and reachable failure paths. Only when these checks and all decisive permitted probes have actual supporting evidence may the author report the design ready (not persisted, not implemented). List concrete unresolved evidence/authority when this is not possible; continue solving discoverable gaps, never invent probe results or hand them to Operator as unspecified investigation.
 
 After switching to a mode that allows edits, write that exact reviewed design, refresh any genuinely changed repository facts, and run `validate SDD --document-policy current --design-policy current`. Do not restart design merely because the mode changed. A disk fingerprint must equal the validated draft fingerprint when sources have not changed. No controller initialization or product edits are implied.
 
@@ -113,4 +113,4 @@ Validate proposed documents with `validate-draft` before anything is written: pa
 
 Documents without `design_detail` are validated without section bindings; add it through a normal scoped amendment when the design is revised.
 
-<!-- reading-receipt: 2a1626ea -->
+<!-- reading-receipt: 7dcaa1ee -->

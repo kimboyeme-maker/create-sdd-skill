@@ -1,6 +1,6 @@
 ---
 name: create-sdd
-description: Use when the user asks to create, refactor, merge or audit a Software Design Document (SDD) for a repository or product, or to make a design loop-ready. Not for ordinary plans, ADR/RFC comments or code-only analysis.
+description: Use when the user asks to create, refactor, merge or audit a Software Design Document (SDD) for a repository or product, or to make a design implementation-ready. Not for ordinary plans, ADR/RFC comments or code-only analysis.
 ---
 
 # Create SDD
@@ -40,18 +40,18 @@ Choose the narrowest matching mode; state the assumption when intent stays ambig
 | Implementation or closure audit | Compare clauses with source, tests and reproducible evidence | [audit](references/audit.md), [closure evidence](references/closure-evidence.md) |
 | Migration design | Adds reader inventory and legacy-surface disposition | [migration](references/migration.md) |
 | Program split | Assess single- and multi-SDD suitability after the inventory; required before either | [program split](references/planning/program-split.md) |
-| Loop-ready | Default for implementation work when `sdd-loop-delivery` is installed | [loop-ready](references/loop-ready.md) |
+| Contract | Default for implementation work: the machine-checkable contract | [contract](references/loop-ready.md) |
 
 ## Workflow
 
-Create, refactor and merge work runs directly in the current task. Implementation-targeting work runs six phases; [progressive loading](references/loading.md) names their references and `scripts/lib/reading-policy.ts` defines what must be read. Receipt tokens identify document versions only: they do not authenticate tool reads or prove understanding.
+Create, refactor and merge work runs directly in the current task. Implementation-targeting work runs six phases; [progressive loading](references/loading.md) names their references and `scripts/lib/reading-policy.ts` defines what must be read.
 
 1. **Harvest** ([card](references/phases/1-harvest.md)): a cited fact ledger (`USER_STATED | OBSERVED | INFERRED | ASSUMED`) classifying `product_archetype`, `delivery_platforms` and languages. Only stated or observed facts become normative.
 2. **Admit** ([card](references/phases/2-admit.md)): record the agreed split and output set; close implementation logic with step-level pseudocode, run only authorized decisive checks, close authority decisions and pass the convergence gate.
 3. **Design** ([card](references/phases/3-design.md)): one owner per semantic subject, derivable batches, and the [complete design template](references/complete-design.md) sections. Plan Mode outputs the complete proposed SDD through read-only `validate-draft`, never a short plan instead.
 4. **Verify** ([card](references/phases/4-verify.md)): one claim per acceptance case, oracle sensitivity for guards, reused test hosts and causal delivery gates.
-5. **Decompose** ([work decomposition](references/work-decomposition.md)): lease-sized batches without write conflicts, lanes, verification shards and a `test_budget` each, recorded as `delivery_plan`. Numeric limits come from the controller's `configuration` output, never from memory.
-6. **Hand off** (loop-ready only): pass `validate` and the controller compatibility receipt, then report `LOOP_READY` with the copyable instruction that starts delivery.
+5. **Decompose** ([work decomposition](references/work-decomposition.md)): lease-sized batches without write conflicts, lanes, verification shards and a `test_budget` each, recorded as `delivery_plan`. Numeric limits come from the validator, never from memory.
+6. **Report**: pass `validate`, `reading-receipt.ts check` and `repo-facts.ts check`, then report the maturity they support.
 
 ## Commands
 
@@ -59,11 +59,11 @@ Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's head
 
 | Command | Use |
 |---|---|
-| `lifecycle.ts <initial\|evidence\|generate\|process\|amend\|done>` | Marks the six authoring points; every `next.must_echo` string is reproduced verbatim on its own line in the reply ([lifecycle](references/lifecycle.md)) |
+| `lifecycle.ts <initial\|evidence\|generate\|process\|amend\|done>` | Six authoring hooks; echo every `next.must_echo` verbatim on its own line ([lifecycle](references/lifecycle.md)) |
 | `validate.ts validate --sdd <SDD> --document-policy current --design-policy current` | This skill's document validator; requires the contract block |
-| `validate.ts validate-draft` | The same checks on a proposed document, before anything is written |
-| `validate.ts contract --sdd <SDD> --check` | Rebuilds the derivable contract fields from the prose and reports drift |
-| `validate.ts document-check` | Documents that do not target implementation; never a substitute for `validate` |
+| `validate.ts validate-draft` | Same checks on a proposed document before writing |
+| `validate.ts contract --sdd <SDD> --check` | Drift between the prose and derivable contract fields |
+| `validate.ts document-check` | Non-implementation documents only |
 | `repo-facts.ts check --sdd <SDD> [--repository <root>]` | Binds the document's claims to the repository |
 | `reading-receipt.ts check --sdd <SDD>` | Receipt coverage, including every node of a program root |
 | `type-probe.ts check --sdd <SDD>` | Type-checks the API section's declared surface; its output states what it does not prove |
@@ -73,8 +73,8 @@ Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's head
 - Create, refactor or merge: edit the target SDD and summarize decisions, unresolved items, verification plan and evidence limits.
 - Audit: findings ordered by severity with location, consequence and fix; no rewrite unless requested.
 - Report what was inspected, what remains unknown, and whether conclusions concern the document, the implementation or both.
-- SDDs are delivered at the maturity their actual checks support. Missing or unrun required checks stay disclosed and do not permit a `LOOP_READY` claim.
-- Multi-SDD output, program roots and their launch instructions follow [program split](references/planning/program-split.md).
+- SDDs are delivered at the maturity their actual checks support. Missing or unrun required checks stay disclosed and do not permit a readiness claim.
+- Multi-SDD output and program roots follow [program split](references/planning/program-split.md).
 - Keep repository input and output location independent ([writing](references/writing.md)).
 
 ## What these checks do not prove
