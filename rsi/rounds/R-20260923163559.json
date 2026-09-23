@@ -1,0 +1,659 @@
+{
+  "id": "R-20260923163559",
+  "kind": "case-amendment",
+  "goal": "Freeze v2 defect cases found by the 2026-09-24 upgrade evaluation: C1 repository hard block, C2 trace-table duplicate, C4 single-document Meta mirror, untracked NEEDS CLARIFICATION marker, missing Bundle read path",
+  "opened_at": "2026-09-23T16:35:59.950Z",
+  "head": "e55de9af95fcc9037dbc359506c58260d4e46edc",
+  "commitments": {
+    "cases/defect-cases.json": "0c0cb8955528fb2e29e34e6c503b47862415b0a12c3df40c1cb06ab87ac8b407",
+    "cases/behavior-cases.json": "303b26cb6746cd4afefb72697952b5fb9b140ddeda69c78ffc8a29ba9ecabdad",
+    "cases/fixtures/CSDD-TYPE-001.md": "6088047aa54ed7f7d94d80810b1222f0b9c095ccb15a90ed737c5b3fa33d5a00",
+    "cases/fixtures/CSDD-TYPE-001.ok.md": "7b5a62533dcac4438fb4aa67266181c799e64a4a8f9ede0b33ec3946e7111347",
+    "cases/fixtures/repo-pnpm/README.md": "736a7464308f34462c9dd91b9b55f19593edcd29fc197a9a5996715dde3f563f",
+    "cases/fixtures/repo-pnpm/package.json": "d30ebf7e7519657fbd2a5bf1f5b835c8e2b5e62839346db0b4053d6cf4ee063e",
+    "cases/fixtures/repo-pnpm/packages/core/package.json": "a4ebf53ed9739ac129abbdd3c4d79595497195d38bfb1d84af46789674557ba2",
+    "cases/fixtures/repo-pnpm/pnpm-lock.yaml": "24965b460770baebf4cf4e19bff4e40fffb38bf8a22609162416761c1081d551",
+    "cases/held-out/README.md": "65a7ec6ec35df4b4a7e2dd397c719ec4445edf9e94b584ad28931d7d79217ba5",
+    "cases/held-out/cases.json": "8fafbaa44ccd55a7e1cb597c7e9a5e74b69d5f69f1b520b6f396f7b59398236c"
+  },
+  "budget": {
+    "SKILL.md.characters": 8013,
+    "references.lines": 4317,
+    "validator.lines": 5799,
+    "scripts.lines": 12498,
+    "tests.lines": 3730,
+    "behavior_cases": 45
+  },
+  "source_at_open": "0b7e91746865661f4d87633181d774111476b345e19e04564a6b091b00e864a9",
+  "rule_assets_at_open": [
+    "code:ACCEPTANCE_ARTIFACT_CONSUMPTION_INVALID",
+    "code:ACCEPTANCE_EVIDENCE_BOUNDARY_DUPLICATE",
+    "code:ACCEPTANCE_EXECUTION_BOUNDARY_REQUIRED",
+    "code:ACCEPTANCE_EXECUTION_DEPENDENCIES_INVALID",
+    "code:ACCEPTANCE_EXECUTION_DEPENDENCY_CYCLE",
+    "code:ACCEPTANCE_EXECUTION_DEPENDENCY_SCOPE_INVALID",
+    "code:ACCEPTANCE_EXECUTION_ISOLATION_INVALID",
+    "code:ACCEPTANCE_EXECUTION_REQUIRED",
+    "code:ACCEPTANCE_EXECUTION_TIMEOUT_INVALID",
+    "code:ACCEPTANCE_FAILURE_CONTAINMENT_REQUIRED",
+    "code:ACCEPTANCE_INDEPENDENT_TARGET_REUSED",
+    "code:ACCEPTANCE_METHOD_ZERO_OBSERVATION",
+    "code:AGENT_CONTEXT_BLOCK_INVALID",
+    "code:AGENT_CONTEXT_CLASS_INVALID",
+    "code:AGENT_CONTEXT_CLASS_OUTSIDE_BLOCK",
+    "code:AGENT_CONTEXT_ENTRY_AMBIGUOUS",
+    "code:AGENT_CONTEXT_ENTRY_INVALID",
+    "code:AGENT_CONTEXT_LINK_ESCAPES_ROOT",
+    "code:AGENT_CONTEXT_LINK_INVALID",
+    "code:AGENT_CONTEXT_LINK_NOT_FOUND",
+    "code:AGENT_CONTEXT_LINK_OUTSIDE_BLOCK",
+    "code:AGENT_CONTEXT_MAP_EMPTY",
+    "code:AGENT_CONTEXT_SOURCE_CLASS_CONFLICT",
+    "code:API_SURFACE_DEGENERATE_INPUT",
+    "code:ARCHITECTURE_ADAPTERS_REQUIRED",
+    "code:ARCHITECTURE_ADAPTER_INVALID",
+    "code:ARCHITECTURE_INVALID",
+    "code:CHALLENGE_EVIDENCE_CITES_SUBJECT_ONLY",
+    "code:CHALLENGE_EVIDENCE_PATH_MISSING",
+    "code:CHALLENGE_REASONED_BUT_CLOSED",
+    "code:COMMAND_PACKAGE_MANAGER_MISMATCH",
+    "code:CONJUNCTIVE_REQUIREMENT_SINGLE_ORACLE",
+    "code:CONTRACT_ACCEPTANCE_CLAIM_REQUIRED",
+    "code:CONTRACT_ACCEPTANCE_DUPLICATE",
+    "code:CONTRACT_ACCEPTANCE_INVALID",
+    "code:CONTRACT_ACCEPTANCE_REFERENCE_INVALID",
+    "code:CONTRACT_ACCEPTANCE_REFERENCE_UNRESOLVED",
+    "code:CONTRACT_ACCEPTANCE_REQUIRED",
+    "code:CONTRACT_ACCEPTANCE_REQUIREMENT_LINK_MISMATCH",
+    "code:CONTRACT_ADMISSION_VERIFICATION_ACCEPTANCE_SCOPE_INVALID",
+    "code:CONTRACT_ADMISSION_VERIFICATION_METHOD_MISMATCH",
+    "code:CONTRACT_ADMISSION_VERIFICATION_PACKAGE_SCOPE_INVALID",
+    "code:CONTRACT_ADMISSION_VERIFICATION_REQUIREMENT_SCOPE_INVALID",
+    "code:CONTRACT_ADMISSION_VERIFICATION_SCOPE_INVALID",
+    "code:CONTRACT_ADMISSION_VERIFICATION_SURFACE_INVALID",
+    "code:CONTRACT_ADMISSION_WORKSPACE_GATE_INVALID",
+    "code:CONTRACT_BLOCK_COUNT",
+    "code:CONTRACT_BLOCK_NOT_FOUND",
+    "code:CONTRACT_DECISION_METADATA_REQUIRED",
+    "code:CONTRACT_DECISION_RESOLUTION_REQUIRED",
+    "code:CONTRACT_DECISION_STATUS_INVALID",
+    "code:CONTRACT_DEFERRAL_METADATA_REQUIRED",
+    "code:CONTRACT_DEPENDENCY_CYCLE",
+    "code:CONTRACT_DEPENDENCY_INVALID",
+    "code:CONTRACT_EMIT_INVALID",
+    "code:CONTRACT_INVENTORY_AUTHORITIES_REQUIRED",
+    "code:CONTRACT_JSON_INVALID",
+    "code:CONTRACT_PROTOCOL_UNSUPPORTED",
+    "code:CONTRACT_REFERENCE_INVALID",
+    "code:CONTRACT_REQUIRED",
+    "code:CONTRACT_REQUIREMENTS_REQUIRED",
+    "code:CONTRACT_REQUIREMENT_DUPLICATE",
+    "code:CONTRACT_REQUIREMENT_INVALID",
+    "code:CONTRACT_REQUIREMENT_TYPE_INVALID",
+    "code:CONTRACT_REVISION_REQUIRED",
+    "code:CONTRACT_RUNTIME_RESOLUTION_INVALID",
+    "code:CONTRACT_SOURCE_INVENTORY_INVALID",
+    "code:CONTRACT_UNIVERSAL_CLAIM_UNIVERSE_REQUIRED",
+    "code:DEFECT_CASE_DETECTOR_NOT_BUN",
+    "code:DELIVERY_PLAN_BATCH_DUPLICATE",
+    "code:DELIVERY_PLAN_BATCH_INVALID",
+    "code:DELIVERY_PLAN_DEPENDENCY_CYCLE",
+    "code:DELIVERY_PLAN_DEPENDENCY_UNKNOWN",
+    "code:DELIVERY_PLAN_INVALID",
+    "code:DELIVERY_PLAN_REQUIREMENT_UNKNOWN",
+    "code:DELIVERY_PLAN_SHARDS_INVALID",
+    "code:DELIVERY_PLAN_SHARD_COVERAGE_INVALID",
+    "code:DELIVERY_PLATFORMS_INVALID",
+    "code:DESIGN_CONVERGENCE_INCONSISTENT",
+    "code:DESIGN_DETAIL_APPLICABILITY_REQUIRED",
+    "code:DESIGN_DETAIL_DUPLICATE_FIELD",
+    "code:DESIGN_DETAIL_FIELD_REQUIRED",
+    "code:DESIGN_DETAIL_HEADING_AMBIGUOUS",
+    "code:DESIGN_DETAIL_INDEX_DRIFT",
+    "code:DESIGN_DETAIL_OBJECT_REQUIRED",
+    "code:DESIGN_DETAIL_PATHS_REQUIRED",
+    "code:DESIGN_DETAIL_PROTOCOL_INVALID",
+    "code:DESIGN_DETAIL_PSEUDOCODE_REQUIRED",
+    "code:DESIGN_DETAIL_SECTION_REUSED",
+    "code:DESIGN_DETAIL_SOURCE_INVALID",
+    "code:DESIGN_DETAIL_STEPS_REQUIRED",
+    "code:DESIGN_DETAIL_STEP_KIND_INVALID",
+    "code:DESIGN_DETAIL_STEP_SOURCE_REUSED",
+    "code:DESIGN_GATE_ITEM_OPEN",
+    "code:DESIGN_GATE_LENS_DUPLICATED",
+    "code:DESIGN_GATE_LENS_MISSING",
+    "code:DESIGN_GATE_LENS_NOT_CURRENT",
+    "code:DESIGN_GATE_LENS_NOT_PASSED",
+    "code:DESIGN_GATE_LENS_REVISION_MISSING",
+    "code:DESIGN_GATE_UNSTABLE",
+    "code:DESIGN_NOT_CONVERGED",
+    "code:DOCUMENT_ID_EXHAUSTED",
+    "code:DOCUMENT_PREFIX_INVALID",
+    "code:DRAFT_DOCUMENTS_ARGS_INVALID",
+    "code:DRAFT_DOCUMENTS_ARRAY_REQUIRED",
+    "code:DRAFT_DOCUMENT_DUPLICATE",
+    "code:DRAFT_DOCUMENT_INVALID",
+    "code:DRAFT_ROOT_CONTENT_CONFLICT",
+    "code:DRAFT_ROOT_PATH_REQUIRED",
+    "code:DRAFT_ROOT_REQUIRED",
+    "code:EARLY_FALSIFIER_CLAIM_BINDING_INVALID",
+    "code:EARLY_FALSIFIER_FACT_SCOPE_INVALID",
+    "code:EARLY_FALSIFIER_METHOD_NOT_ACCEPTANCE_ORACLE",
+    "code:EARLY_FALSIFIER_ROUTE_INSPECTION_INVALID",
+    "code:EARLY_FALSIFIER_SCOPE_INVALID",
+    "code:EXAMPLE_CONTRACT_BLOCK_MISSING",
+    "code:EXAMPLE_OVERLAY_MERGE_TARGET_NOT_ARRAY",
+    "code:EXECUTION_PACKETS_REQUIRED",
+    "code:EXECUTION_PACKET_ACCEPTANCE_SCOPE_INVALID",
+    "code:EXECUTION_PACKET_DEPENDENCIES_INVALID",
+    "code:EXECUTION_PACKET_DEPENDENCY_CYCLE",
+    "code:EXECUTION_PACKET_DEPENDENCY_SCOPE_INVALID",
+    "code:EXECUTION_PACKET_ID_DUPLICATE",
+    "code:EXECUTION_PACKET_INVALID",
+    "code:EXECUTION_PACKET_REQUIREMENT_SCOPE_INVALID",
+    "code:EXPERIENCE_COMPONENT_HOOK_INVALID",
+    "code:EXPERIENCE_CONTRACT_INVALID",
+    "code:EXPERIENCE_DELTA_PRODUCT_CONTRACT_REQUIRED",
+    "code:EXPERIENCE_JOURNEYS_REQUIRED",
+    "code:EXPERIENCE_JOURNEY_INVALID",
+    "code:EXPERIENCE_READABILITY_REQUIRED",
+    "code:EXPERIENCE_READING_CONTINUATION_REQUIRED",
+    "code:EXPERIENCE_ROUTES_REQUIRED",
+    "code:EXPERIENCE_ROUTE_INVALID",
+    "code:EXPERIENCE_SCOPE_INVALID",
+    "code:EXPERIENCE_STYLE_HOOKS_REQUIRED",
+    "code:EXPERIENCE_STYLE_TOKEN_INVALID",
+    "code:EXPERIENCE_TEMPLATES_REQUIRED",
+    "code:EXPERIENCE_TEMPLATE_DUPLICATE",
+    "code:EXPERIENCE_TEMPLATE_INVALID",
+    "code:IMPLEMENTATION_LOGIC_PATH_CYCLE",
+    "code:MIGRATION_APPLICABILITY_INVALID",
+    "code:MIGRATION_CANDIDATE_UNDISPOSED",
+    "code:MIGRATION_CLOSURE_NOT_APPLICABLE_INVALID",
+    "code:MIGRATION_CLOSURE_REQUIRED",
+    "code:MIGRATION_CONTRACT_SCOPE_INVALID",
+    "code:MIGRATION_CUTOVER_MODE_INVALID",
+    "code:MIGRATION_DISMISSED_CANDIDATE_INVALID",
+    "code:MIGRATION_DISMISSED_CANDIDATE_IS_READER",
+    "code:MIGRATION_EARLY_FALSIFIER_MISMATCH",
+    "code:MIGRATION_INVENTORY_FACT_NOT_PASS",
+    "code:MIGRATION_LEGACY_RUNTIME_ACCEPTANCE_INVALID",
+    "code:MIGRATION_LEGACY_RUNTIME_ACCEPTANCE_SCOPE_INVALID",
+    "code:MIGRATION_LEGACY_RUNTIME_AUTHORITY_SCOPE_INVALID",
+    "code:MIGRATION_LEGACY_RUNTIME_NOT_APPLICABLE_INVALID",
+    "code:MIGRATION_LEGACY_RUNTIME_PROBE_INVALID",
+    "code:MIGRATION_READER_CLOSURE_UNRESOLVED",
+    "code:MIGRATION_READER_MODULE_DUPLICATE",
+    "code:MIGRATION_READER_NOT_ORDERED_BEFORE_REMOVAL",
+    "code:MIGRATION_READER_PACKET_COVERAGE_INVALID",
+    "code:MIGRATION_READER_PACKET_SCOPE_INVALID",
+    "code:MIGRATION_READER_RETAINS_REMOVED_SURFACE",
+    "code:MIGRATION_REFINED_ZERO_READER_INVENTORY_INCOMPLETE",
+    "code:MIGRATION_REFINED_ZERO_READER_RUNTIME_PROOF_REQUIRED",
+    "code:MIGRATION_REMOVAL_PACKET_COVERAGE_INVALID",
+    "code:MIGRATION_REMOVAL_PACKET_SCOPE_INVALID",
+    "code:MIGRATION_SYMBOL_TOO_GENERIC",
+    "code:MIGRATION_SYMBOL_UNSCANNABLE",
+    "code:MIGRATION_ZERO_READER_CLAIM_INVALID",
+    "code:MUST_SHIP_DEFERRAL_REQUIRES_USER",
+    "code:ORACLE_SENSITIVITY_EVIDENCE_REQUIRED",
+    "code:ORACLE_SENSITIVITY_INVALID",
+    "code:ORACLE_SENSITIVITY_PROCEDURE_REQUIRED",
+    "code:ORACLE_SENSITIVITY_REASON_REQUIRED",
+    "code:ORACLE_SENSITIVITY_RESULTS_REQUIRED",
+    "code:ORACLE_SENSITIVITY_RESULT_INVALID",
+    "code:ORACLE_SENSITIVITY_RESULT_SCOPE_INVALID",
+    "code:ORACLE_SENSITIVITY_TIMING_INVALID",
+    "code:PRODUCT_ARCHETYPE_INVALID",
+    "code:PRODUCT_ARCHETYPE_REQUIRED",
+    "code:PROGRAM_CHILD_NOT_FOUND",
+    "code:PROSE_TOTAL_DISAGREES_WITH_CONTRACT",
+    "code:PSEUDOCODE_SYMBOL_UNRESOLVED",
+    "code:REPOSITORY_NOT_FOUND",
+    "code:REPOSITORY_PATH_ABSOLUTE_REQUIRED",
+    "code:RSI_NO_OPEN_ROUND",
+    "code:SCOPE_GROWTH_UNAUTHORIZED",
+    "code:SCOPE_LEDGER_BROKEN_CHAIN",
+    "code:SCOPE_LEDGER_CLAIM_INVALID",
+    "code:SCOPE_LEDGER_MISSING",
+    "code:SCOPE_LEDGER_NOT_CURRENT",
+    "code:SDD_AND_PREFIX_REQUIRED",
+    "code:SDD_CONTRACT_ID_DUPLICATE",
+    "code:SDD_CONTRACT_INVALID",
+    "code:SDD_CONTRACT_REQUIRED",
+    "code:SDD_DESCRIPTION_EMPTY",
+    "code:SDD_DOCUMENT_POLICY_REQUIRED",
+    "code:SDD_DOCUMENT_POLICY_UNSUPPORTED",
+    "code:SDD_ID_DANGLING",
+    "code:SDD_ID_INVALID",
+    "code:SDD_ID_OR_PREFIX_INVALID",
+    "code:SDD_ID_REQUIRED",
+    "code:SDD_IMPLEMENTATION_PLACEHOLDER",
+    "code:SDD_PREFIXES_INVALID",
+    "code:SDD_PREFIX_CONFLICT",
+    "code:SDD_PRESENTATION_BATCH_SCOPE_INVALID",
+    "code:SDD_PRESENTATION_DESCRIPTION_DRIFT",
+    "code:SDD_PRESENTATION_GATE_INVALID",
+    "code:SDD_PRESENTATION_ITEMS_REQUIRED",
+    "code:SDD_PRESENTATION_ITEM_INVALID",
+    "code:SDD_PRESENTATION_LINK_COLUMNS_REQUIRED",
+    "code:SDD_PRESENTATION_OBJECT_UNINDEXED",
+    "code:SDD_PRESENTATION_REQUIRED",
+    "code:SDD_PRESENTATION_ROW_MISSING_OR_DUPLICATE",
+    "code:SDD_PRESENTATION_SCHEMA_INVALID",
+    "code:SDD_PRESENTATION_SCOPE_EXPANSION",
+    "code:SDD_PRESENTATION_SECOND_GRAPH_FORBIDDEN",
+    "code:SDD_PRESENTATION_SHIP_COVERAGE_INCOMPLETE",
+    "code:SDD_PRESENTATION_SOURCE_DRIFT",
+    "code:SDD_PROGRAM_ROOT",
+    "code:SDD_REQUIRED",
+    "code:SDD_REQUIRED_SECTION_EMPTY",
+    "code:SDD_REQUIRED_SECTION_MISSING",
+    "code:SDD_RETIRED_IDS_INVALID",
+    "code:SDD_RETIRED_ID_REUSED",
+    "code:SDD_TABLE_COLUMNS_MISMATCH",
+    "code:SDD_TABLE_DESCRIPTION_MISSING",
+    "code:SDD_V2_COVERAGE_MISSING",
+    "code:SDD_V2_DEPENDENCY_CYCLE",
+    "code:SDD_V2_ID_DUPLICATE",
+    "code:SDD_V2_INDEX_SHAPE_INVALID",
+    "code:SDD_V2_INTEGRATION_OWNER_REQUIRED",
+    "code:SDD_V2_META_SOURCE_MISMATCH",
+    "code:SDD_V2_MUST_SHIP_CHAIN_INCOMPLETE",
+    "code:SDD_V2_OWNER_CONFLICT",
+    "code:SDD_V2_PATH_ESCAPE",
+    "code:SDD_V2_PATH_INVALID",
+    "code:SDD_V2_PATH_NOT_FOUND",
+    "code:SDD_V2_PROGRAM_LINK_INVALID",
+    "code:SDD_V2_PROSE_DEFINITION_DUPLICATE",
+    "code:SDD_V2_PROSE_DEFINITION_MISSING",
+    "code:SDD_V2_REFERENCE_MISSING",
+    "code:SDD_V2_REQUIRED_FIELD_EMPTY",
+    "code:SDD_V2_SECTION_MISSING",
+    "code:SENSITIVITY_WRITES_UNDECLARED",
+    "code:SHARED_MECHANISM_WRITE_INVALID",
+    "code:SHARED_MECHANISM_WRITE_POINT_NOT_FOUND",
+    "code:SHARED_MECHANISM_WRITE_POINT_UNDECLARED",
+    "code:SPLIT_DECISION_UNRECORDED",
+    "code:STEP_THRESHOLD_NOT_IN_ACCEPTANCE",
+    "code:STEP_WRITE_OUTSIDE_AUTHORITY",
+    "code:TEST_FILE_BUSINESS_NAME_REQUIRED",
+    "code:TEST_FILE_DELIVERY_METADATA_NAME_FORBIDDEN",
+    "code:TOOLCHAIN_VERSION_CONFLICT",
+    "code:TYPE_PROBE_MODULE_UNAVAILABLE",
+    "code:TYPE_PROBE_PROJECT_UNAVAILABLE",
+    "code:TYPE_PROBE_SOURCE_UNAVAILABLE"
+  ],
+  "ceilings_at_open": {
+    "SKILL.md.characters": 8774,
+    "references.lines": 4314,
+    "validator.lines": 4550,
+    "behavior_cases": 46,
+    "scripts.lines": 11207,
+    "tests.lines": 3768
+  },
+  "rules_at_open": 257,
+  "debt_at_open": "NOTICE",
+  "baseline": {
+    "at": "2026-09-23T16:38:58.295Z",
+    "results": [
+      {
+        "id": "CSDD-TYPE-001",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "API_SURFACE_DEGENERATE_INPUT"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ADVERSARIAL",
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DELIVERY_PLAN_REQUIREMENT_UNKNOWN",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-INDEX-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "MJ01",
+          "SDD_CONTRACT_INVALID",
+          "SDD_PRESENTATION_OBJECT_UNINDEXED"
+        ]
+      },
+      {
+        "id": "CSDD-OWN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_DRIFT_OWNERSHIP_PACKAGES"
+        ]
+      },
+      {
+        "id": "CSDD-CLAIM-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_UNIVERSAL_CLAIM_UNIVERSE_REQUIRED",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-MANAGER-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "COMMAND_PACKAGE_MANAGER_MISMATCH",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS",
+          "YS01"
+        ]
+      },
+      {
+        "id": "CSDD-TOOLCHAIN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS",
+          "TOOLCHAIN_VERSION_CONFLICT"
+        ]
+      },
+      {
+        "id": "CSDD-CONVERGENCE-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_LENS_MISSING",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS"
+        ]
+      },
+      {
+        "id": "CSDD-CONVERGENCE-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_ITEM_OPEN",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS"
+        ]
+      }
+    ],
+    "heldOut": [
+      {
+        "id": "CSDD-LINK-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_ACCEPTANCE_REQUIREMENT_LINK_MISMATCH",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DELIVERY_PLAN_TEST_BUDGET_INVALID",
+          "SDD_CONTRACT_INVALID"
+        ]
+      }
+    ]
+  },
+  "candidate": {
+    "at": "2026-09-23T16:39:04.157Z",
+    "source_version": "85eb8caee18a8d4a189ca6d206fb325d00a6f3e629f1730cf86efaef3f11f4a6",
+    "results": [
+      {
+        "id": "CSDD-TYPE-001",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "API_SURFACE_DEGENERATE_INPUT"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ADVERSARIAL",
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DELIVERY_PLAN_REQUIREMENT_UNKNOWN",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-INDEX-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "MJ01",
+          "SDD_CONTRACT_INVALID",
+          "SDD_PRESENTATION_OBJECT_UNINDEXED"
+        ]
+      },
+      {
+        "id": "CSDD-OWN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_DRIFT_OWNERSHIP_PACKAGES"
+        ]
+      },
+      {
+        "id": "CSDD-CLAIM-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_UNIVERSAL_CLAIM_UNIVERSE_REQUIRED",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-MANAGER-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "COMMAND_PACKAGE_MANAGER_MISMATCH",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS",
+          "YS01"
+        ]
+      },
+      {
+        "id": "CSDD-TOOLCHAIN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS",
+          "TOOLCHAIN_VERSION_CONFLICT"
+        ]
+      },
+      {
+        "id": "CSDD-CONVERGENCE-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_LENS_MISSING",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS"
+        ]
+      },
+      {
+        "id": "CSDD-CONVERGENCE-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_ITEM_OPEN",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS"
+        ]
+      },
+      {
+        "id": "CSDD-V2-REPO-101",
+        "fired": true,
+        "negative_fired": null,
+        "pass": false,
+        "codes": [
+          "REPOSITORY_NOT_FOUND"
+        ]
+      },
+      {
+        "id": "CSDD-V2-TRACE-101",
+        "fired": true,
+        "negative_fired": true,
+        "pass": false,
+        "codes": [
+          "SDD_V2_PROSE_DEFINITION_DUPLICATE"
+        ]
+      },
+      {
+        "id": "CSDD-V2-META-101",
+        "fired": true,
+        "negative_fired": null,
+        "pass": false,
+        "codes": [
+          "SDD_V2_COVERAGE_MISSING",
+          "SDD_V2_REQUIRED_FIELD_EMPTY"
+        ]
+      },
+      {
+        "id": "CSDD-V2-CLAR-101",
+        "fired": false,
+        "negative_fired": false,
+        "pass": false,
+        "codes": []
+      },
+      {
+        "id": "CSDD-V2-READS-101",
+        "fired": false,
+        "negative_fired": false,
+        "pass": false,
+        "codes": []
+      }
+    ],
+    "regressions": [],
+    "repairs": [],
+    "missing_cases": [],
+    "heldOut": [
+      {
+        "id": "CSDD-LINK-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_ACCEPTANCE_REQUIREMENT_LINK_MISMATCH",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DELIVERY_PLAN_TEST_BUDGET_INVALID",
+          "SDD_CONTRACT_INVALID"
+        ]
+      }
+    ]
+  },
+  "prune": {
+    "source_version": "85eb8caee18a8d4a189ca6d206fb325d00a6f3e629f1730cf86efaef3f11f4a6",
+    "over_budget": [],
+    "unjustified_additions": [],
+    "undecided_removals": [],
+    "not_net_negative": []
+  },
+  "closed_at": "2026-09-23T16:39:13.744Z",
+  "verdict": "RECORDED",
+  "repair_ids": [],
+  "rejection_reasons": [],
+  "not_proven": [
+    "that the change makes the skill better at anything not covered by a mechanical case",
+    "that an authoring agent reads, understands or follows any rule involved",
+    "that a reader with write access could not have edited a case; the guard makes that visible, not impossible"
+  ]
+}

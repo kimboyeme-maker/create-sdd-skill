@@ -1,6 +1,6 @@
 {
   "protocol": "skill-supersession/v1",
-  "note": "Every rule this skill gains must either replace something or say why it replaces nothing. The requirement exists because the skill's own first invariant says to correct a violation at its cause rather than add an incident-specific clause, and thirteen commits of +14000/-730 show that nothing was enforcing it.",
+  "note": "Each new rule must name what it replaces or why it replaces nothing, plus a concrete counterexample, supported scope and trade-off. Earlier entries are historical and remain visible as unresolved decisions until individually substantiated or retired; a consolidation does not reset them.",
   "additions": [
     {
       "asset": "code:CONTRACT_DRIFT_PRESENTATION_ITEMS",
@@ -124,6 +124,206 @@
       "round": "R-20260923140423",
       "supersedes": [],
       "supersedes_nothing_because": "It replaces a path, not a rule: `rsi.ts open` admitted every kind at any debt, which is how six accepted rounds in a row grew the skill and none shrank it. The refusal is the gate itself; it retires when the debt signals it reads are retired."
+    },
+    {
+      "asset": "code:SDD_V2_INDEX_SHAPE_INVALID",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (every *_INVALID field-shape code, ID_REVISION_REQUIRED, *_MEMBERS_INVALID, META_OWNER_INVALID); no committed rule is replaced. ",
+      "counterexample": "An index with `\"members\": \"M1\"` (a string, not a list) on an Entry: without the check the Entry silently groups nothing and its Module looks orphaned.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "One family for all field shapes; the message prefix (`entry-members-invalid: E1`) keeps the specific relation."
+    },
+    {
+      "asset": "code:SDD_V2_ID_DUPLICATE",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (REQUIREMENT/BATCH/EXPORT/META_ID/CHILD_ID/CHILD_PATH/DEPENDENCY _DUPLICATE); no committed rule is replaced. ",
+      "counterexample": "Two requirements both with id R1 in one leaf index: steps and acceptance would attach to whichever one a reader finds first.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Duplicates of different kinds share one code; the subtype says which."
+    },
+    {
+      "asset": "code:SDD_V2_PATH_INVALID",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (WRITE/ASSET/BUNDLE_READ/CHILD/ROOT/STEP_SOURCE/MODULE_ORIGIN path-form codes); no committed rule is replaced. ",
+      "counterexample": "`\"writes\": [\"../x\"]` claims a write surface outside any repository-relative form, so no host can honour or check it.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Form only; existence and escape are separate families."
+    },
+    {
+      "asset": "code:SDD_V2_PATH_ESCAPE",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (WRITE/ASSET/BUNDLE_READ/CHILD/STEP_SOURCE/MODULE_ORIGIN _ESCAPE); no committed rule is replaced. ",
+      "counterexample": "A symlinked write surface resolving outside the repository would let a host edit files the SDD does not own.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Only checked when a repository is resolved; otherwise reported as an evidence limit."
+    },
+    {
+      "asset": "code:SDD_V2_PATH_NOT_FOUND",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (CHILD/ROOT/STEP_SOURCE/MODULE_ORIGIN_DOCUMENT _NOT_FOUND; this round adds Bundle reads and principles); no committed rule is replaced. ",
+      "counterexample": "CSDD-V2-READS-101: a Bundle reads `packages/missing`, and the handoff tells the host to read input that is not there.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Writes and Assets may name new files, so only inputs, documents and principle files must exist."
+    },
+    {
+      "asset": "code:SDD_V2_REFERENCE_MISSING",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (STEP/ACCEPTANCE/BATCH_STEP/BATCH_REQUIREMENT/ENTRY_MODULE/CHUNK_MODULE/BUNDLE_CHUNK/REQUIRED_ASSET/INTEGRATION_STEP references, DEPENDENCY_INVALID, STEP_SOURCE_UNKNOWN); no committed rule is replaced. ",
+      "counterexample": "A must-ship requirement whose implementation names S9 while only S1 exists: the chain looks complete in JSON but points at nothing.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Dangling references of every relation share one code."
+    },
+    {
+      "asset": "code:SDD_V2_DEPENDENCY_CYCLE",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (BATCH_DEPENDENCY_CYCLE and child DEPENDENCY_CYCLE); no committed rule is replaced. ",
+      "counterexample": "Batch C1 depending on C2 while C2 depends on C1 gives the host no valid order.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Cycles are reported once per entry node; the wave projection stays finite without them."
+    },
+    {
+      "asset": "code:SDD_V2_PROSE_DEFINITION_MISSING",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (ENTRY_SOURCE_MISSING, MODULE_ORIGIN_ID_MISSING, INTEGRATION_ACCEPTANCE_MISSING); no committed rule is replaced. ",
+      "counterexample": "An acceptance ID listed only in JSON: the host receives an ID with no observable statement to check.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Every missing normative anchor is one code; derived `M:`/`K:`/`B:`/`E:` IDs are exempt because their requirement or batch anchor is the source."
+    },
+    {
+      "asset": "code:SDD_V2_PROSE_DEFINITION_DUPLICATE",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes ((kept; CSDD-V2-TRACE-101 narrows it)); no committed rule is replaced. ",
+      "counterexample": "CSDD-V2-TRACE-101 negative fixture: R1 defined by two list items with conflicting text.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Table rows count only when no heading or list item defines the ID, so traceability tables no longer trip it."
+    },
+    {
+      "asset": "code:SDD_V2_SECTION_MISSING",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (SHARED_CONSTRAINTS_MISSING, INTEGRATION_ACCEPTANCE_SECTION_MISSING; this round adds the principle check); no committed rule is replaced. ",
+      "counterexample": "A program root with integration but no `## Integration Acceptance` section: the integration owner receives no observable end-to-end result.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Section presence only; content quality stays a semantic review."
+    },
+    {
+      "asset": "code:SDD_V2_REQUIRED_FIELD_EMPTY",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (REQUIREMENTS/BATCHES/WRITE_SCOPE/METAS _REQUIRED, META_KIND_MISSING, ENTRY/CHUNK/BUNDLE_EMPTY, ASSET_ACCEPTANCE_REQUIRED); no committed rule is replaced. ",
+      "counterexample": "A leaf with `\"writes\": []`: no write boundary means no conflict check and no owner for any change.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "One-document leaves no longer need metas (derived); a program root still does."
+    },
+    {
+      "asset": "code:SDD_V2_MUST_SHIP_CHAIN_INCOMPLETE",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (MUST_SHIP_META_CHAIN_INCOMPLETE, BATCH_REQUIREMENT_LINK_MISSING); no committed rule is replaced. ",
+      "counterexample": "A must-ship requirement with no acceptance case: the host can finish it with nothing observed.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Structure only; whether the step implements the behaviour stays a semantic review."
+    },
+    {
+      "asset": "code:SDD_V2_COVERAGE_MISSING",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (STEP_BATCH/MODULE_COVERAGE/CHUNK_COVERAGE/CHUNK_BUNDLE/MODULE_CHUNK/MODULE_ENTRY/BUNDLE _MISSING); no committed rule is replaced. ",
+      "counterexample": "A step in no batch never reaches a host's execution slice.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Coverage gaps of every Meta level share one code."
+    },
+    {
+      "asset": "code:SDD_V2_OWNER_CONFLICT",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (WRITE/STEP owner conflicts, BUNDLE_OWNER/CHUNK_BUNDLE/CHUNK_SOURCE/MODULE_SOURCE/MODULE_ORIGIN duplicates, ASSET_PRODUCER_CONFLICT, BLOCK_CONFLICT, META_AUTHORITY_CONFLICT); no committed rule is replaced. ",
+      "counterexample": "Two children declaring the same write path would each believe they own it and could run in the same wave.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "All single-owner violations share one code."
+    },
+    {
+      "asset": "code:SDD_V2_META_SOURCE_MISMATCH",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (MODULE/CHUNK _SOURCE_MISSING, CHUNK_SOURCE_DIVERGED, ASSET_OUTSIDE_WRITE_SCOPE, ASSET_ACCEPTANCE_UNOWNED, EXPORT_ASSET_MISMATCH); no committed rule is replaced. ",
+      "counterexample": "An Asset at `other/index.ts` outside the leaf's writes: the host would be told to deliver a file it may not write.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Meta records that disagree with their normative source share one code."
+    },
+    {
+      "asset": "code:SDD_V2_INTERFACE_MISMATCH",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (CONSUMER_DEPENDENCY/PRODUCER/VERSION, CONSUMER_ASSET_DEPENDENCY, BUNDLE_ASSET_DEPENDENCY, BUNDLE_DEPENDENCY); no committed rule is replaced. ",
+      "counterexample": "A consumer pinned to public-api@2 while the producer exports @1 starts before its real input exists.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "First failing reason per consumed interface is reported, not every one."
+    },
+    {
+      "asset": "code:SDD_V2_PROGRAM_LINK_INVALID",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes (CHILD_CONTRACT_INVALID, CHILD_ID_MISMATCH, CHILD_NOT_INDEXED, CHILD_ROOT_MISMATCH, ROOT_INVALID); no committed rule is replaced. ",
+      "counterexample": "A child whose `root` points at a different program: its handoff would carry the wrong shared constraints.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Root-child linkage only."
+    },
+    {
+      "asset": "code:SDD_V2_INTEGRATION_OWNER_REQUIRED",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Introduced by the uncommitted sdd/v2 upgrade and consolidated before any round from its finer codes ((kept)); no committed rule is replaced. ",
+      "counterexample": "A two-child program with no integration owner: each child passes alone and nobody owns the combined result.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "Required only when a program has more than one child."
+    },
+    {
+      "asset": "code:SDD_V2_CLARIFICATION_UNTRACKED",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "New: nothing read prose clarification markers. Absorbs spec-kit's [NEEDS CLARIFICATION] convention into the existing unresolved_user_decisions gate instead of adding a second question store.",
+      "counterexample": "CSDD-V2-CLAR-101: `[NEEDS CLARIFICATION: D1 which store backs feature A?]` with D1 unlisted left the document STRUCTURALLY_READY.",
+      "scope": "sdd/v2 and sdd-program/v2 documents only; v1 documents never reach this code.",
+      "tradeoff": "A marker must name a listed decision ID; free-text markers without an ID block until given one."
+    },
+    {
+      "asset": "code:SDD_ID_DUPLICATE",
+      "added_at": "2026-09-24",
+      "round": "R-20260923163943",
+      "supersedes": [],
+      "supersedes_nothing_because": "Not a new rule: document-check has reported it since d51e3b4 through a formatter-wrapped `report(` call the catalog pattern could not see. Widening the pattern made the existing rule visible to the ledger.",
+      "counterexample": "A non-implementation document defining D-01 twice: the second definition silently shadows the first.",
+      "scope": "validate.ts document-check (documents that do not target implementation).",
+      "tradeoff": "None added; the ledger now counts a rule that already ran."
     }
   ]
 }
