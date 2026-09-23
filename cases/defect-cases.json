@@ -568,6 +568,141 @@
       "observed_at": "2026-09-24",
       "owning_test": "tests/v2-document.test.ts",
       "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-STEP-101",
+      "defect_class": "step-write-authority",
+      "statement": "A step cannot say which files it touches, so a step that edits a file outside the document's write boundary passes, and hosts cannot derive task-level parallelism.",
+      "root_cause": "Steps are bare IDs; no relation ties a step to files, predecessors or the acceptance it closes.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 230,
+        "quote": "const steps = list(index.steps)"
+      },
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "steps": [
+            {
+              "id": "S1",
+              "touches": [
+                "packages/other/index.ts"
+              ],
+              "closes": [
+                "A1"
+              ]
+            }
+          ]
+        }
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "steps": [
+            {
+              "id": "S1",
+              "touches": [
+                "packages/feature-a/index.ts"
+              ],
+              "closes": [
+                "A1"
+              ]
+            }
+          ]
+        }
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate-draft --draft-file <fixture>",
+        "expected_code": "SDD_V2_META_SOURCE_MISMATCH",
+        "must_fire": true
+      },
+      "source_delivery": "create-sdd v2 design review 2026-09-24 (task, converge, bug and assessment scope)",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-CLOSURE-101",
+      "defect_class": "unchecked-convergence-evidence",
+      "statement": "A host's evidence report written against revision 1 is accepted for a revision-2 document; nothing compares evidence with the current acceptance set, so convergence is claimed on stale results.",
+      "root_cause": "Closure audit exists only as prose; v2 has no mechanical check of evidence against acceptance IDs and revision.",
+      "evidence": {
+        "file": "references/closure-evidence.md",
+        "line": 7,
+        "quote": "record the strongest current evidence and classify it"
+      },
+      "repository": "cases/fixtures/v2-closure",
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "revision": "2"
+        }
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {}
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "source_delivery": "create-sdd v2 design review 2026-09-24 (task, converge, bug and assessment scope)",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-BUG-101",
+      "defect_class": "bug-without-reproduction",
+      "statement": "A bug-fix SDD without a reproduction or root cause reaches the host as ready, so the fix can land without proving the defect existed or is gone.",
+      "root_cause": "sdd/v2 has no bug intent; nothing requires reproduction, root cause or a regression acceptance.",
+      "evidence": {
+        "file": "references/v2-contract.md",
+        "line": 1,
+        "quote": "Use this format for a new implementation-targeting SDD."
+      },
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "intent": "bug",
+          "regression": [
+            "A1"
+          ]
+        }
+      },
+      "negative_fixture": "cases/fixtures/v2-bug.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_SECTION_MISSING",
+        "must_fire": true
+      },
+      "source_delivery": "create-sdd v2 design review 2026-09-24 (task, converge, bug and assessment scope)",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-ASSESS-101",
+      "defect_class": "assessment-go-without-seed",
+      "statement": "An assessment that decides 'go' but proposes no Entries leaves the follow-up SDD to reinvent scope and priority.",
+      "root_cause": "There is no assessment document type; a go decision is not tied to seed Entries.",
+      "evidence": {
+        "file": "SKILL.md",
+        "line": 1,
+        "quote": "Modes"
+      },
+      "fixture": "cases/fixtures/v2-assessment-go-empty.md",
+      "negative_fixture": "cases/fixtures/v2-assessment-go.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_REQUIRED_FIELD_EMPTY",
+        "must_fire": true
+      },
+      "source_delivery": "create-sdd v2 design review 2026-09-24 (task, converge, bug and assessment scope)",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
     }
   ],
   "held_out": [

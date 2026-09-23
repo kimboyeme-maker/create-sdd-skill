@@ -1,7 +1,8 @@
 import { existsSync } from 'node:fs'
 import { isAbsolute, posix, relative, resolve } from 'node:path'
+import { buildTasks, type Task } from './v2-tasks.ts'
 
-type Item = Record<string, unknown>
+export type Item = Record<string, unknown>
 type Kind = 'Entry' | 'Module' | 'Chunk' | 'Bundle' | 'Asset'
 type Meta = Item & { id: string; kind: Kind }
 type Leaf = Readonly<{ id: string; path: string; index: Item }>
@@ -35,19 +36,20 @@ export type ExecutionSlice = Readonly<{
   }[]
   /** Entries of the highest declared priority: the smallest independently acceptable slice. */
   mvp: readonly string[]
-  /**
-   * Chunk IDs in batch-dependency layers; a later layer waits for earlier ones. Chunks in one layer
-   * have no declared order, but the host still confirms their files do not overlap before running
-   * them together. Within a layer, higher-priority Entries come first.
-   */
+  /** Chunk layers by batch dependency, higher-priority Entries first within a layer. */
   waves: readonly (readonly string[])[]
+  /** Steps as ordered tasks, with touches, closes and derived parallelism. */
+  tasks: readonly Task[]
+  /** The smallest ordered task set that closes every acceptance of the MVP Entries. */
+  mvp_tasks: readonly string[]
 }>
 
-const object = (value: unknown): value is Item =>
+/** Shared v2 guards: a plain object, a non-blank string, and an array or empty list. */
+export const object = (value: unknown): value is Item =>
   !!value && typeof value === 'object' && !Array.isArray(value)
-const text = (value: unknown): value is string =>
+export const text = (value: unknown): value is string =>
   typeof value === 'string' && value.trim().length > 0
-const array = (value: unknown): readonly unknown[] => (Array.isArray(value) ? value : [])
+export const list = (value: unknown): readonly unknown[] => (Array.isArray(value) ? value : [])
 const kinds = new Set<Kind>(['Entry', 'Module', 'Chunk', 'Bundle', 'Asset'])
 
 /** A relation list is a set of stable IDs, never an execution status or prose claim. */
@@ -97,8 +99,16 @@ export function layers(
   return result.filter(Boolean)
 }
 
+/** Whether a repository path already exists; `unknown` when no repository was resolved. */
+export const pathStatus = (repository: string | null, path: string) =>
+  !repository
+    ? ('unknown' as const)
+    : existsSync(resolve(repository, posix.normalize(path)))
+      ? ('existing' as const)
+      : ('new' as const)
+
 /** Declared Entry priority `P<n>` as a number, lower first; undeclared sorts last. */
-const rank = (priority: unknown): number =>
+export const rank = (priority: unknown): number =>
   typeof priority === 'string' && /^P[1-9]\d*$/.test(priority)
     ? Number(priority.slice(1))
     : Number.POSITIVE_INFINITY
@@ -118,7 +128,7 @@ export function deriveLeafMetas(index: Item): {
 } {
   if (index.metas !== undefined && !Array.isArray(index.metas))
     return { index, source: 'declared', derived: new Set() }
-  const declared = array(index.metas).filter(object) as Meta[]
+  const declared = list(index.metas).filter(object) as Meta[]
   const added: Meta[] = []
   const derive = (kind: Kind, make: () => Meta[]): Meta[] => {
     const present = declared.filter((meta) => meta.kind === kind)
@@ -126,45 +136,32 @@ export function deriveLeafMetas(index: Item): {
     added.push(...make())
     return added.filter((meta) => meta.kind === kind)
   }
+  const own = (kind: Kind, id: string, rest: Item) => ({ id, kind, owner: 'self', ...rest }) as Meta
   const modules = derive('Module', () =>
-    array(index.requirements).flatMap((r): Meta[] =>
-      object(r) && text(r.id) && r.kind !== 'non-goal'
-        ? [
-            {
-              id: `M:${r.id}`,
-              kind: 'Module',
-              owner: 'self',
-              source_id: r.id,
-              origin: { document: 'self', requirement_id: r.id }
-            }
-          ]
-        : []
-    )
+    list(index.requirements)
+      .filter((r): r is Item => object(r) && text(r.id) && r.kind !== 'non-goal')
+      .map((r) =>
+        own('Module', `M:${r.id}`, {
+          source_id: r.id,
+          origin: { document: 'self', requirement_id: r.id }
+        })
+      )
   )
   const chunks = derive('Chunk', () =>
-    array(index.batches).flatMap((b): Meta[] =>
-      object(b) && text(b.id)
-        ? [
-            {
-              id: `K:${b.id}`,
-              kind: 'Chunk',
-              owner: 'self',
-              source_id: b.id,
-              members: modules
-                .filter((m) => array(b.requirements).includes(m.source_id))
-                .map((m) => m.id)
-            }
-          ]
-        : []
-    )
+    list(index.batches)
+      .filter((b): b is Item => object(b) && text(b.id))
+      .map((b) => {
+        const members = modules.filter((m) => list(b.requirements).includes(m.source_id))
+        return own('Chunk', `K:${b.id}`, { source_id: b.id, members: members.map((m) => m.id) })
+      })
   )
   derive('Bundle', () => [
-    { id: 'B:self', kind: 'Bundle', owner: 'self', members: chunks.map((c) => c.id), requires: [] }
+    own('Bundle', 'B:self', { members: chunks.map((c) => c.id), requires: [] })
   ])
   derive('Entry', () => [{ id: 'E:self', kind: 'Entry', members: modules.map((m) => m.id) }])
   if (!added.length) return { index, source: 'declared', derived: new Set() }
   return {
-    index: { ...index, metas: [...array(index.metas), ...added] },
+    index: { ...index, metas: [...list(index.metas), ...added] },
     source: declared.length ? 'mixed' : 'derived',
     derived: new Set(added.map((meta) => meta.id))
   }
@@ -186,7 +183,7 @@ export function checkV2MetaGraph(
   ) => string | null,
   report: Report
 ): ReadonlyMap<string, ExecutionSlice> {
-  const raw = array(index.metas)
+  const raw = list(index.metas)
   if (!Array.isArray(index.metas) || !raw.length)
     report('SDD_V2_REQUIRED_FIELD_EMPTY', rootPath ?? 'self', 'metas-required')
   const metas = new Map<string, Meta>()
@@ -246,7 +243,7 @@ export function checkV2MetaGraph(
       report('SDD_V2_INDEX_SHAPE_INVALID', module.id, 'module-origin-invalid')
       continue
     }
-    const requirement = array(leaf.index.requirements).find(
+    const requirement = list(leaf.index.requirements).find(
       (value) => object(value) && value.id === module.source_id
     )
     if (!object(requirement) || requirement.kind === 'non-goal')
@@ -278,7 +275,7 @@ export function checkV2MetaGraph(
       report('SDD_V2_INDEX_SHAPE_INVALID', chunk.id, 'chunk-source-invalid')
       continue
     }
-    const batch = array(leaf.index.batches).find(
+    const batch = list(leaf.index.batches).find(
       (value) => object(value) && value.id === chunk.source_id
     )
     if (!object(batch)) report('SDD_V2_META_SOURCE_MISMATCH', chunk.id, 'chunk-source-missing')
@@ -287,7 +284,7 @@ export function checkV2MetaGraph(
     chunkByBatch.set(key, chunk)
     const members = refs(chunk.members, 'chunk-members-invalid', chunk.id, report)
     if (!members.length) report('SDD_V2_REQUIRED_FIELD_EMPTY', chunk.id, 'chunk-empty')
-    const requirements = new Set(array(object(batch) ? batch.requirements : undefined).filter(text))
+    const requirements = new Set(list(object(batch) ? batch.requirements : undefined).filter(text))
     const referenced = new Set<string>()
     for (const id of members) {
       const module = metas.get(id)
@@ -340,7 +337,7 @@ export function checkV2MetaGraph(
     if (!chunkBundle.has(chunk.id))
       report('SDD_V2_COVERAGE_MISSING', chunk.id, 'chunk-bundle-missing')
   for (const module of modules)
-    if (!chunks.some((chunk) => array(chunk.members).includes(module.id)))
+    if (!chunks.some((chunk) => list(chunk.members).includes(module.id)))
       report('SDD_V2_COVERAGE_MISSING', module.id, 'module-chunk-missing')
 
   for (const asset of assets) {
@@ -358,7 +355,7 @@ export function checkV2MetaGraph(
         report('SDD_V2_PATH_ESCAPE', asset.id, 'asset-path-escape')
     }
     if (
-      !array(leaf.index.writes).some(
+      !list(leaf.index.writes).some(
         (write) =>
           text(write) &&
           (normalized === posix.normalize(write) ||
@@ -378,10 +375,10 @@ export function checkV2MetaGraph(
     if (!cases.length) report('SDD_V2_REQUIRED_FIELD_EMPTY', asset.id, 'asset-acceptance-required')
     for (const id of cases) {
       if (
-        !array(leaf.index.acceptance).includes(id) ||
-        !array(leaf.index.requirements).some(
+        !list(leaf.index.acceptance).includes(id) ||
+        !list(leaf.index.requirements).some(
           (value) =>
-            object(value) && value.kind !== 'non-goal' && array(value.acceptance).includes(id)
+            object(value) && value.kind !== 'non-goal' && list(value.acceptance).includes(id)
         )
       )
         report('SDD_V2_META_SOURCE_MISMATCH', `${asset.id} -> ${id}`, 'asset-acceptance-unowned')
@@ -392,7 +389,7 @@ export function checkV2MetaGraph(
   const byChild = new Map(children.map((child) => [child.id, child]))
   for (const bundle of bundles) {
     const owner = bundle.owner as string
-    for (const id of array(bundle.requires).filter(text)) {
+    for (const id of list(bundle.requires).filter(text)) {
       const asset = metas.get(id)
       const producer =
         asset?.kind === 'Asset' && text(asset.producer) ? metas.get(asset.producer) : null
@@ -414,7 +411,7 @@ export function checkV2MetaGraph(
   }
   for (const [owner, leaf] of leaves) {
     if (!bundleByOwner.has(owner)) report('SDD_V2_COVERAGE_MISSING', owner, 'bundle-missing')
-    for (const value of array(leaf.index.requirements)) {
+    for (const value of list(leaf.index.requirements)) {
       if (!object(value) || !text(value.id) || value.kind === 'non-goal') continue
       const module = moduleBySource.get(JSON.stringify([owner, value.id]))
       if (!module) {
@@ -423,29 +420,24 @@ export function checkV2MetaGraph(
       }
       if (value.kind !== 'must-ship') continue
       const relatedChunks = chunks.filter(
-        (chunk) => chunk.owner === owner && array(chunk.members).includes(module.id)
+        (chunk) => chunk.owner === owner && list(chunk.members).includes(module.id)
       )
       const route = relatedChunks.some((chunk) => {
-        const batch = array(leaf.index.batches).find(
+        const batch = list(leaf.index.batches).find(
           (item) => object(item) && item.id === chunk.source_id
         )
         return (
           object(batch) &&
-          array(batch.steps).some((step) => array(value.implementation).includes(step)) &&
+          list(batch.steps).some((step) => list(value.implementation).includes(step)) &&
           chunkBundle.get(chunk.id) === bundleByOwner.get(owner)?.id
         )
       })
-      if (!route)
-        report(
-          'SDD_V2_MUST_SHIP_CHAIN_INCOMPLETE',
-          `${owner}: ${value.id}`,
-          'must-ship-meta-chain-incomplete'
-        )
+      if (!route) report('SDD_V2_MUST_SHIP_CHAIN_INCOMPLETE', `${owner}: ${value.id}`, 'meta-chain')
     }
-    for (const batch of array(leaf.index.batches))
+    for (const batch of list(leaf.index.batches))
       if (object(batch) && text(batch.id) && !chunkByBatch.has(`${owner}:${batch.id}`))
         report('SDD_V2_COVERAGE_MISSING', `${owner}: ${batch.id}`, 'chunk-coverage-missing')
-    for (const exported of array(leaf.index.exports)) {
+    for (const exported of list(leaf.index.exports)) {
       if (!object(exported) || !text(exported.asset)) continue
       const asset = metas.get(exported.asset)
       const producer =
@@ -462,17 +454,17 @@ export function checkV2MetaGraph(
           'export-asset-mismatch'
         )
     }
-    for (const consumed of array(leaf.index.consumes)) {
+    for (const consumed of list(leaf.index.consumes)) {
       if (!object(consumed) || !text(consumed.document) || !text(consumed.export)) continue
       const provider = leaves.get(consumed.document)
-      const exported = array(provider?.index.exports).find(
+      const exported = list(provider?.index.exports).find(
         (value) => object(value) && value.id === consumed.export
       )
       const bundle = bundleByOwner.get(owner)
       if (
         !object(exported) ||
         !text(exported.asset) ||
-        !array(bundle?.requires).includes(exported.asset)
+        !list(bundle?.requires).includes(exported.asset)
       )
         report(
           'SDD_V2_INTERFACE_MISMATCH',
@@ -485,31 +477,24 @@ export function checkV2MetaGraph(
   const slices = new Map<string, ExecutionSlice>()
   for (const [owner, bundle] of bundleByOwner) {
     const leaf = leaves.get(owner)!
-    const ownedChunks = array(bundle.members).flatMap((id) => {
+    const ownedChunks = list(bundle.members).flatMap((id) => {
       const chunk = text(id) ? metas.get(id) : null
       if (!chunk || chunk.kind !== 'Chunk' || !text(chunk.source_id)) return []
-      const batch = array(leaf.index.batches).find(
+      const batch = list(leaf.index.batches).find(
         (value) => object(value) && value.id === chunk.source_id
       )
       return [
         {
           id: chunk.id,
           source_id: chunk.source_id,
-          steps: array(object(batch) ? batch.steps : []).filter(text)
+          steps: list(object(batch) ? batch.steps : []).filter(text)
         }
       ]
     })
-    const ownedModules = new Map<
-      string,
-      {
-        id: string
-        source_id: string
-        origin: { document: string; requirement_id: string }
-      }
-    >()
+    const ownedModules = new Map<string, ExecutionSlice['modules'][number]>()
     for (const chunk of ownedChunks) {
       const meta = metas.get(chunk.id)!
-      for (const id of array(meta.members)) {
+      for (const id of list(meta.members)) {
         const module = text(id) ? metas.get(id) : null
         if (
           module?.kind === 'Module' &&
@@ -528,7 +513,7 @@ export function checkV2MetaGraph(
           })
       }
     }
-    const required_assets = array(bundle.requires).flatMap((id) => {
+    const required_assets = list(bundle.requires).flatMap((id) => {
       const asset = text(id) ? metas.get(id) : null
       const producer =
         asset?.kind === 'Asset' && text(asset.producer) ? metas.get(asset.producer) : null
@@ -553,26 +538,22 @@ export function checkV2MetaGraph(
               id: asset.id,
               path: asset.path,
               version: asset.version,
-              status: !repository
-                ? ('unknown' as const)
-                : existsSync(resolve(repository, posix.normalize(asset.path)))
-                  ? ('existing' as const)
-                  : ('new' as const)
+              status: pathStatus(repository, asset.path)
             }
           ]
         : []
     )
     // Entries are the user stories this Bundle serves; their priority orders MVP and waves.
     const requirementById = new Map(
-      array(leaf.index.requirements).flatMap((r) => (object(r) && text(r.id) ? [[r.id, r]] : []))
+      list(leaf.index.requirements).flatMap((r) => (object(r) && text(r.id) ? [[r.id, r]] : []))
     )
     const entries = ofKind('Entry')
       .map((entry) => {
-        const modules = array(entry.members).filter((id): id is string =>
+        const modules = list(entry.members).filter((id): id is string =>
           ownedModules.has(id as string)
         )
         const acceptance = modules.flatMap((id) =>
-          array(requirementById.get(ownedModules.get(id)!.source_id)?.acceptance).filter(text)
+          list(requirementById.get(ownedModules.get(id)!.source_id)?.acceptance).filter(text)
         )
         const priority = rank(entry.priority) < Infinity ? (entry.priority as string) : null
         return { id: entry.id, priority, modules, acceptance: [...new Set(acceptance)] }
@@ -583,7 +564,7 @@ export function checkV2MetaGraph(
     const mvp =
       top < Infinity ? entries.filter((e) => rank(e.priority) === top).map((e) => e.id) : []
     const chunkRank = (id: string) => {
-      const members = new Set(array(metas.get(id)?.members))
+      const members = new Set(list(metas.get(id)?.members))
       return Math.min(
         ...entries.filter((e) => e.modules.some((m) => members.has(m))).map((e) => rank(e.priority))
       )
@@ -592,10 +573,10 @@ export function checkV2MetaGraph(
     const waves = layers(
       ownedChunks.map((chunk) => chunk.id),
       (id) => {
-        const batch = array(leaf.index.batches).find(
+        const batch = list(leaf.index.batches).find(
           (value) => object(value) && value.id === metas.get(id)?.source_id
         )
-        return array(object(batch) ? batch.depends_on : []).flatMap((dep) =>
+        return list(object(batch) ? batch.depends_on : []).flatMap((dep) =>
           text(dep) && chunkByBatchId.has(dep) ? [chunkByBatchId.get(dep)!] : []
         )
       }
@@ -603,14 +584,23 @@ export function checkV2MetaGraph(
     for (const wave of waves) wave.sort((a, b) => chunkRank(a) - chunkRank(b))
     slices.set(owner, {
       bundle: bundle.id,
-      reads: array(bundle.reads).filter(text),
+      reads: list(bundle.reads).filter(text),
       chunks: ownedChunks,
       modules: [...ownedModules.values()],
       required_assets,
       produced_assets,
       entries,
       mvp,
-      waves
+      waves,
+      ...buildTasks(
+        leaf.index,
+        ownedChunks,
+        waves,
+        entries,
+        (id) => new Set(list(metas.get(id)?.members).filter(text)),
+        mvp,
+        repository
+      )
     })
   }
   return slices

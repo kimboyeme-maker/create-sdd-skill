@@ -32,6 +32,8 @@ Choose the narrowest matching mode; state the assumption when intent stays ambig
 | Merge | Consolidate, keeping decisions, provenance and IDs | [writing](references/writing.md), [merge](references/merge.md) |
 | Document-only audit | Completeness, ownership, testability, open decisions; no implementation claims | [audit](references/audit.md) |
 | Implementation or closure audit | Compare clauses with source, tests and reproducible evidence | [audit](references/audit.md), [closure evidence](references/closure-evidence.md) |
+| Bug fix | `intent: bug`: reproduction, root cause, regression acceptance | [bug fix](references/v2-authoring.md#bug-fix--the-same-six-phases-proving-the-defect) |
+| Assessment | Go/no-go before an SDD; a go seeds prioritized Entries | [assessment](references/v2-authoring.md#assessment--deciding-before-specifying) |
 | Migration design | Close the current consumer and compatibility boundary | [migration](references/v2-migration.md) |
 | Program split | Keep independently executable outcomes in narrow child contexts | [multi-SDD](references/v2-program.md) |
 | Contract | Default for new implementation work | [sdd/v2](references/v2-contract.md) |
@@ -56,6 +58,7 @@ Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's head
 | Command | Use |
 |---|---|
 | `validate.ts validate --sdd <absolute-SDD> [--repository <absolute-root>]` | Check v2 structure and return one compact host handoff; structural readiness still needs semantic review |
+| `validate.ts validate --sdd <SDD> --evidence <report.json>` | Converge: compare a host's evidence with acceptance and revision (`closure`) |
 | `validate.ts validate-draft` | Check a proposed SDD before writing it |
 | `validate.ts document-check` | Check a document that does not target implementation |
 | `type-probe.ts check --sdd <SDD>` | Optional: type-check exported TypeScript fences for degenerate public types |

@@ -9,13 +9,17 @@ import {
   checkV2MetaGraph,
   deriveLeafMetas,
   layers,
+  list,
+  object,
+  text as nonempty,
+  type Item,
   pathForm,
   within,
   type ExecutionSlice,
   type Report
 } from './v2-meta.ts'
+import { ancestors, checkStepRecords, stepRecords } from './v2-tasks.ts'
 
-type Item = Record<string, unknown>
 type DraftDocument = Readonly<{ path: string; content: string }>
 type Child = Readonly<{
   id: string
@@ -50,6 +54,12 @@ export type V2Handoff = Readonly<{
   meta_source: 'declared' | 'derived' | 'mixed'
   /** Project principle files (constitution, AGENTS.md) the design records a check against. */
   principles: readonly string[]
+  /** `bug` adds reproduction, root cause and regression acceptance to a feature SDD. */
+  intent: 'feature' | 'bug'
+  /** Acceptance cases that must fail before the fix and pass after it. */
+  regression: readonly string[]
+  /** The go assessment this SDD was seeded from, when it names one. */
+  assessment: string | null
   /** Program root only: child IDs in dependency layers. */
   parallel_children?: readonly (readonly string[])[]
   read_order: readonly string[]
@@ -61,12 +71,6 @@ export type V2Result = Readonly<{
   diagnostics: readonly DocumentDiagnostic[]
   handoff: V2Handoff
 }>
-
-const object = (value: unknown): value is Item =>
-  !!value && typeof value === 'object' && !Array.isArray(value)
-const nonempty = (value: unknown): value is string =>
-  typeof value === 'string' && value.trim().length > 0
-const list = (value: unknown): readonly unknown[] => (Array.isArray(value) ? value : [])
 
 /**
  * Count prose anchors so one index ID has exactly one normative source location.
@@ -90,15 +94,24 @@ function definitionCount(text: string, id: string): number {
 }
 
 /** An index ID needs exactly one normative prose anchor; zero and several are both blockers. */
-function checkDefinition(text: string, id: string, location: string, report: Report): boolean {
+export function checkDefinition(
+  text: string,
+  id: string,
+  location: string,
+  report: Report
+): boolean {
   const count = definitionCount(text, id)
   if (count === 0) report('SDD_V2_PROSE_DEFINITION_MISSING', location)
   else if (count > 1) report('SDD_V2_PROSE_DEFINITION_DUPLICATE', location)
   return count === 1
 }
 
+/** Body text of a heading named by `names` (alternatives), optionally numbered; empty when absent. */
+export const section = (body: string, names: string): string =>
+  sectionText(body, new RegExp(`^(?:\\d+(?:\\.\\d+)*\\s+)?(?:${names})\\s*$`, 'i')).trim()
+
 /** Remove only the machine block, leaving every human clause for ID and summary checks. */
-function prose(text: string, marker: 'sdd-contract' | 'sdd-program'): string {
+export function prose(text: string, marker: 'sdd-contract' | 'sdd-program'): string {
   return text.replace(
     new RegExp(`<!--\\s*${marker}:start\\s*-->[\\s\\S]*?<!--\\s*${marker}:end\\s*-->`),
     ''
@@ -113,22 +126,14 @@ function rootPresentation(text: string): {
 } {
   const body = prose(text, 'sdd-program')
   const title = /^#\s+(.+)$/m.exec(body)?.[1]?.trim() ?? ''
-  const goal = sectionText(body, /^(?:\d+(?:\.\d+)*\s+)?(?:Goal|Objective|总目标|目标)\s*$/i)
-    .trim()
-    .split(/\n\s*\n/)[0]
+  const goal = section(body, 'Goal|Objective|总目标|目标').split(/\n\s*\n/)[0]
   const firstParagraph = body
     .replace(/^#.*$/gm, '')
     .trim()
     .split(/\n\s*\n/)[0]
   const summary = [title, goal || firstParagraph || ''].filter(Boolean).join(' — ').slice(0, 600)
-  const shared_constraints = sectionText(
-    body,
-    /^(?:\d+(?:\.\d+)*\s+)?(?:Shared Constraints|共享约束)\s*$/i
-  ).trim()
-  const integration_acceptance = sectionText(
-    body,
-    /^(?:\d+(?:\.\d+)*\s+)?(?:Integration Acceptance|整体验收)\s*$/i
-  ).trim()
+  const shared_constraints = section(body, 'Shared Constraints|共享约束')
+  const integration_acceptance = section(body, 'Integration Acceptance|整体验收')
   return { summary, shared_constraints, integration_acceptance }
 }
 
@@ -163,7 +168,7 @@ const CLARIFICATION = /\[(?:NEEDS CLARIFICATION|需澄清)(?:\s*[:：]\s*([^\s\]
  * `.specify/memory/constitution.md` or an `AGENTS.md`) the design was checked against; the body
  * must then record that check. Returns the principle paths to hand to the host.
  */
-function checkDocumentNotes(
+export function checkDocumentNotes(
   document: Readonly<{ path: string; text: string; index: Item }>,
   marker: 'sdd-contract' | 'sdd-program',
   repo: string | null,
@@ -193,16 +198,13 @@ function checkDocumentNotes(
       report('SDD_V2_PATH_NOT_FOUND', `${document.path}: ${raw}`, 'principle-not-found')
     paths.push(path)
   }
-  if (
-    paths.length &&
-    !sectionText(body, /^(?:\d+(?:\.\d+)*\s+)?(?:Principle Check|原则检查)\s*$/i).trim()
-  )
+  if (paths.length && !section(body, 'Principle Check|原则检查'))
     report('SDD_V2_SECTION_MISSING', document.path, 'principle-check-missing')
   return paths
 }
 
 /** Open user decisions block readiness; each needs one prose definition. */
-function checkDecisions(
+export function checkDecisions(
   index: Item,
   path: string,
   body: string,
@@ -269,7 +271,10 @@ function checkLeaf(
   }
   if (!nonempty(index.id) || !nonempty(index.revision))
     report('SDD_V2_INDEX_SHAPE_INVALID', path, 'id-revision-required')
-  const steps = list(index.steps)
+  const { records: stepList, invalid: invalidSteps } = stepRecords(index)
+  for (const value of invalidSteps)
+    report('SDD_V2_INDEX_SHAPE_INVALID', `${path}: ${JSON.stringify(value)}`, 'step-record-invalid')
+  const steps = stepList.map((record) => record.id)
   const acceptance = list(index.acceptance)
   const requirements = list(index.requirements)
   const writes = list(index.writes)
@@ -371,25 +376,16 @@ function checkLeaf(
       .filter((value): value is Item => object(value) && nonempty(value.id))
       .map((value) => [value.id as string, value])
   )
-  const visiting = new Set<string>(),
-    visited = new Set<string>()
-  const visit = (id: string): void => {
-    if (visiting.has(id)) {
-      report('SDD_V2_DEPENDENCY_CYCLE', `${path}: ${id}`, 'batch-dependency-cycle')
-      return
-    }
-    if (visited.has(id)) return
-    visiting.add(id)
-    const batch = byBatch.get(id)
-    for (const dependency of list(batch?.depends_on)) {
+  for (const [id, batch] of byBatch)
+    for (const dependency of list(batch.depends_on))
       if (!nonempty(dependency) || !byBatch.has(dependency) || dependency === id)
         missing(id, dependency, 'batch-dependency-invalid')
-      else visit(dependency)
-    }
-    visiting.delete(id)
-    visited.add(id)
-  }
-  for (const id of batchIds) visit(id)
+  const batchOrder = new Map(
+    [...byBatch].map(([id, b]) => [id, new Set(list(b.depends_on).filter(nonempty))])
+  )
+  for (const [id, before] of ancestors(batchOrder))
+    if (before.has(id))
+      report('SDD_V2_DEPENDENCY_CYCLE', `${path}: ${id}`, 'batch-dependency-cycle')
   for (const value of requirements) {
     if (!object(value) || value.kind !== 'must-ship' || !nonempty(value.id)) continue
     for (const id of list(value.implementation)) {
@@ -402,7 +398,23 @@ function checkLeaf(
         )
     }
   }
+  checkStepRecords(path, index, stepList, report)
   checkDecisions(index, path, body, pending, report)
+  // A bug fix must show the defect exists and is gone: reproduction, root cause, regression cases.
+  if (index.intent !== undefined && index.intent !== 'feature' && index.intent !== 'bug')
+    report('SDD_V2_INDEX_SHAPE_INVALID', path, 'intent-invalid')
+  if (index.intent === 'bug') {
+    if (!section(body, 'Reproduction|复现'))
+      report('SDD_V2_SECTION_MISSING', path, 'reproduction-missing')
+    if (!section(body, 'Root Cause|根因'))
+      report('SDD_V2_SECTION_MISSING', path, 'root-cause-missing')
+    if (!list(index.regression).length)
+      report('SDD_V2_REQUIRED_FIELD_EMPTY', path, 'regression-required')
+  }
+  if (index.regression !== undefined && !Array.isArray(index.regression))
+    report('SDD_V2_INDEX_SHAPE_INVALID', path, 'regression-invalid')
+  for (const id of list(index.regression))
+    if (!nonempty(id) || !acceptanceIds.has(id)) missing('regression', id, 'regression-missing')
   for (const field of ['exports', 'consumes'] as const)
     if (index[field] !== undefined && !Array.isArray(index[field]))
       report('SDD_V2_INDEX_SHAPE_INVALID', `${path}: ${field}`, 'interface-index-invalid')
@@ -558,22 +570,9 @@ export function validateV2Document(
         if (!ids.has(dependency) || dependency === child.id)
           report('SDD_V2_REFERENCE_MISSING', `${child.id} -> ${dependency}`, 'dependency-invalid')
     }
-    const visiting = new Set<string>(),
-      visited = new Set<string>()
-    const byId = new Map(children.map((child) => [child.id, child]))
-    const visit = (id: string): void => {
-      if (visiting.has(id)) {
-        report('SDD_V2_DEPENDENCY_CYCLE', id)
-        return
-      }
-      if (visited.has(id)) return
-      visiting.add(id)
-      for (const dependency of byId.get(id)?.depends_on ?? [])
-        if (byId.has(dependency)) visit(dependency)
-      visiting.delete(id)
-      visited.add(id)
-    }
-    for (const child of children) visit(child.id)
+    const childOrder = new Map(children.map((c) => [c.id, new Set(c.depends_on)]))
+    for (const [id, before] of ancestors(childOrder))
+      if (before.has(id)) report('SDD_V2_DEPENDENCY_CYCLE', id)
     const integration = index.integration
     if (children.length > 1 && !object(integration))
       report('SDD_V2_INTEGRATION_OWNER_REQUIRED', root.path)
@@ -597,14 +596,11 @@ export function validateV2Document(
           new Set(steps).size !== steps.length
         )
           report('SDD_V2_INDEX_SHAPE_INVALID', root.path, 'integration-implementation-invalid')
-        const ownerSteps = new Set(list(leaves.get(integration.owner)?.index.steps))
+        const ownerIndex = leaves.get(integration.owner)?.index ?? {}
+        const ownerSteps = new Set(stepRecords(ownerIndex).records.map((record) => record.id))
         for (const id of steps)
           if (nonempty(id) && !ownerSteps.has(id))
-            report(
-              'SDD_V2_REFERENCE_MISSING',
-              `${integration.owner}: ${id}`,
-              'integration-step-missing'
-            )
+            report('SDD_V2_REFERENCE_MISSING', `${integration.owner}: ${id}`, 'integration-step')
         for (const id of integration.acceptance) {
           if (!nonempty(id))
             report(
@@ -770,6 +766,21 @@ export function validateV2Document(
     (id) => (childById.get(id)?.depends_on ?? []).filter((dep) => childById.has(dep))
   )
 
+  // A leaf seeded by an assessment cites it; the citation must resolve to a `go` decision.
+  let assessment: string | null = null
+  if (selected && selected.index.assessment !== undefined) {
+    const raw = selected.index.assessment
+    const linked =
+      nonempty(raw) && !isAbsolute(raw) && source !== '<stdin>'
+        ? io.canonical(resolve(dirname(source), raw))
+        : null
+    const block =
+      linked && io.isFile(linked) ? contractBlock(io.read(linked).toString('utf8')) : null
+    const decision = block?.value?.decision as Item | undefined
+    if (block?.value?.protocol !== 'sdd-assessment/v1' || decision?.outcome !== 'go')
+      report('SDD_V2_PROGRAM_LINK_INVALID', `${source}: ${String(raw)}`, 'assessment-link-invalid')
+    else assessment = linked
+  }
   const target = selected ? children.find((child) => child.path === source) : null
   const direct =
     target?.depends_on.flatMap((id) => {
@@ -833,6 +844,9 @@ export function validateV2Document(
       selected_source_paths: selectedSourcePaths,
       ...(selected ? { execution_slice: slices.get(root ? selected.id : 'self') } : {}),
       meta_source: meta.source,
+      intent: selected?.index.intent === 'bug' ? 'bug' : 'feature',
+      regression: list(selected?.index.regression).filter(nonempty),
+      assessment,
       principles,
       ...(root && !selected ? { parallel_children: parallelChildren } : {}),
       // Principles first: the host reads the rules the design was checked against.

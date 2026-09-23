@@ -38,9 +38,11 @@ Each code is a family; the message starts with the specific relation that failed
 | `SDD_V2_INTERFACE_MISMATCH`, `SDD_V2_PROGRAM_LINK_INVALID`, `SDD_V2_INTEGRATION_OWNER_REQUIRED`, `SDD_V2_SECTION_MISSING` | [multi-SDD](v2-program.md) |
 | `SDD_V2_PATH_INVALID`, `SDD_V2_PATH_ESCAPE`, `SDD_V2_PATH_NOT_FOUND`, `REPOSITORY_NOT_FOUND` | [host handoff](v2-contract.md#direct-host-handoff) |
 | `SDD_V2_CLARIFICATION_UNTRACKED` | [clarify](v2-authoring.md#2-admit--what-and-why) |
+| `SDD_V2_CLOSURE_OPEN`, `SDD_V2_CLOSURE_FAILED` (under `closure`) | [converge](v2-authoring.md#6-report--analyze-hand-off-converge) |
+| Codes from an `intent: bug` leaf or an `sdd-assessment/v1` document | [bug fix](v2-authoring.md#bug-fix--the-same-six-phases-proving-the-defect), [assessment](v2-authoring.md#assessment--deciding-before-specifying) |
 
 Keep the repository's current rules authoritative. Do not copy its instructions into a second template. Do not turn a guide's possible platform dimensions into universal requirements when the user-owned path cannot reach them.
 
 Existing v1 documents may still use the older phase cards, delivery plan, reading receipts and lifecycle hooks. Those are legacy guidance, not readiness gates for sdd/v2. RSI maintenance is a separate skill-improvement activity and does not enter this table.
 
-<!-- reading-receipt: 2e9d76ce -->
+<!-- reading-receipt: f0f18ed7 -->

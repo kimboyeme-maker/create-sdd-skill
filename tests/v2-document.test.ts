@@ -2,6 +2,8 @@ import { expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { validateAssessment } from '../scripts/validator/domain/v2-assessment'
+import { checkClosure } from '../scripts/validator/domain/v2-closure'
 import { validateV2Document } from '../scripts/validator/domain/v2-document'
 
 /** A throwaway directory with the given files; `git` adds the marker repository detection reads. */
@@ -128,6 +130,149 @@ test('declared principles must exist and be checked in the body', () => {
     expect(checked.handoff.read_order[0]).toBe(checked.handoff.principles[0])
     const missing = validateV2Document(path, leaf(body, { ...index, principles: ['AGENTS.md'] }))!
     expect(missing.diagnostics.map((item) => item.code)).toContain('SDD_V2_PATH_NOT_FOUND')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+const tasked = {
+  ...index,
+  requirements: [
+    { id: 'R1', kind: 'must-ship', implementation: ['S1', 'S2'], acceptance: ['A1'] },
+    { id: 'R2', kind: 'must-ship', implementation: ['S3'], acceptance: ['A2'] }
+  ],
+  batches: [
+    { id: 'C1', steps: ['S1', 'S2'], requirements: ['R1'], depends_on: [] },
+    { id: 'C2', steps: ['S3'], requirements: ['R2'], depends_on: [] }
+  ],
+  steps: [
+    { id: 'S1', touches: ['packages/change/a.ts'], closes: ['A1'] },
+    { id: 'S2', touches: ['packages/change/b.ts'], after: ['S1'] },
+    { id: 'S3', touches: ['packages/change/c.ts'], closes: ['A2'] }
+  ],
+  metas: [
+    { id: 'E1', kind: 'Entry', priority: 'P1', members: ['M:R1'] },
+    { id: 'E2', kind: 'Entry', priority: 'P2', members: ['M:R2'] }
+  ]
+}
+const taskedBody = `${body}\n- S3 Build the other story.`
+
+test('step records derive ordered tasks, file-disjoint parallelism and the MVP task set', () => {
+  const root = workspace({ 'packages/change/a.ts': '' })
+  try {
+    const result = validateV2Document(join(root, 'change.sdd.md'), leaf(taskedBody, tasked))!
+    expect(result.diagnostics).toEqual([])
+    const slice = result.handoff.execution_slice!
+    expect(slice.tasks.map((task) => task.id)).toEqual(['S1', 'S2', 'S3'])
+    const byId = Object.fromEntries(slice.tasks.map((task) => [task.id, task]))
+    expect(byId.S1!.parallel_with).toEqual(['S3'])
+    expect(byId.S2!.parallel_with).toEqual(['S3'])
+    expect(byId.S1!.touches[0]!.status).toBe('existing')
+    expect(byId.S3!.touches[0]!.status).toBe('new')
+    expect(slice.mvp_tasks).toEqual(['S1'])
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('step records are checked: writes, predecessors, acceptance and batch-backed order', () => {
+  const root = workspace({})
+  try {
+    const bad = {
+      ...tasked,
+      steps: [
+        { id: 'S1', touches: ['elsewhere/x.ts'], after: ['S2'] },
+        { id: 'S2', after: ['S1'], closes: ['A9'] },
+        { id: 'S3', after: ['S1'] }
+      ]
+    }
+    const result = validateV2Document(join(root, 'change.sdd.md'), leaf(taskedBody, bad))!
+    const found = result.diagnostics.map((item) => item.message.split(':')[0])
+    expect(found).toContain('step-touch-outside-writes')
+    expect(found).toContain('step-order')
+    expect(found).toContain('step-closes-missing')
+    expect(found).toContain('batch-dependency-missing')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('closure compares host evidence with acceptance and revision', () => {
+  const root = workspace({ 'packages/change/a.ts': '' })
+  try {
+    const result = validateV2Document(join(root, 'change.sdd.md'), leaf(taskedBody, tasked))!
+    expect(result.diagnostics).toEqual([])
+    const run = (results: unknown[], revision = '1') =>
+      checkClosure(
+        result,
+        tasked,
+        { protocol: 'sdd-evidence/v1', sdd: 'change', revision, results },
+        root
+      )
+    const pass = { acceptance: 'A1', status: 'PASS', evidence: 'packages/change/a.ts' }
+    const closed = run([pass, { acceptance: 'A2', status: 'PASS', evidence: 'ci run 42' }])
+    expect(closed.status).toBe('CLOSED')
+    expect(closed.mvp_closed).toBe(true)
+    expect(run([pass]).status).toBe('OPEN')
+    expect(run([pass], '2').status).toBe('OPEN')
+    expect(run([pass, { acceptance: 'A2', status: 'FAIL', evidence: 'x' }]).status).toBe('FAILED')
+    const missing = run([{ ...pass, evidence: 'packages/change/gone.ts' }])
+    expect(missing.mvp_closed).toBe(false)
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('bug intent needs reproduction, root cause and regression acceptance', () => {
+  const root = workspace({})
+  try {
+    const path = join(root, 'change.sdd.md')
+    const bug = { ...index, intent: 'bug', regression: ['A1'] }
+    const bare = validateV2Document(path, leaf(body, { ...bug, regression: [] }))!
+    expect(bare.diagnostics.map((item) => item.message.split(':')[0]).sort()).toEqual([
+      'regression-required',
+      'reproduction-missing',
+      'root-cause-missing'
+    ])
+    const full = `${body}\n\n## Reproduction\n\nRun it.\n\n## Root Cause\n\nA typo.`
+    const ok = validateV2Document(path, leaf(full, bug))!
+    expect(ok.diagnostics).toEqual([])
+    expect(ok.handoff.intent).toBe('bug')
+    expect(ok.handoff.regression).toEqual(['A1'])
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('assessment decisions gate the follow-up SDD', () => {
+  const doc = (decision: Record<string, unknown>) =>
+    leaf(
+      '## Intake\n\nAsk.\n\n## Research\n\nRead.\n\n## Options\n\n- O1 One.\n\n## Decision\n\nO1.\n\n- E1 Story.',
+      {
+        protocol: 'sdd-assessment/v1',
+        id: 'idea',
+        revision: '1',
+        options: [{ id: 'O1' }],
+        decision,
+        proposed_entries: [{ id: 'E1', priority: 'P1' }]
+      }
+    )
+  expect(validateAssessment('a.md', doc({ outcome: 'go', option: 'O1' }))!.handoff.maturity).toBe(
+    'READY_FOR_SDD'
+  )
+  expect(validateAssessment('a.md', doc({ outcome: 'no-go' }))!.handoff.maturity).toBe('CLOSED')
+  expect(validateAssessment('a.md', doc({ outcome: 'go', option: 'O9' }))!.valid).toBe(false)
+  const root = workspace({
+    'idea.md': doc({ outcome: 'go', option: 'O1' }),
+    'dropped.md': doc({ outcome: 'no-go' })
+  })
+  try {
+    const path = join(root, 'change.sdd.md')
+    const linked = validateV2Document(path, leaf(body, { ...index, assessment: 'idea.md' }))!
+    expect(linked.diagnostics).toEqual([])
+    expect(linked.handoff.assessment).toBe(join(realpathSync(root), 'idea.md'))
+    const dropped = validateV2Document(path, leaf(body, { ...index, assessment: 'dropped.md' }))!
+    expect(dropped.diagnostics.map((item) => item.code)).toEqual(['SDD_V2_PROGRAM_LINK_INVALID'])
   } finally {
     rmSync(root, { recursive: true, force: true })
   }

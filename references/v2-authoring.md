@@ -33,7 +33,11 @@ This page fills each of the six authoring phases with the practices that make a 
 ## 5 Decompose — tasks as a derived view
 
 - Chunks (batches) group the steps of one coherent change. Order them so the P1 Entries' Chunks can finish first, and declare real `depends_on` edges.
-- Do not hand-write parallel markers. The handoff derives `waves`, which layer the Chunks by `depends_on`, with higher-priority Entries first within a layer. A program root's handoff derives `parallel_children` from the child dependency layers, and each child's write boundary is already checked for conflicts. The host confirms file disjointness within one child before it runs Chunks together.
+- Each step is a task. Write it as a record when the host needs more than its prose: `{"id": "S2", "touches": ["packages/a/api.ts"], "after": ["S1"], "closes": ["A1"]}`. `touches` must lie inside `writes`; `after` names steps in the same leaf, and an `after` that crosses batches needs a matching batch `depends_on`; `closes` names the acceptance the step completes. A bare string ID stays valid.
+- Do not write a tasks.md or parallel markers. The handoff derives them:
+  - `tasks`: steps ordered by batch waves, then Entry priority, then `after`. Each task carries its Chunk, Entries, touches (marked `existing` or `new`), closes and `parallel_with` (tasks with no order between them and disjoint touches).
+  - `mvp_tasks`: the smallest ordered set that closes every acceptance of the MVP Entries — the first checkpoint.
+  - `waves` (Chunk layers) and, for a program root, `parallel_children` (child layers; child write boundaries are already conflict-checked).
 - Keep one SDD unless an independently deliverable outcome with its own owner makes a child narrow the context a host must read ([multi-SDD](v2-program.md)).
 
 ## 6 Report — analyze, hand off, converge
@@ -48,7 +52,34 @@ This page fills each of the six authoring phases with the practices that make a 
 
   Fix what is in scope; report the rest as limits.
 - In Plan Mode, output the complete proposed SDD through `validate-draft`, never a short plan instead.
-- Converge: when the host reports evidence against the acceptance cases, a failed or changed expectation returns as a revision. Bump `revision`, log the reason under `## Clarifications` if the user decided it, and amend in place with the IDs kept.
+- Converge: the host writes an evidence report outside the SDD and `validate --evidence <report>` compares it with the leaf:
+
+  ```json
+  { "protocol": "sdd-evidence/v1", "sdd": "feature-a", "revision": "1",
+    "results": [{ "acceptance": "A1", "status": "PASS", "evidence": "reports/a1.log" }] }
+  ```
+
+  `closure.status` is `CLOSED` when every must-ship acceptance has a PASS with evidence at the current revision, `FAILED` when any result is FAIL, otherwise `OPEN` (missing, blocked, stale revision, or a path-like evidence that does not exist). It also reports which Entries and whether the MVP are closed. A FAIL or a changed expectation returns as a revision: bump `revision`, log a user decision under `## Clarifications`, amend in place with IDs kept, and let the host report again. The check compares IDs, revision and evidence locations; it cannot tell whether the evidence proves the behaviour.
+
+## Bug fix — the same six phases, proving the defect
+
+Set `"intent": "bug"` on an sdd/v2 leaf (spec-kit's bug-assess, bug-fix and bug-test):
+
+- **Harvest:** a `## Reproduction` (or `## 复现`) section: steps, expected versus actual, version and environment. Reproduce before designing; an unreproduced report is an open decision, not a requirement.
+- **Admit:** one Entry for the broken user outcome; severity and what is out of scope.
+- **Design:** a `## Root Cause` (or `## 根因`) section naming the cause, not the symptom, and the smallest fix at that cause.
+- **Verify:** list in `regression` the acceptance cases that fail before the fix and pass after it. A regression case that would pass on the broken code proves nothing.
+- **Decompose / Report:** usually one Chunk; converge with `--evidence` like any leaf.
+
+## Assessment — deciding before specifying
+
+An idea that is not yet worth an SDD gets an assessment: a document whose `sdd-contract` block uses `"protocol": "sdd-assessment/v1"` (spec-kit's intake, research, define, shape and decide). It targets no implementation, so it has no steps or writes:
+
+- **Harvest:** `## Intake` (who asks, why now) and `## Research` (what exists, constraints, evidence).
+- **Admit / Design:** `## Options`, each option defined in prose and listed in `options`, with its cost and risk.
+- **Report:** `## Decision` and `"decision": {"outcome": "go" | "no-go" | "reshape" | "open", "option": "O1"}`. A `go` names an option and seeds prioritized `proposed_entries`.
+
+`validate` reports `READY_FOR_SDD` (go), `CLOSED` (no-go) or `AWAITING_USER` (open, reshape or pending decisions). The follow-up sdd/v2 cites the file in `assessment`, starts its Entries from the seeds with the same IDs and priorities, and is blocked if the cited assessment is not a `go`.
 
 ## Five Metas and spec-kit
 
@@ -57,7 +88,8 @@ This page fills each of the six authoring phases with the practices that make a 
 | Entry | A user story with priority and independent acceptance | User story (P1, P2, …), MVP |
 | Module | One functional requirement at its normative source | `FR-###` in `spec.md` |
 | Chunk | One coherent batch of steps inside a story's work | A phase of `tasks.md` |
+| (step) | One task: touches, after, closes; ordered and parallelized by the handoff | A task line with `[P]` |
 | Bundle | One executable SDD and its reads and required Assets | One feature (`specs/###-name/`) |
 | Asset | A versioned delivered file: interface, schema, entity model or code | `contracts/`, `data-model.md`, source |
 
-<!-- reading-receipt: b12642e8 -->
+<!-- reading-receipt: d6a61036 -->

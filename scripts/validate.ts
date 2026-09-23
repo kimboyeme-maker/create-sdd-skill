@@ -6,7 +6,7 @@
  * 2 for a usage error or a document that could not be read. What the loop adds on top — the
  * sidecar files a run would write — is not a property of the document and is not reported here.
  *
- *   validate          --sdd <path> [--document-policy current] [--design-policy current]
+ *   validate          --sdd <path> [--repository <root>] [--evidence <report.json>] [--document-policy current] [--design-policy current]
  *   validate-draft    --sdd <path> | --draft-file <path> | (stdin)
  *                     --sdd <absolute root> --documents-file <json array of {path, content}>
  *   document-check    --sdd <path>
@@ -16,6 +16,8 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { isAbsolute, resolve } from 'node:path'
 import { documentDigest, record } from './lib/telemetry'
 import { contractBlock } from './lib/contract-source.ts'
+import { checkClosure } from './validator/domain/v2-closure.ts'
+import type { V2Result } from './validator/domain/v2-document.ts'
 import {
   contractDrift,
   deriveContract,
@@ -41,7 +43,7 @@ const COMMANDS = [
   'contract-migrate'
 ] as const
 const USAGE =
-  'usage: validate.ts validate|validate-draft|document-check|contract|contract-migrate --sdd <path> [--repository <absolute-root>] [--document-policy current] [--design-policy current] | contract --sdd <path> [--check | --emit inline|sidecar|stdout] | validate-draft --draft-file <path> | validate-draft --sdd <abs> --documents-file <json> | document-next-id --sdd <path> --prefix <XX>'
+  'usage: validate.ts validate|validate-draft|document-check|contract|contract-migrate --sdd <path> [--repository <absolute-root>] [--evidence <sdd-evidence.json>] [--document-policy current] [--design-policy current] | contract --sdd <path> [--check | --emit inline|sidecar|stdout] | validate-draft --draft-file <path> | validate-draft --sdd <abs> --documents-file <json> | document-next-id --sdd <path> --prefix <XX>'
 
 /** Read `--flag value` pairs; a bare flag reads as present with no value. */
 function flags(argv: readonly string[]): Map<string, string | undefined> {
@@ -204,6 +206,22 @@ export async function run(
     return byValidity(validateDraftText(text, draftFile ?? '<stdin>', [], policy, repository))
   }
   if (!sdd) throw new Error('SDD_REQUIRED: pass --sdd /absolute/path/to/document.sdd.md')
+  const evidence = value('--evidence')
+  if (command === 'validate' && evidence) {
+    // Converge: compare a host's evidence report with this leaf's acceptance and revision.
+    const result = validateDocument(sdd, policy, repository)
+    const index = contractBlock(readFileSync(sdd, 'utf8')).value
+    if (!('handoff' in result) || result.handoff.protocol !== 'create-sdd-handoff/v2' || !index)
+      throw new Error('EVIDENCE_REQUIRES_V2_LEAF')
+    const report: unknown = JSON.parse(readFileSync(evidence, 'utf8'))
+    // The protocol check above leaves only the v2 leaf result.
+    const v2 = result as V2Result
+    const closure = checkClosure(v2, index, report, v2.handoff.repository)
+    return {
+      output: { ...result, closure },
+      exit: result.valid && closure.status === 'CLOSED' ? 0 : 1
+    }
+  }
   return byValidity(
     command === 'validate'
       ? validateDocument(sdd, policy, repository)

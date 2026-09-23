@@ -11,6 +11,7 @@ import { assertContractReferences } from '../helpers/contract-references'
 import { assertExperienceContract } from '../domain/experience-contract'
 import { assertArchitecture, assertDeliveryPlatforms } from '../domain/platform-architecture'
 import { executionRequests as readExecutionRequests } from '../domain/policies/execution-authorization'
+import { validateAssessment } from '../domain/v2-assessment'
 import { validateV2Document } from '../domain/v2-document'
 export type DocumentCheckResult = Readonly<{
   sdd: string
@@ -30,7 +31,7 @@ export function documentCheck(sdd: string): DocumentCheckResult {
   const diagnostics: ReturnType<typeof checkDocument>[number][] = []
   try {
     const text = readFileSync(sdd, 'utf8')
-    const v2 = validateV2Document(sdd, text)
+    const v2 = validateAssessment(sdd, text) ?? validateV2Document(sdd, text)
     if (v2) return { sdd: v2.sdd, valid: v2.valid, diagnostics: v2.diagnostics }
     // Contract documents use their versioned policy, including authoritative JSON
     // definitions and linked normative tables. Do not apply a second prose ID graph.
@@ -53,7 +54,7 @@ function validateText(
   policy: DocumentPolicy = 'legacy',
   repository?: string
 ) {
-  const v2 = validateV2Document(sdd, text, documents, repository)
+  const v2 = validateAssessment(sdd, text) ?? validateV2Document(sdd, text, documents, repository)
   if (v2) return v2
   const diagnostics: ReturnType<typeof checkDocument>[number][] = []
   // A program root carries a node index instead of a contract and owns none of the IDs its prose
