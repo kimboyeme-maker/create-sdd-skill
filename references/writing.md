@@ -1,6 +1,6 @@
 # SDD writing guide
 
-Load when writing or revising SDD prose (phase 3 onward). What the design must contain is decided by the [phase cards](loading.md#phases) and the [complete design template](complete-design.md); this page covers how the document reads.
+Load when writing or revising SDD prose. New implementation documents follow [sdd/v2](v2-contract.md); existing v1 documents retain their phase cards and [complete design template](complete-design.md). This page covers how either document reads.
 
 ## Plain prose
 
@@ -12,7 +12,7 @@ An SDD is read by people and agents who act on every sentence. Write claims, not
 - Name actors and owners; avoid passive constructions that hide who does what.
 - Bold only defined labels; headings carry content, and the first sentence does not repeat the heading.
 - Describe current and target behavior, not the history of earlier drafts.
-- Never invent a fact, name, number, quote or source to make prose complete. Missing information becomes an `INFORMATION_QUESTION` or a simpler true sentence.
+- Never invent a fact, name, number, quote or source to make prose complete. State a missing fact plainly; put a material choice requiring the user in `unresolved_user_decisions`.
 
 ## Normative text and everything else
 
@@ -20,14 +20,14 @@ Distinguish normative requirements from rationale, examples, implementation sugg
 
 ## Traceability
 
-Prefer a compact mapping from normative clause → decision or implementation boundary → verification method. Proposed implementation locations may appear in a design-stage SDD; never present them as existing evidence.
+A traceability table may repeat IDs whose definitions are headings or list items ([sdd/v2](v2-contract.md)). Use the five-Meta relation graph to trace Entry → Module and its original requirement Source → Chunk/batch → Bundle/child SDD → Asset/output, with implementation steps and observable acceptance at the leaf. Proposed implementation locations and Asset versions may appear in a design-stage SDD; never present them as existing delivery evidence.
 
-## Execution projection boundary
+## Host handoff boundary
 
-The SDD is the only normative work graph. Requirements, dependencies, acceptance and delivery batches must let the loop derive bounded packets, but the SDD stores no runtime packet state: no agent assignments, active or completed flags, percentages, runtime blockers, retry counters or checkpoint history. A derived packet may reorder or group linked work; it cannot add a requirement, oracle, consumer, package or authority absent from the SDD.
+The SDD is the normative design. Requirements, steps, dependencies and acceptance let the chosen host implement a bounded slice without inventing product decisions. It stores no runtime assignments, progress, retry counters or checkpoint history. The host may group work but cannot add a requirement, oracle, consumer, write authority or external-action permission absent from the user request and document.
 
 ## Output location
 
-Keep repository input and output location independent. Read the actual system `$TMPDIR` when the user asks for a sample there and write it there directly; absolute output paths are supported. Source paths stay repository-relative, and a cross-document link resolves from the document that refers to it. For an SDD kept outside the repository it describes, pass both: `repo-facts.ts check --sdd <absolute-SDD> --repository <absolute-repository>`, so where the document lives never changes which repository its claims are checked against.
+Keep repository input and output location independent. Read the actual system `$TMPDIR` when the user asks for a sample there and write it there directly; absolute output paths are supported. Source paths stay repository-relative, and a cross-document link resolves from the document that refers to it. For a new SDD kept outside the repository it describes, pass both: `validate.ts validate --sdd <absolute-SDD> --repository <absolute-repository>`, so where the document lives never changes which repository its claims are checked against. Existing v1 documents retain the legacy `repo-facts.ts check` route.
 
-<!-- reading-receipt: a2d3b590 -->
+<!-- reading-receipt: 0c347fac -->

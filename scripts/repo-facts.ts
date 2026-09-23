@@ -25,6 +25,7 @@ import {
 } from './facts/repository.ts'
 import { toolchainPins } from './facts/toolchain.ts'
 import { documentDigest, record } from './lib/telemetry.ts'
+import { validateV2Document } from './validator/domain/v2-document.ts'
 
 /**
  * Read-only repository facts for an SDD. Contracts declare what they touch; this file compares
@@ -214,6 +215,24 @@ export async function checkRepositoryFacts(
   asLeaf = false
 ): Promise<FactReport> {
   const text = readFileSync(sdd, 'utf8')
+  const v2 = validateV2Document(sdd, text, [], repository)
+  if (v2) {
+    const issues = v2.diagnostics.map((item) => ({ code: item.code, detail: item.message }))
+    return {
+      valid: issues.length === 0,
+      issues,
+      candidates: [],
+      facts: {
+        protocol: 'create-sdd-repo-facts/v2-structure-only',
+        check_scope: 'STRUCTURAL_PATHS_ONLY',
+        source_claims_verified: false,
+        root: v2.handoff.repository,
+        sdd: v2.sdd,
+        documents: v2.handoff.available_documents,
+        evidence_limits: v2.handoff.evidence_limits
+      }
+    }
+  }
   const program = asLeaf ? { value: null } : programBlock(text)
   const { contract: written, error: contractError } = await loadContract(sdd, text)
   // The document's prose is authoritative for the derivable fields, and a document that hands one

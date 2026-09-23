@@ -1,4 +1,6 @@
-# Work decomposition and delivery planning
+# Legacy v1 work decomposition and delivery planning
+
+This delivery-plan shape applies to existing v1 contracts. New `sdd/v2` documents name implementation steps and dependencies in their own prose and compact index; they do not require leases, minute limits or verification shards.
 
 Use this reference for every implementation-targeting SDD after the implementation logic is closed. It turns the closed design into lease-sized batches, a dependency DAG, parallel-safe lanes and final verification shards, and records them in the contract's `delivery_plan`. The plan is a projection of the requirement graph, not a second todo list: it carries no status, owner assignment or progress.
 
@@ -96,4 +98,4 @@ Run `validate` and read `deliveryPlan`. Report waves, lanes, serial minutes and 
 - Adding shards that split one browser journey or shared fixture across Architects.
 - Treating the plan as a promise that concurrent Operators exist in the current controller.
 
-<!-- reading-receipt: 3371cad3 -->
+<!-- reading-receipt: f17a95b2 -->

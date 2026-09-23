@@ -400,6 +400,174 @@
       "negative_expectation": {
         "must_fire": false
       }
+    },
+    {
+      "id": "CSDD-V2-REPO-101",
+      "defect_class": "repository-hard-block",
+      "statement": "A complete sdd/v2 leaf validated outside any git checkout (a draft written to a temporary directory) is BLOCKED by REPOSITORY_NOT_FOUND, although the skill supports authoring without the repository and only limits the claims.",
+      "root_cause": "Repository auto-detection failure was reported as a diagnostic; the evidence limit 'Repository location is unverified' could therefore never appear on a valid result.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 397,
+        "quote": "if (!repo)\n    report('REPOSITORY_NOT_FOUND', ...)"
+      },
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {}
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate-draft --draft-file <fixture>",
+        "expected_code": "REPOSITORY_NOT_FOUND",
+        "must_fire": false
+      },
+      "source_delivery": "create-sdd v2 upgrade evaluation (working tree vs e55de9a)",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-TRACE-101",
+      "defect_class": "trace-table-counted-as-definition",
+      "statement": "A traceability table row that starts with an already defined requirement ID is counted as a second normative definition, so the document is BLOCKED by SDD_V2_PROSE_DEFINITION_DUPLICATE (reported twice for one ID).",
+      "root_cause": "definitionCount treats heading, list and table-row anchors as equal; the single-document Module origin check re-counts the same requirement.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 58,
+        "quote": "(?:#{1,6}\\s+|[-*]\\s+|\\|\\s*)"
+      },
+      "fixture": "cases/fixtures/v2-trace.md",
+      "negative_fixture": "cases/fixtures/v2-duplicate.md",
+      "negative_expectation": {
+        "must_fire": true
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_PROSE_DEFINITION_DUPLICATE",
+        "must_fire": false
+      },
+      "source_delivery": "create-sdd v2 upgrade evaluation (working tree vs e55de9a)",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-META-101",
+      "defect_class": "single-document-meta-mirror",
+      "statement": "A one-document sdd/v2 leaf must restate every requirement, batch and the document itself as Module, Chunk and Bundle Meta records; omitting the mirror is BLOCKED although every relation is derivable from the index.",
+      "root_cause": "checkV2MetaGraph requires an explicit metas array even when the leaf is its own only owner.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-meta.ts",
+        "line": 60,
+        "quote": "if (!Array.isArray(index.metas) || !raw.length)"
+      },
+      "fixture": "cases/fixtures/v2-no-metas.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_REQUIRED_FIELD_EMPTY",
+        "must_fire": false
+      },
+      "source_delivery": "create-sdd v2 upgrade evaluation (working tree vs e55de9a)",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-CLAR-101",
+      "defect_class": "untracked-clarification",
+      "statement": "A [NEEDS CLARIFICATION: D1 ...] marker in the prose whose decision is absent from unresolved_user_decisions leaves the document STRUCTURALLY_READY, so an open question reaches the host silently.",
+      "root_cause": "Only IDs listed in unresolved_user_decisions are checked; prose markers are not read.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 330,
+        "quote": "for (const value of list(index.unresolved_user_decisions))"
+      },
+      "fixture": "cases/fixtures/v2-clarification-untracked.md",
+      "negative_fixture": "cases/fixtures/v2-clarification-tracked.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_CLARIFICATION_UNTRACKED",
+        "must_fire": true
+      },
+      "source_delivery": "create-sdd v2 upgrade evaluation (working tree vs e55de9a)",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-READS-101",
+      "defect_class": "bundle-read-path-unverified",
+      "statement": "A Bundle reads entry naming a repository path that does not exist is accepted, so the handoff tells the host to read input that is not there.",
+      "root_cause": "Bundle reads are checked for form and escape only, never for existence, even when the repository is known.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-meta.ts",
+        "line": 189,
+        "quote": "for (const path of refs(bundle.reads ?? [], ..."
+      },
+      "repository": "cases/fixtures/v2-repo",
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "metas": {
+            "merge_by_id": [
+              {
+                "id": "B1",
+                "reads": [
+                  "packages/missing"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "metas": {
+            "merge_by_id": [
+              {
+                "id": "B1",
+                "reads": [
+                  "packages/feature-a"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_PATH_NOT_FOUND",
+        "must_fire": true
+      },
+      "source_delivery": "create-sdd v2 upgrade evaluation (working tree vs e55de9a)",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-CLAR-102",
+      "defect_class": "clarification-marker-in-inline-code",
+      "statement": "A document that explains the clarification syntax in inline code (`[NEEDS CLARIFICATION: <id> ...]`) is BLOCKED by SDD_V2_CLARIFICATION_UNTRACKED although it contains no open question.",
+      "root_cause": "The marker scan skips fenced code only; inline code spans are read as prose.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 174,
+        "quote": "for (const line of markdownProseLines(body))\n    for (const match of line.text.matchAll(CLARIFICATION))"
+      },
+      "fixture": "cases/fixtures/v2-clarification-inline.md",
+      "negative_fixture": "cases/fixtures/v2-clarification-untracked.md",
+      "negative_expectation": {
+        "must_fire": true
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_CLARIFICATION_UNTRACKED",
+        "must_fire": false
+      },
+      "source_delivery": "create-sdd self-review after round R-20260923163943",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-document.test.ts",
+      "introduced_detector_at": "2026-09-24"
     }
   ],
   "held_out": [

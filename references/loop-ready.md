@@ -1,4 +1,27 @@
-# SDD contract and readiness
+# Legacy v1 SDD contract and readiness
+
+This reference describes existing `sdd-loop-delivery/v1` documents. New implementation SDDs use [sdd/v2](v2-contract.md) and go directly to the chosen host. Do not load the legacy delivery fields into a new document.
+
+## When a v1 check fails
+
+Read the owning document before fixing the SDD; do not patch a field until the diagnostic disappears.
+
+| Diagnostic | Read |
+| --- | --- |
+| `SDD_CONTRACT_REQUIRED`, `CONTRACT_*` shape errors | [loop-ready](loop-ready.md), then the [worked example](examples/loop-ready-example.md) |
+| `SDD_REQUIRED_SECTION_*`, `SDD_IMPLEMENTATION_PLACEHOLDER` | [complete design template](complete-design.md) |
+| `CONTRACT_ACCEPTANCE_*`, `ACCEPTANCE_*` | [acceptance standards](product/acceptance-standards.md) and the [verification card](phases/4-verify.md) |
+| `DELIVERY_PLAN_*`, `*_TEST_BUDGET_*` | [work decomposition](work-decomposition.md) and [test budget](planning/test-budget.md) |
+| `CONTRACT_INVENTORY_*`, `CONTRACT_DEFERRAL_*`, `MUST_SHIP_DEFERRAL_REQUIRES_USER` | [admission card](phases/2-admit.md) and [decision authority](design/decision-authority.md) |
+| `TEST_FILE_*` | [verification card](phases/4-verify.md#test-hosts-and-names) |
+| `IMPLEMENTATION_LOGIC_*`, `DESIGN_CONVERGENCE_*`, `CONTRACT_NOT_CONVERGED` | [design card](phases/3-design.md) and [loop-ready](loop-ready.md) |
+| `SDD_PRESENTATION_SHIP_COVERAGE_INCOMPLETE` | [document presentation](document-presentation.md) |
+| `ACCEPTANCE_ARTIFACT_*` | [verification card](phases/4-verify.md#atomic-execution-and-failure-isolation) |
+| `CONTRACT_REFERENCE_*` | [Agent Context map](design/agent-context-map.md#evidence-companion) |
+| `SHARED_MECHANISM_*`, `TOOLCHAIN_VERSION_CONFLICT` | [artifacts and dependencies](design/artifacts-and-dependencies.md#dependency-operations) |
+| `MIGRATION_CANDIDATE_UNDISPOSED`, `MIGRATION_SYMBOL_UNSCANNABLE`, `MIGRATION_DISMISSED_*` | [migration](migration.md) |
+| `REPOSITORY_NOT_FOUND`, or entries in `facts.grounding_candidates` (review, not failure) | [admission card](phases/2-admit.md#run-decisive-probes-now) and the language guide |
+| Reading receipt `missing` or `stale` | the listed documents, then update their receipt lines |
 
 Load in phase 6 for a machine-checkable contract. Document checks (`validate`, `validate-draft`, `document-check`, `document-next-id`) run as `bun <create-sdd-root>/scripts/validate.ts <command>`. The contract was drafted in phase 5; this phase completes it. Field shapes are in the [worked example](examples/loop-ready-example.md); load it only for a first contract or an unclear field.
 
@@ -119,4 +142,4 @@ Implementation-targeting output converges before it is handed off. An open infor
 
 Independent review is subject to the user's agent and budget permissions; disclose when it was not performed. A review that runs must assess split rationale, source fidelity, execution ownership and implementability against the current candidate, not merely count IDs or receipts.
 
-<!-- reading-receipt: 09af9d83 -->
+<!-- reading-receipt: 8ec2ad7b -->

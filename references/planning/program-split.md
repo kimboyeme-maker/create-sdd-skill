@@ -1,4 +1,6 @@
-# Multi-SDD design and workflow handoff
+# Legacy v1 multi-SDD program
+
+This reference describes existing `sdd-program/v1` indexes and their historical delivery projections. New multi-SDD work uses the [shallow v2 program](../v2-program.md); its children are handed directly to the chosen host.
 
 Evaluate multi-SDD suitability after the initial requirement/ownership inventory, before committing to one large document. This reference is required for single-SDD choices too. Size is a signal, not a splitting rule. Present the proposed hierarchy, dependencies, work estimates, coordination cost and **the concurrency the split would actually reach**, and ask once whether to split. State that last number explicitly — the largest set of Bundles with no ordering between them, and the serial critical path in minutes — because a split's usual promise is wall-clock time and a cut can easily deliver none of it. A split whose reachable concurrency is 1 must be justified on other grounds (attribution, separate ownership, an external release boundary) or kept as one SDD; say which when you ask. An explicit split instruction already supplies this decision. Without approval retain a provisional root draft, not an implicitly approved single-SDD delivery; do not create children or tasks speculatively.
 
@@ -78,4 +80,4 @@ Creating documents does not start implementation, tests, commits, merges or extr
 
 Scheduling and executing a program is outside this skill. New single-SDD authoring also requires the approved assessment; preserve requirement IDs and budgets, and do not claim unverified host or runtime behavior.
 
-<!-- reading-receipt: 87d39804 -->
+<!-- reading-receipt: 44fbc362 -->

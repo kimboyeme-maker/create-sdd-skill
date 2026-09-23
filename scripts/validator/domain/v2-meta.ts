@@ -1,0 +1,617 @@
+import { existsSync } from 'node:fs'
+import { isAbsolute, posix, relative, resolve } from 'node:path'
+
+type Item = Record<string, unknown>
+type Kind = 'Entry' | 'Module' | 'Chunk' | 'Bundle' | 'Asset'
+type Meta = Item & { id: string; kind: Kind }
+type Leaf = Readonly<{ id: string; path: string; index: Item }>
+type Child = Readonly<{ id: string; path: string; depends_on: readonly string[] }>
+/** Report one diagnostic family; `subtype` names the specific relation that failed. */
+export type Report = (code: string, detail: string, subtype?: string) => void
+
+export type ExecutionSlice = Readonly<{
+  bundle: string
+  reads: readonly string[]
+  chunks: readonly { id: string; source_id: string; steps: readonly string[] }[]
+  modules: readonly {
+    id: string
+    source_id: string
+    origin: { document: string; requirement_id: string }
+  }[]
+  required_assets: readonly { id: string; path: string; version: string; producer: string }[]
+  /** `existing` or `new` against the repository; `unknown` when no repository was resolved. */
+  produced_assets: readonly {
+    id: string
+    path: string
+    version: string
+    status: 'existing' | 'new' | 'unknown'
+  }[]
+  /** Entries (user stories) touching this Bundle, highest priority first; undeclared priority last. */
+  entries: readonly {
+    id: string
+    priority: string | null
+    modules: readonly string[]
+    acceptance: readonly string[]
+  }[]
+  /** Entries of the highest declared priority: the smallest independently acceptable slice. */
+  mvp: readonly string[]
+  /**
+   * Chunk IDs in batch-dependency layers; a later layer waits for earlier ones. Chunks in one layer
+   * have no declared order, but the host still confirms their files do not overlap before running
+   * them together. Within a layer, higher-priority Entries come first.
+   */
+  waves: readonly (readonly string[])[]
+}>
+
+const object = (value: unknown): value is Item =>
+  !!value && typeof value === 'object' && !Array.isArray(value)
+const text = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0
+const array = (value: unknown): readonly unknown[] => (Array.isArray(value) ? value : [])
+const kinds = new Set<Kind>(['Entry', 'Module', 'Chunk', 'Bundle', 'Asset'])
+
+/** A relation list is a set of stable IDs, never an execution status or prose claim. */
+function refs(value: unknown, subtype: string, at: string, report: Report): string[] {
+  if (
+    !Array.isArray(value) ||
+    value.some((id) => !text(id)) ||
+    new Set(value).size !== value.length
+  ) {
+    report('SDD_V2_INDEX_SHAPE_INVALID', at, subtype)
+    return []
+  }
+  return value as string[]
+}
+
+/** A repository-relative path: not absolute, no backslash, `..`, bare `.` or glob. */
+export const pathForm = (path: string): boolean =>
+  !isAbsolute(path) &&
+  !path.includes('\\') &&
+  !path.split('/').includes('..') &&
+  posix.normalize(path) !== '.' &&
+  !path.includes('*')
+
+/** Whether `target` lies inside `base` (both canonical). */
+export const within = (base: string, target: string): boolean => {
+  const rel = relative(base, target)
+  return rel !== '..' && !rel.startsWith('../') && !isAbsolute(rel)
+}
+
+/** IDs grouped by dependency depth: layer 0 depends on nothing, layer n on earlier layers only. */
+export function layers(
+  ids: readonly string[],
+  depends: (id: string) => readonly string[]
+): string[][] {
+  const depth = new Map<string, number>()
+  const visit = (id: string, seen: Set<string>): number => {
+    if (depth.has(id)) return depth.get(id)!
+    if (seen.has(id)) return 0 // a cycle is reported elsewhere; keep the projection finite
+    seen.add(id)
+    const deps = depends(id)
+    const value = deps.length ? 1 + Math.max(...deps.map((dep) => visit(dep, seen))) : 0
+    depth.set(id, value)
+    return value
+  }
+  const result: string[][] = []
+  for (const id of ids) (result[visit(id, new Set())] ??= []).push(id)
+  return result.filter(Boolean)
+}
+
+/** Declared Entry priority `P<n>` as a number, lower first; undeclared sorts last. */
+const rank = (priority: unknown): number =>
+  typeof priority === 'string' && /^P[1-9]\d*$/.test(priority)
+    ? Number(priority.slice(1))
+    : Number.POSITIVE_INFINITY
+
+/**
+ * Fill the Meta kinds a one-document leaf leaves out, from relations its index already states.
+ *
+ * Every requirement that is not a non-goal becomes Module `M:<id>`, every batch Chunk `K:<id>` over
+ * the Modules of its requirements, the document Bundle `B:self`, and a missing Entry `E:self`
+ * groups every Module. Declared Metas win for their kind, and may reference the derived IDs.
+ * Derived IDs have no prose anchor to check: the requirement and batch anchors are their source.
+ */
+export function deriveLeafMetas(index: Item): {
+  index: Item
+  source: 'declared' | 'derived' | 'mixed'
+  derived: ReadonlySet<string>
+} {
+  if (index.metas !== undefined && !Array.isArray(index.metas))
+    return { index, source: 'declared', derived: new Set() }
+  const declared = array(index.metas).filter(object) as Meta[]
+  const added: Meta[] = []
+  const derive = (kind: Kind, make: () => Meta[]): Meta[] => {
+    const present = declared.filter((meta) => meta.kind === kind)
+    if (present.length) return present
+    added.push(...make())
+    return added.filter((meta) => meta.kind === kind)
+  }
+  const modules = derive('Module', () =>
+    array(index.requirements).flatMap((r): Meta[] =>
+      object(r) && text(r.id) && r.kind !== 'non-goal'
+        ? [
+            {
+              id: `M:${r.id}`,
+              kind: 'Module',
+              owner: 'self',
+              source_id: r.id,
+              origin: { document: 'self', requirement_id: r.id }
+            }
+          ]
+        : []
+    )
+  )
+  const chunks = derive('Chunk', () =>
+    array(index.batches).flatMap((b): Meta[] =>
+      object(b) && text(b.id)
+        ? [
+            {
+              id: `K:${b.id}`,
+              kind: 'Chunk',
+              owner: 'self',
+              source_id: b.id,
+              members: modules
+                .filter((m) => array(b.requirements).includes(m.source_id))
+                .map((m) => m.id)
+            }
+          ]
+        : []
+    )
+  )
+  derive('Bundle', () => [
+    { id: 'B:self', kind: 'Bundle', owner: 'self', members: chunks.map((c) => c.id), requires: [] }
+  ])
+  derive('Entry', () => [{ id: 'E:self', kind: 'Entry', members: modules.map((m) => m.id) }])
+  if (!added.length) return { index, source: 'declared', derived: new Set() }
+  return {
+    index: { ...index, metas: [...array(index.metas), ...added] },
+    source: declared.length ? 'mixed' : 'derived',
+    derived: new Set(added.map((meta) => meta.id))
+  }
+}
+
+/** Validate five Meta kinds as a projection of normative leaf IDs, then select one compact slice. */
+export function checkV2MetaGraph(
+  index: Item,
+  rootPath: string | null,
+  leaves: ReadonlyMap<string, Leaf>,
+  children: readonly Child[],
+  repository: string | null,
+  canonical: (path: string) => string,
+  originSource: (
+    owner: string,
+    document: string,
+    requirementId: string,
+    at: string
+  ) => string | null,
+  report: Report
+): ReadonlyMap<string, ExecutionSlice> {
+  const raw = array(index.metas)
+  if (!Array.isArray(index.metas) || !raw.length)
+    report('SDD_V2_REQUIRED_FIELD_EMPTY', rootPath ?? 'self', 'metas-required')
+  const metas = new Map<string, Meta>()
+  for (const value of raw) {
+    if (!object(value) || !text(value.id) || !kinds.has(value.kind as Kind)) {
+      report('SDD_V2_INDEX_SHAPE_INVALID', rootPath ?? 'self', 'meta-invalid')
+      continue
+    }
+    if (metas.has(value.id)) report('SDD_V2_ID_DUPLICATE', value.id, 'meta-id-duplicate')
+    else metas.set(value.id, value as Meta)
+  }
+  const ofKind = (kind: Kind): Meta[] => [...metas.values()].filter((meta) => meta.kind === kind)
+  for (const kind of ['Entry', 'Module', 'Chunk', 'Bundle'] as const)
+    if (!ofKind(kind).length) report('SDD_V2_REQUIRED_FIELD_EMPTY', kind, 'meta-kind-missing')
+  const modules = ofKind('Module')
+  const chunks = ofKind('Chunk')
+  const bundles = ofKind('Bundle')
+  const assets = ofKind('Asset')
+  const moduleByOrigin = new Map<string, Meta>()
+  const moduleBySource = new Map<string, Meta>()
+  const resolvedOrigins = new Map<string, string>()
+  const chunkByBatch = new Map<string, Meta>()
+  const bundleByOwner = new Map<string, Meta>()
+  const chunkBundle = new Map<string, string>()
+  const entryModules = new Set<string>()
+  const assetsByProducer = new Map<string, Meta[]>()
+  const assetPaths = new Map<string, string>()
+  const leafFor = (owner: unknown, at: string): Leaf | null => {
+    if (!text(owner) || !leaves.has(owner)) {
+      report('SDD_V2_INDEX_SHAPE_INVALID', at, 'meta-owner-invalid')
+      return null
+    }
+    return leaves.get(owner)!
+  }
+
+  for (const entry of ofKind('Entry')) {
+    if (entry.priority !== undefined && rank(entry.priority) === Number.POSITIVE_INFINITY)
+      report('SDD_V2_INDEX_SHAPE_INVALID', entry.id, 'entry-priority-invalid')
+    const members = refs(entry.members, 'entry-members-invalid', entry.id, report)
+    if (!members.length) report('SDD_V2_REQUIRED_FIELD_EMPTY', entry.id, 'entry-empty')
+    for (const id of members) {
+      if (metas.get(id)?.kind !== 'Module')
+        report('SDD_V2_REFERENCE_MISSING', `${entry.id} -> ${id}`, 'entry-module-missing')
+      else entryModules.add(id)
+    }
+  }
+  for (const module of modules) {
+    const leaf = leafFor(module.owner, module.id)
+    const origin = module.origin
+    if (
+      !leaf ||
+      !text(module.source_id) ||
+      !object(origin) ||
+      !text(origin.document) ||
+      !text(origin.requirement_id)
+    ) {
+      report('SDD_V2_INDEX_SHAPE_INVALID', module.id, 'module-origin-invalid')
+      continue
+    }
+    const requirement = array(leaf.index.requirements).find(
+      (value) => object(value) && value.id === module.source_id
+    )
+    if (!object(requirement) || requirement.kind === 'non-goal')
+      report('SDD_V2_META_SOURCE_MISMATCH', module.id, 'module-source-missing')
+    const sourceKey = JSON.stringify([module.owner, module.source_id])
+    if (moduleBySource.has(sourceKey))
+      report('SDD_V2_OWNER_CONFLICT', sourceKey, 'module-source-duplicate')
+    moduleBySource.set(sourceKey, module)
+    const document = originSource(
+      module.owner as string,
+      origin.document,
+      origin.requirement_id,
+      module.id
+    )
+    if (!document) continue
+    resolvedOrigins.set(module.id, document)
+    const originKey = JSON.stringify([document, origin.requirement_id])
+    if (moduleByOrigin.has(originKey))
+      report('SDD_V2_OWNER_CONFLICT', originKey, 'module-origin-duplicate')
+    moduleByOrigin.set(originKey, module)
+  }
+  for (const module of modules)
+    if (!entryModules.has(module.id))
+      report('SDD_V2_COVERAGE_MISSING', module.id, 'module-entry-missing')
+
+  for (const chunk of chunks) {
+    const leaf = leafFor(chunk.owner, chunk.id)
+    if (!leaf || !text(chunk.source_id)) {
+      report('SDD_V2_INDEX_SHAPE_INVALID', chunk.id, 'chunk-source-invalid')
+      continue
+    }
+    const batch = array(leaf.index.batches).find(
+      (value) => object(value) && value.id === chunk.source_id
+    )
+    if (!object(batch)) report('SDD_V2_META_SOURCE_MISMATCH', chunk.id, 'chunk-source-missing')
+    const key = `${chunk.owner}:${chunk.source_id}`
+    if (chunkByBatch.has(key)) report('SDD_V2_OWNER_CONFLICT', key, 'chunk-source-duplicate')
+    chunkByBatch.set(key, chunk)
+    const members = refs(chunk.members, 'chunk-members-invalid', chunk.id, report)
+    if (!members.length) report('SDD_V2_REQUIRED_FIELD_EMPTY', chunk.id, 'chunk-empty')
+    const requirements = new Set(array(object(batch) ? batch.requirements : undefined).filter(text))
+    const referenced = new Set<string>()
+    for (const id of members) {
+      const module = metas.get(id)
+      if (module?.kind !== 'Module' || module.owner !== chunk.owner || !object(module.origin)) {
+        report('SDD_V2_REFERENCE_MISSING', `${chunk.id} -> ${id}`, 'chunk-module-invalid')
+        continue
+      }
+      if (text(module.source_id)) referenced.add(module.source_id)
+    }
+    if (
+      requirements.size !== referenced.size ||
+      [...requirements].some((id) => !referenced.has(id))
+    )
+      report('SDD_V2_META_SOURCE_MISMATCH', chunk.id, 'chunk-source-diverged')
+  }
+
+  for (const bundle of bundles) {
+    if (!leafFor(bundle.owner, bundle.id)) continue
+    if (bundleByOwner.has(bundle.owner as string))
+      report('SDD_V2_OWNER_CONFLICT', String(bundle.owner), 'bundle-owner-duplicate')
+    else bundleByOwner.set(bundle.owner as string, bundle)
+    const members = refs(bundle.members, 'bundle-members-invalid', bundle.id, report)
+    if (!members.length) report('SDD_V2_REQUIRED_FIELD_EMPTY', bundle.id, 'bundle-empty')
+    for (const id of members) {
+      const chunk = metas.get(id)
+      if (chunk?.kind !== 'Chunk' || chunk.owner !== bundle.owner)
+        report('SDD_V2_REFERENCE_MISSING', `${bundle.id} -> ${id}`, 'bundle-chunk-invalid')
+      else if (chunkBundle.has(id)) report('SDD_V2_OWNER_CONFLICT', id, 'chunk-bundle-duplicate')
+      else chunkBundle.set(id, bundle.id)
+    }
+    for (const id of refs(bundle.requires, 'bundle-requires-invalid', bundle.id, report))
+      if (metas.get(id)?.kind !== 'Asset')
+        report('SDD_V2_REFERENCE_MISSING', `${bundle.id} -> ${id}`, 'required-asset-missing')
+    for (const path of refs(bundle.reads ?? [], 'bundle-reads-invalid', bundle.id, report)) {
+      if (!pathForm(path)) {
+        report('SDD_V2_PATH_INVALID', `${bundle.id}: ${path}`, 'bundle-read-path-invalid')
+        continue
+      }
+      if (repository) {
+        const target = canonical(resolve(repository, path))
+        if (!within(repository, target))
+          report('SDD_V2_PATH_ESCAPE', `${bundle.id}: ${path}`, 'bundle-read-path-escape')
+        // A read names input the host must find, so unlike a write it has to exist already.
+        else if (!existsSync(target))
+          report('SDD_V2_PATH_NOT_FOUND', `${bundle.id}: ${path}`, 'bundle-read-not-found')
+      }
+    }
+  }
+  for (const chunk of chunks)
+    if (!chunkBundle.has(chunk.id))
+      report('SDD_V2_COVERAGE_MISSING', chunk.id, 'chunk-bundle-missing')
+  for (const module of modules)
+    if (!chunks.some((chunk) => array(chunk.members).includes(module.id)))
+      report('SDD_V2_COVERAGE_MISSING', module.id, 'module-chunk-missing')
+
+  for (const asset of assets) {
+    const bundle = text(asset.producer) ? metas.get(asset.producer) : undefined
+    const leaf = bundle?.kind === 'Bundle' ? leafFor(bundle.owner, asset.id) : null
+    if (!leaf || !text(asset.path) || !text(asset.version)) {
+      report('SDD_V2_INDEX_SHAPE_INVALID', asset.id, 'asset-invalid')
+      continue
+    }
+    const path = asset.path
+    if (!pathForm(path)) report('SDD_V2_PATH_INVALID', asset.id, 'asset-path-invalid')
+    const normalized = posix.normalize(path)
+    if (repository) {
+      if (!within(repository, canonical(resolve(repository, normalized))))
+        report('SDD_V2_PATH_ESCAPE', asset.id, 'asset-path-escape')
+    }
+    if (
+      !array(leaf.index.writes).some(
+        (write) =>
+          text(write) &&
+          (normalized === posix.normalize(write) ||
+            normalized.startsWith(`${posix.normalize(write)}/`))
+      )
+    )
+      report('SDD_V2_META_SOURCE_MISMATCH', asset.id, 'asset-outside-write-scope')
+    const previous = assetPaths.get(normalized)
+    if (previous && previous !== asset.producer)
+      report(
+        'SDD_V2_OWNER_CONFLICT',
+        `${previous}, ${asset.producer}: ${normalized}`,
+        'asset-producer-conflict'
+      )
+    assetPaths.set(normalized, asset.producer as string)
+    const cases = refs(asset.acceptance, 'asset-acceptance-invalid', asset.id, report)
+    if (!cases.length) report('SDD_V2_REQUIRED_FIELD_EMPTY', asset.id, 'asset-acceptance-required')
+    for (const id of cases) {
+      if (
+        !array(leaf.index.acceptance).includes(id) ||
+        !array(leaf.index.requirements).some(
+          (value) =>
+            object(value) && value.kind !== 'non-goal' && array(value.acceptance).includes(id)
+        )
+      )
+        report('SDD_V2_META_SOURCE_MISMATCH', `${asset.id} -> ${id}`, 'asset-acceptance-unowned')
+    }
+    assetsByProducer.set(bundle!.id, [...(assetsByProducer.get(bundle!.id) ?? []), asset])
+  }
+
+  const byChild = new Map(children.map((child) => [child.id, child]))
+  for (const bundle of bundles) {
+    const owner = bundle.owner as string
+    for (const id of array(bundle.requires).filter(text)) {
+      const asset = metas.get(id)
+      const producer =
+        asset?.kind === 'Asset' && text(asset.producer) ? metas.get(asset.producer) : null
+      if (!producer || producer.kind !== 'Bundle' || producer.owner === owner) {
+        report(
+          'SDD_V2_INTERFACE_MISMATCH',
+          `${bundle.id} -> ${id}`,
+          'bundle-asset-dependency-invalid'
+        )
+        continue
+      }
+      if (rootPath && !byChild.get(owner)?.depends_on.includes(producer.owner as string))
+        report(
+          'SDD_V2_INTERFACE_MISMATCH',
+          `${owner} -> ${String(producer.owner)}`,
+          'bundle-dependency-missing'
+        )
+    }
+  }
+  for (const [owner, leaf] of leaves) {
+    if (!bundleByOwner.has(owner)) report('SDD_V2_COVERAGE_MISSING', owner, 'bundle-missing')
+    for (const value of array(leaf.index.requirements)) {
+      if (!object(value) || !text(value.id) || value.kind === 'non-goal') continue
+      const module = moduleBySource.get(JSON.stringify([owner, value.id]))
+      if (!module) {
+        report('SDD_V2_COVERAGE_MISSING', `${owner}: ${value.id}`, 'module-coverage-missing')
+        continue
+      }
+      if (value.kind !== 'must-ship') continue
+      const relatedChunks = chunks.filter(
+        (chunk) => chunk.owner === owner && array(chunk.members).includes(module.id)
+      )
+      const route = relatedChunks.some((chunk) => {
+        const batch = array(leaf.index.batches).find(
+          (item) => object(item) && item.id === chunk.source_id
+        )
+        return (
+          object(batch) &&
+          array(batch.steps).some((step) => array(value.implementation).includes(step)) &&
+          chunkBundle.get(chunk.id) === bundleByOwner.get(owner)?.id
+        )
+      })
+      if (!route)
+        report(
+          'SDD_V2_MUST_SHIP_CHAIN_INCOMPLETE',
+          `${owner}: ${value.id}`,
+          'must-ship-meta-chain-incomplete'
+        )
+    }
+    for (const batch of array(leaf.index.batches))
+      if (object(batch) && text(batch.id) && !chunkByBatch.has(`${owner}:${batch.id}`))
+        report('SDD_V2_COVERAGE_MISSING', `${owner}: ${batch.id}`, 'chunk-coverage-missing')
+    for (const exported of array(leaf.index.exports)) {
+      if (!object(exported) || !text(exported.asset)) continue
+      const asset = metas.get(exported.asset)
+      const producer =
+        asset?.kind === 'Asset' && text(asset.producer) ? metas.get(asset.producer) : null
+      if (
+        !asset ||
+        asset.kind !== 'Asset' ||
+        producer?.owner !== owner ||
+        asset.version !== exported.version
+      )
+        report(
+          'SDD_V2_META_SOURCE_MISMATCH',
+          `${owner}: ${String(exported.id)}`,
+          'export-asset-mismatch'
+        )
+    }
+    for (const consumed of array(leaf.index.consumes)) {
+      if (!object(consumed) || !text(consumed.document) || !text(consumed.export)) continue
+      const provider = leaves.get(consumed.document)
+      const exported = array(provider?.index.exports).find(
+        (value) => object(value) && value.id === consumed.export
+      )
+      const bundle = bundleByOwner.get(owner)
+      if (
+        !object(exported) ||
+        !text(exported.asset) ||
+        !array(bundle?.requires).includes(exported.asset)
+      )
+        report(
+          'SDD_V2_INTERFACE_MISMATCH',
+          `${owner}: ${consumed.document}/${consumed.export}`,
+          'consumer-asset-dependency-missing'
+        )
+    }
+  }
+
+  const slices = new Map<string, ExecutionSlice>()
+  for (const [owner, bundle] of bundleByOwner) {
+    const leaf = leaves.get(owner)!
+    const ownedChunks = array(bundle.members).flatMap((id) => {
+      const chunk = text(id) ? metas.get(id) : null
+      if (!chunk || chunk.kind !== 'Chunk' || !text(chunk.source_id)) return []
+      const batch = array(leaf.index.batches).find(
+        (value) => object(value) && value.id === chunk.source_id
+      )
+      return [
+        {
+          id: chunk.id,
+          source_id: chunk.source_id,
+          steps: array(object(batch) ? batch.steps : []).filter(text)
+        }
+      ]
+    })
+    const ownedModules = new Map<
+      string,
+      {
+        id: string
+        source_id: string
+        origin: { document: string; requirement_id: string }
+      }
+    >()
+    for (const chunk of ownedChunks) {
+      const meta = metas.get(chunk.id)!
+      for (const id of array(meta.members)) {
+        const module = text(id) ? metas.get(id) : null
+        if (
+          module?.kind === 'Module' &&
+          text(module.source_id) &&
+          object(module.origin) &&
+          text(module.origin.requirement_id) &&
+          resolvedOrigins.has(module.id)
+        )
+          ownedModules.set(module.id, {
+            id: module.id,
+            source_id: module.source_id,
+            origin: {
+              document: resolvedOrigins.get(module.id)!,
+              requirement_id: module.origin.requirement_id
+            }
+          })
+      }
+    }
+    const required_assets = array(bundle.requires).flatMap((id) => {
+      const asset = text(id) ? metas.get(id) : null
+      const producer =
+        asset?.kind === 'Asset' && text(asset.producer) ? metas.get(asset.producer) : null
+      return asset?.kind === 'Asset' &&
+        text(asset.path) &&
+        text(asset.version) &&
+        producer?.kind === 'Bundle'
+        ? [
+            {
+              id: asset.id,
+              path: asset.path,
+              version: asset.version,
+              producer: String(producer.owner)
+            }
+          ]
+        : []
+    })
+    const produced_assets = (assetsByProducer.get(bundle.id) ?? []).flatMap((asset) =>
+      text(asset.path) && text(asset.version)
+        ? [
+            {
+              id: asset.id,
+              path: asset.path,
+              version: asset.version,
+              status: !repository
+                ? ('unknown' as const)
+                : existsSync(resolve(repository, posix.normalize(asset.path)))
+                  ? ('existing' as const)
+                  : ('new' as const)
+            }
+          ]
+        : []
+    )
+    // Entries are the user stories this Bundle serves; their priority orders MVP and waves.
+    const requirementById = new Map(
+      array(leaf.index.requirements).flatMap((r) => (object(r) && text(r.id) ? [[r.id, r]] : []))
+    )
+    const entries = ofKind('Entry')
+      .map((entry) => {
+        const modules = array(entry.members).filter((id): id is string =>
+          ownedModules.has(id as string)
+        )
+        const acceptance = modules.flatMap((id) =>
+          array(requirementById.get(ownedModules.get(id)!.source_id)?.acceptance).filter(text)
+        )
+        const priority = rank(entry.priority) < Infinity ? (entry.priority as string) : null
+        return { id: entry.id, priority, modules, acceptance: [...new Set(acceptance)] }
+      })
+      .filter((entry) => entry.modules.length)
+      .sort((a, b) => rank(a.priority) - rank(b.priority))
+    const top = rank(entries[0]?.priority)
+    const mvp =
+      top < Infinity ? entries.filter((e) => rank(e.priority) === top).map((e) => e.id) : []
+    const chunkRank = (id: string) => {
+      const members = new Set(array(metas.get(id)?.members))
+      return Math.min(
+        ...entries.filter((e) => e.modules.some((m) => members.has(m))).map((e) => rank(e.priority))
+      )
+    }
+    const chunkByBatchId = new Map(ownedChunks.map((chunk) => [chunk.source_id, chunk.id]))
+    const waves = layers(
+      ownedChunks.map((chunk) => chunk.id),
+      (id) => {
+        const batch = array(leaf.index.batches).find(
+          (value) => object(value) && value.id === metas.get(id)?.source_id
+        )
+        return array(object(batch) ? batch.depends_on : []).flatMap((dep) =>
+          text(dep) && chunkByBatchId.has(dep) ? [chunkByBatchId.get(dep)!] : []
+        )
+      }
+    )
+    for (const wave of waves) wave.sort((a, b) => chunkRank(a) - chunkRank(b))
+    slices.set(owner, {
+      bundle: bundle.id,
+      reads: array(bundle.reads).filter(text),
+      chunks: ownedChunks,
+      modules: [...ownedModules.values()],
+      required_assets,
+      produced_assets,
+      entries,
+      mvp,
+      waves
+    })
+  }
+  return slices
+}

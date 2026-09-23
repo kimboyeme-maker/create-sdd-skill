@@ -5,7 +5,7 @@ Treat a design failure as a violation of one of these invariants and correct its
 1. **Problem truth:** evidence establishes the current behavior and gap, or the greenfield need, before a solution becomes normative. [Design basis](phases/2-admit.md#design-basis)
 2. **Single authority:** each semantic invariant and product decision has one accountable owner; projections and adapters never become parallel truth. [Ownership](phases/3-design.md#ownership-and-boundaries)
 3. **Causal closure:** scope and acceptance stop at the owned delta and demonstrably affected consumers; permission to observe a package never grants permission to modify it. [Gates](phases/4-verify.md#observed-packages-and-delivery-gates)
-4. **Proportionality:** the smallest conventional route that satisfies the observable outcome; complexity, compatibility layers, new primitives and broad gates need evidence. [Delivery priorities](../SKILL.md#delivery-priorities)
+4. **Proportionality:** the smallest conventional route that satisfies the observable outcome; complexity, compatibility layers, new primitives and broad gates need evidence. [Design standard](../SKILL.md#design-standard), [principle check](v2-authoring.md#3-design--how-under-the-principles)
 5. **Falsifiable evidence:** every material choice names its evidence and the cheapest check that could disprove it; a guard-backed claim proves its oracle flips when the guard is bypassed; a rule that blocks a route names the nearest fact that would make the route valid, and one incident never becomes a universal rule without a minimal contrast. [Probes](phases/2-admit.md#run-decisive-probes-now), [oracle sensitivity](phases/4-verify.md#oracle-sensitivity-for-guards), [behavior evaluation](behavior-evaluation.md)
 6. **One work graph:** the SDD owns requirements, dependencies, acceptance and batches; runtime packets are a lossless projection. [Work decomposition](work-decomposition.md)
 7. **Decision closure:** every known Must-Ship choice about public contracts, ownership, dependency direction, breaking behavior or user authority is resolved before implementation or is an explicit decision requirement. [Decision authority](design/decision-authority.md)
@@ -22,4 +22,4 @@ Treat a design failure as a violation of one of these invariants and correct its
 18. **Promise–branch traceability:** every stated guarantee is a branch in a step and an observed acceptance. [Design card](phases/3-design.md#asynchronous-work-and-context-bound-resources)
 19. **Irreversible-state safety:** destructive steps follow confirmed commits, and unrecognized data is preserved. [Design card](phases/3-design.md#irreversible-state-changes)
 
-<!-- reading-receipt: 8d1d1774 -->
+<!-- reading-receipt: 547dba72 -->

@@ -11,6 +11,7 @@ import { assertContractReferences } from '../helpers/contract-references'
 import { assertExperienceContract } from '../domain/experience-contract'
 import { assertArchitecture, assertDeliveryPlatforms } from '../domain/platform-architecture'
 import { executionRequests as readExecutionRequests } from '../domain/policies/execution-authorization'
+import { validateV2Document } from '../domain/v2-document'
 export type DocumentCheckResult = Readonly<{
   sdd: string
   valid: boolean
@@ -28,6 +29,9 @@ const REQUIRED = [
 export function documentCheck(sdd: string): DocumentCheckResult {
   const diagnostics: ReturnType<typeof checkDocument>[number][] = []
   try {
+    const text = readFileSync(sdd, 'utf8')
+    const v2 = validateV2Document(sdd, text)
+    if (v2) return { sdd: v2.sdd, valid: v2.valid, diagnostics: v2.diagnostics }
     // Contract documents use their versioned policy, including authoritative JSON
     // definitions and linked normative tables. Do not apply a second prose ID graph.
     if (!readContractDocument(sdd)) diagnostics.push(...checkDocument(sdd))
@@ -46,8 +50,11 @@ function validateText(
   text: string,
   sdd: string,
   documents: readonly { path: string; content: string }[] = [],
-  policy: DocumentPolicy = 'legacy'
+  policy: DocumentPolicy = 'legacy',
+  repository?: string
 ) {
+  const v2 = validateV2Document(sdd, text, documents, repository)
+  if (v2) return v2
   const diagnostics: ReturnType<typeof checkDocument>[number][] = []
   // A program root carries a node index instead of a contract and owns none of the IDs its prose
   // coordinates. Running the implementation checks over it produces a page of confident-looking
@@ -172,22 +179,27 @@ function validateText(
     ...(architecture ? { architecture } : {})
   }
 }
-export function validateDocument(sdd: string, policy: DocumentPolicy = 'legacy') {
-  return validateText(readFileSync(sdd, 'utf8'), sdd, [], policy)
+export function validateDocument(
+  sdd: string,
+  policy: DocumentPolicy = 'legacy',
+  repository?: string
+) {
+  return validateText(readFileSync(sdd, 'utf8'), sdd, [], policy, repository)
 }
 /** File-backed draft validation shares the exact memory parser and never creates state. */
-export function validateDraft(sdd: string, policy: DocumentPolicy = 'legacy') {
-  return validateDraftText(readFileSync(sdd, 'utf8'), sdd, [], policy)
+export function validateDraft(sdd: string, policy: DocumentPolicy = 'legacy', repository?: string) {
+  return validateDraftText(readFileSync(sdd, 'utf8'), sdd, [], policy, repository)
 }
 /** Validate candidate bytes without creating an SDD or sidecar. */
 export function validateDraftText(
   text: string,
   source = '<stdin>',
   documents: readonly { path: string; content: string }[] = [],
-  policy: DocumentPolicy = 'legacy'
+  policy: DocumentPolicy = 'legacy',
+  repository?: string
 ) {
   return {
-    ...validateText(text, source, documents, policy),
+    ...validateText(text, source, documents, policy, repository),
     draft: true as const,
     persisted: false as const
   }

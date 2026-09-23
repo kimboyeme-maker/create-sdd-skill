@@ -12,7 +12,7 @@
  *   document-check    --sdd <path>
  *   document-next-id  --sdd <path> --prefix <XX>
  */
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { isAbsolute, resolve } from 'node:path'
 import { documentDigest, record } from './lib/telemetry'
 import { contractBlock } from './lib/contract-source.ts'
@@ -41,7 +41,7 @@ const COMMANDS = [
   'contract-migrate'
 ] as const
 const USAGE =
-  'usage: validate.ts validate|validate-draft|document-check|contract|contract-migrate --sdd <path> [--document-policy current] [--design-policy current] | contract --sdd <path> [--check | --emit inline|sidecar|stdout] | validate-draft --draft-file <path> | validate-draft --sdd <abs> --documents-file <json> | document-next-id --sdd <path> --prefix <XX>'
+  'usage: validate.ts validate|validate-draft|document-check|contract|contract-migrate --sdd <path> [--repository <absolute-root>] [--document-policy current] [--design-policy current] | contract --sdd <path> [--check | --emit inline|sidecar|stdout] | validate-draft --draft-file <path> | validate-draft --sdd <abs> --documents-file <json> | document-next-id --sdd <path> --prefix <XX>'
 
 /** Read `--flag value` pairs; a bare flag reads as present with no value. */
 function flags(argv: readonly string[]): Map<string, string | undefined> {
@@ -72,6 +72,9 @@ export async function run(
     exit: result.valid ? 0 : 1
   })
   const sdd = value('--sdd')
+  const repository = value('--repository')
+  if (options.has('--repository') && (!repository || !isAbsolute(repository)))
+    throw new Error('REPOSITORY_PATH_ABSOLUTE_REQUIRED')
   if (command === 'contract-migrate') {
     if (!sdd) throw new Error('SDD_REQUIRED: pass --sdd /absolute/path/to/document.sdd.md')
     const text = readFileSync(sdd, 'utf8')
@@ -190,21 +193,22 @@ export async function run(
         roots[0]!.content as string,
         sdd,
         entries as { path: string; content: string }[],
-        policy
+        policy,
+        repository
       )
     )
   }
   if (command === 'validate-draft' && !sdd) {
     const draftFile = value('--draft-file')
     const text = draftFile ? readFileSync(draftFile, 'utf8') : await new Response(Bun.stdin).text()
-    return byValidity(validateDraftText(text, draftFile ?? '<stdin>', [], policy))
+    return byValidity(validateDraftText(text, draftFile ?? '<stdin>', [], policy, repository))
   }
   if (!sdd) throw new Error('SDD_REQUIRED: pass --sdd /absolute/path/to/document.sdd.md')
   return byValidity(
     command === 'validate'
-      ? validateDocument(sdd, policy)
+      ? validateDocument(sdd, policy, repository)
       : command === 'validate-draft'
-        ? validateDraft(sdd, policy)
+        ? validateDraft(sdd, policy, repository)
         : documentCheck(sdd)
   )
 }
@@ -237,7 +241,7 @@ if (import.meta.main) {
     if (!command) throw new Error(USAGE)
     const { output, exit } = await run(command, argv)
     const sdd = argv[argv.indexOf('--sdd') + 1]
-    if (sdd && argv.includes('--sdd'))
+    if (sdd && argv.includes('--sdd') && existsSync(sdd))
       record({
         tool: `validate:${command}`,
         sddSha: documentDigest(readFileSync(sdd, 'utf8')),

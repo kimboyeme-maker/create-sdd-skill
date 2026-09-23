@@ -1,4 +1,6 @@
-# Authoring lifecycle hooks
+# Legacy v1 authoring lifecycle hooks
+
+The six hooks and echo tokens on this page remain for existing v1 runs. New `sdd/v2` authoring validates and hands off directly; it does not use these hooks as a readiness gate.
 
 `scripts/lifecycle.ts` marks four points in an authoring run. Each one is a place where the session
 either learns something it cannot derive on its own, or is about to commit to something it cannot
@@ -78,10 +80,6 @@ that entry, never from the repository root's choice — a workspace file above a
 the workspace, not about the package, and reading the root instead is how a bun package acquires a
 `pnpm install`. An owned name the repository cannot resolve is blocking: every later check is scoped
 to these roots, so an unresolved one silently narrows the run to nothing.
-
-It also reads this skill's own RSI debt into `facts.skill_health`. Debt gates changes to the skill,
-never the document: at `REQUIRED` or `FREEZE` the run must not edit the skill except through a
-consolidation round (`rsi.ts update`), and authoring continues.
 
 ## `evidence` — once per run, when the fact ledger is assembled
 
@@ -185,4 +183,4 @@ What the journal closes is the weaker case — a session that calls the last hoo
 means the documents pass this skill's own checks — not that the design is
 right, that an agent read what it receipted, or that the work has been approved.
 
-<!-- reading-receipt: db956e21 -->
+<!-- reading-receipt: 91477d7d -->

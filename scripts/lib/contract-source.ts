@@ -85,11 +85,8 @@ export function programBlock(text: string): SourceBlock {
 }
 
 /**
- * The contract as written in the SDD. create-sdd never imports the delivery controller's code:
- * the controller judges the contract through its own `validate` command, and a contract it would
- * reject still declares the facts these checks need, so parsing the raw JSON never narrows a check.
- * The block rules above are kept equivalent to the controller's on purpose — the two skills must
- * never read different JSON out of one document.
+ * The contract as written in the SDD. New sdd/v2 documents are checked locally and handed to
+ * their host; existing v1 documents retain this block reader without importing delivery code.
  */
 export async function loadContract(
   _sdd: string,
