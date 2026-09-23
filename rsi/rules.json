@@ -2389,12 +2389,13 @@
       "asset": "code:PSEUDOCODE_SYMBOL_UNRESOLVED",
       "kind": "issue-code",
       "sites": [
-        "scripts/repo-facts.ts"
+        "scripts/repo-facts.ts",
+        "scripts/validator/domain/v2-symbols.ts"
       ],
       "weight": {
-        "sites": 1,
-        "mentions": 1,
-        "test_mentions": 0
+        "sites": 2,
+        "mentions": 2,
+        "test_mentions": 1
       }
     },
     {
@@ -3018,7 +3019,7 @@
       ],
       "weight": {
         "sites": 1,
-        "mentions": 6,
+        "mentions": 8,
         "test_mentions": 0
       }
     },

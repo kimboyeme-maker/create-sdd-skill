@@ -3,12 +3,12 @@
   "note": "A round freezes these ceilings and its measured starting size when it opens. For ordinary rounds, `prune` rejects growth beyond the higher of those two values; inherited overage remains visible in `health` and cannot be worsened. An explicit budget-change round may revise ceilings and is RECORDED after clean checks, never credited with a repair. Historical raises and ratchets remain records; close no longer ratchets automatically.",
   "set_at": "2026-09-23",
   "ceilings": {
-    "SKILL.md.characters": 9200,
+    "SKILL.md.characters": 9500,
     "references.lines": 4600,
-    "validator.lines": 6480,
+    "validator.lines": 6700,
     "behavior_cases": 46,
-    "scripts.lines": 13200,
-    "tests.lines": 4150
+    "scripts.lines": 13420,
+    "tests.lines": 4250
   },
   "raises": [
     {
@@ -114,6 +114,38 @@
       "at": "2026-09-24",
       "round": "budget-change",
       "reason": "Two new modes (bug fix, assessment) in the mode table and the --evidence convergence command; the entry is where a reader chooses a mode, so they cannot live only in references."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 6480,
+      "to": 6700,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "Two semantic checks for the v2 route: step pseudocode symbols resolved against the owned source (the v1 candidate, ported), and a behaviour proof in convergence (same command failing at a baseline commit and passing at the change, commits checked read-only in git). The previous ceiling was reached by compaction, leaving no room; the raise is sized to the two checks plus their comments."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 13200,
+      "to": 13420,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "Same growth as validator.lines, plus the rules consolidated in R-20260923172234 already taken out."
+    },
+    {
+      "dimension": "tests.lines",
+      "from": 4150,
+      "to": 4250,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "Owning tests for symbol candidates and proven/unproven closure rows."
+    },
+    {
+      "dimension": "SKILL.md.characters",
+      "from": 9200,
+      "to": 9500,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "One line each for the symbol candidate and behaviour proof, where a reader decides what `validate` and `--evidence` can and cannot prove."
     }
   ],
   "introduced": [

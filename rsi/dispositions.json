@@ -1,5 +1,14 @@
 {
   "protocol": "skill-rule-dispositions/v1",
   "note": "A current retain, replace or delete decision belongs to one rule and records its concrete counterexample, supported scope, trade-off and deciding round. The previous bulk category reasons remain in Git history, not as current evidence. Repeated checks of one SDD revision do not advance a review window.",
-  "dispositions": []
+  "dispositions": [
+    {
+      "asset": "code:RSI_ROUND_KIND_REFUSED",
+      "disposition": "delete",
+      "decided_in": "R-20260923172234",
+      "counterexample": "With debt advisory every level admits every round kind, so the refusal could never fire; the code already left the sources and the constant ADMITTED_KINDS table that stood in for it is deleted in this round.",
+      "scope": "rsi.ts open.",
+      "tradeoff": "A high debt no longer blocks rounds; it is reported by health and update and settled by consolidation rounds like this one."
+    }
+  ]
 }

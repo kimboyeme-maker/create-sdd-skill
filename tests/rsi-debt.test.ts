@@ -3,11 +3,9 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { TELEMETRY_FILE } from '../scripts/lib/telemetry'
 import {
-  ADMITTED_KINDS,
   consolidationFindings,
   debt,
   levelOf,
-  ratchet,
   undisposedDormant,
   updateAgenda,
   type ClosedRound,
@@ -60,16 +58,6 @@ test('debt counts only unresolved additions: evidence or a retired asset settles
   expect(retired.level).toBe('NONE')
 })
 
-test('debt is advisory: every level still admits every round kind', () => {
-  for (const level of ['NONE', 'NOTICE', 'REQUIRED', 'FREEZE'] as const)
-    expect([...ADMITTED_KINDS[level]].sort()).toEqual([
-      'budget-change',
-      'case-amendment',
-      'consolidation',
-      'improvement'
-    ])
-})
-
 test('a consolidation must shrink the skill and may not grow any dimension', () => {
   const before = {
     measured: { 'scripts.lines': 100, 'references.lines': 50, behavior_cases: 4 },
@@ -93,10 +81,6 @@ test('a consolidation must shrink the skill and may not grow any dimension', () 
       rules: 9
     })
   ).toEqual(['references.lines grew from 50 to 60'])
-})
-
-test('ceilings ratchet down to the new measurement and never up', () => {
-  expect(ratchet({ a: 1000, b: 100 }, { a: 800, b: 150 })).toEqual({ a: 808, b: 100 })
 })
 
 test('a dormant rule counts until someone decides, and again once its review is due', () => {
@@ -152,7 +136,6 @@ test('update suggests consolidation under debt but never withholds enhancement',
     protocol: 'skill-rsi-health/v1',
     level,
     signals: [],
-    admitted_kinds: ADMITTED_KINDS[level],
     undisposed_dormant: [],
     redundant_pairs: [],
     measured: {},

@@ -7,56 +7,80 @@
       "added_at": "2026-09-23",
       "round": "R-20260923-contract-derivation",
       "supersedes": [],
-      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste.",
+      "counterexample": "A presentation table in prose lists an item the JSON presentation.items dropped; readers and the loop disagree on what the document presents.",
+      "scope": "v1 contracts only: `validate.ts contract --check` on an sdd-loop-delivery/v1 document whose prose table derives this field.",
+      "tradeoff": "One code per derivable field, so the message names the field; eight codes instead of one family."
     },
     {
       "asset": "code:CONTRACT_DRIFT_DESIGN_DETAIL",
       "added_at": "2026-09-23",
       "round": "R-20260923-contract-derivation",
       "supersedes": [],
-      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste.",
+      "counterexample": "A design-detail table updated in prose after review while the JSON copy kept the old route; the loop implements the stale one.",
+      "scope": "v1 contracts only: `validate.ts contract --check` on an sdd-loop-delivery/v1 document whose prose table derives this field.",
+      "tradeoff": "One code per derivable field, so the message names the field; eight codes instead of one family."
     },
     {
       "asset": "code:CONTRACT_DRIFT_OWNERSHIP_PACKAGES",
       "added_at": "2026-09-23",
       "round": "R-20260923-contract-derivation",
       "supersedes": [],
-      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste.",
+      "counterexample": "CSDD-OWN-101: ownership.packages in JSON omitted a package the batches' modification tables write, so the loop leased the wrong package set.",
+      "scope": "v1 contracts only: `validate.ts contract --check` on an sdd-loop-delivery/v1 document whose prose table derives this field.",
+      "tradeoff": "One code per derivable field, so the message names the field; eight codes instead of one family."
     },
     {
       "asset": "code:CONTRACT_DRIFT_MIGRATION_APPLICABILITY",
       "added_at": "2026-09-23",
       "round": "R-20260923-contract-derivation",
       "supersedes": [],
-      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste.",
+      "counterexample": "Prose marks migration APPLICABLE (a public export is removed) while JSON says NOT_APPLICABLE, so no reader inventory is demanded.",
+      "scope": "v1 contracts only: `validate.ts contract --check` on an sdd-loop-delivery/v1 document whose prose table derives this field.",
+      "tradeoff": "One code per derivable field, so the message names the field; eight codes instead of one family."
     },
     {
       "asset": "code:CONTRACT_DRIFT_INVENTORY_AUTHORITIES_SOURCE_INVENTORY_ROOTS",
       "added_at": "2026-09-23",
       "round": "R-20260923-contract-derivation",
       "supersedes": [],
-      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste.",
+      "counterexample": "Prose adds a workspace root to the source inventory; JSON keeps the old roots, so repo-facts scans too little.",
+      "scope": "v1 contracts only: `validate.ts contract --check` on an sdd-loop-delivery/v1 document whose prose table derives this field.",
+      "tradeoff": "One code per derivable field, so the message names the field; eight codes instead of one family."
     },
     {
       "asset": "code:CONTRACT_DRIFT_DESIGN_CONVERGENCE_STATUS",
       "added_at": "2026-09-23",
       "round": "R-20260923-contract-derivation",
       "supersedes": [],
-      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste.",
+      "counterexample": "Prose says IN_REVIEW after a reopened blocker while JSON still says CONVERGED, so the document reads as ready.",
+      "scope": "v1 contracts only: `validate.ts contract --check` on an sdd-loop-delivery/v1 document whose prose table derives this field.",
+      "tradeoff": "One code per derivable field, so the message names the field; eight codes instead of one family."
     },
     {
       "asset": "code:CONTRACT_DRIFT_REQUIREMENTS",
       "added_at": "2026-09-23",
       "round": "R-20260923-contract-derivation",
       "supersedes": [],
-      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste.",
+      "counterexample": "A requirement added to the prose table never reaches the JSON requirements list, so no acceptance or batch is required for it.",
+      "scope": "v1 contracts only: `validate.ts contract --check` on an sdd-loop-delivery/v1 document whose prose table derives this field.",
+      "tradeoff": "One code per derivable field, so the message names the field; eight codes instead of one family."
     },
     {
       "asset": "code:CONTRACT_DRIFT_MIGRATION_LEGACY_SURFACES",
       "added_at": "2026-09-23",
       "round": "R-20260923-contract-derivation",
       "supersedes": [],
-      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste.",
+      "counterexample": "Prose lists a legacy export to remove that JSON migration.legacy_surfaces lacks; its readers are never inventoried.",
+      "scope": "v1 contracts only: `validate.ts contract --check` on an sdd-loop-delivery/v1 document whose prose table derives this field.",
+      "tradeoff": "One code per derivable field, so the message names the field; eight codes instead of one family."
     },
     {
       "asset": "code:API_SURFACE_DEGENERATE_INPUT",
@@ -66,49 +90,70 @@
         "code:PSEUDOCODE_SYMBOL_UNRESOLVED (partially: the regular-expression candidate never blocked and reported no type information)"
       ],
       "supersedes_nothing_because": null,
-      "note": "PSEUDOCODE_SYMBOL_UNRESOLVED is not removed. It covers pseudocode symbols, which the probe does not read; the overlap is the API section, where the probe is strictly stronger."
+      "note": "PSEUDOCODE_SYMBOL_UNRESOLVED is not removed. It covers pseudocode symbols, which the probe does not read; the overlap is the API section, where the probe is strictly stronger.",
+      "counterexample": "CSDD-TYPE-001: a factory typed IMiddlewarePipelineHost<TValue, never> admitted no stage registration while every other gate passed.",
+      "scope": "type-probe.ts check on documents with exported TypeScript fences or an API section (v1 and v2).",
+      "tradeoff": "Compiles the declared surface in a scratch project: seconds per document, and nothing for documents without TypeScript."
     },
     {
       "asset": "code:DEFECT_CASE_DETECTOR_NOT_BUN",
       "added_at": "2026-09-23",
       "round": "R-20260923015156",
       "supersedes": [],
-      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule."
+      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule.",
+      "counterexample": "A defect case whose detector command starts with `node` would run outside the pinned runtime and the suite would silently compare different tools.",
+      "scope": "rsi.ts suite/evaluate/close reading cases/defect-cases.json.",
+      "tradeoff": "Detectors must be bun commands; a case needing another runtime wraps it in a bun script."
     },
     {
       "asset": "code:EXAMPLE_CONTRACT_BLOCK_MISSING",
       "added_at": "2026-09-23",
       "round": "R-20260923015156",
       "supersedes": [],
-      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule."
+      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule.",
+      "counterexample": "An overlay fixture whose base file lost its contract block would apply the overlay to nothing and the case would test an empty document.",
+      "scope": "rsi.ts fixture materialisation (lib/example-overlay.ts).",
+      "tradeoff": "Every overlay base must keep a contract block."
     },
     {
       "asset": "code:EXAMPLE_OVERLAY_MERGE_TARGET_NOT_ARRAY",
       "added_at": "2026-09-23",
       "round": "R-20260923015156",
       "supersedes": [],
-      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule."
+      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule.",
+      "counterexample": "A merge_by_id overlay aimed at an object field would replace it wholesale, turning a one-fact change into a different document.",
+      "scope": "rsi.ts fixture overlays using merge_by_id.",
+      "tradeoff": "merge_by_id only targets arrays of records with ids."
     },
     {
       "asset": "code:RSI_NO_OPEN_ROUND",
       "added_at": "2026-09-23",
       "round": "R-20260923015156",
       "supersedes": [],
-      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule."
+      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule.",
+      "counterexample": "`rsi.ts evaluate` run with no open round would compare against no baseline and print a meaningless pass.",
+      "scope": "rsi.ts baseline/evaluate/prune/close.",
+      "tradeoff": "Round commands require `open` first."
     },
     {
       "asset": "code:CONTRACT_BLOCK_NOT_FOUND",
       "added_at": "2026-09-23",
       "round": "R-20260923025034",
       "supersedes": [],
-      "supersedes_nothing_because": "A precondition of the generator's write side: it fires when `contract --emit` is called on a document with no contract block, or with an emit mode that does not exist. It constrains the command's caller, not the document."
+      "supersedes_nothing_because": "A precondition of the generator's write side: it fires when `contract --emit` is called on a document with no contract block, or with an emit mode that does not exist. It constrains the command's caller, not the document.",
+      "counterexample": "`contract --emit inline` on a document without a contract block would append a new block at an arbitrary place instead of refusing.",
+      "scope": "validate.ts contract --emit (v1 derivation write side).",
+      "tradeoff": "The author adds the block first; the tool never guesses its position."
     },
     {
       "asset": "code:CONTRACT_EMIT_INVALID",
       "added_at": "2026-09-23",
       "round": "R-20260923025034",
       "supersedes": [],
-      "supersedes_nothing_because": "A precondition of the generator's write side: it fires when `contract --emit` is called on a document with no contract block, or with an emit mode that does not exist. It constrains the command's caller, not the document."
+      "supersedes_nothing_because": "A precondition of the generator's write side: it fires when `contract --emit` is called on a document with no contract block, or with an emit mode that does not exist. It constrains the command's caller, not the document.",
+      "counterexample": "`contract --emit sidecar2` (a typo) would otherwise fall through to stdout and look like a successful write.",
+      "scope": "validate.ts contract --emit.",
+      "tradeoff": "Three explicit modes only: inline, sidecar, stdout."
     },
     {
       "asset": "code:CONTRACT_UNIVERSAL_CLAIM_UNIVERSE_REQUIRED",
@@ -116,7 +161,10 @@
       "round": "R-20260923-universal-claim",
       "supersedes": [],
       "supersedes_nothing_because": "It generalises a requirement that already existed in one place only. `MIGRATION_ZERO_READER_CLAIM_INVALID` demands a universe for zero-reader migration claims and keeps doing so; this one asks the same of every universal claim, which is where the gap was. Neither is removed: the migration code also checks dimension and oracle sensitivity, which this one does not.",
-      "found_by": "one-field perturbation of the worked example, recorded as an open finding on 2026-09-23 and closed the same day"
+      "found_by": "one-field perturbation of the worked example, recorded as an open finding on 2026-09-23 and closed the same day",
+      "counterexample": "CSDD-CLAIM-101: an acceptance claiming 'no caller uses X' with no declared universe passed outside migrations, so absence was asserted over an unknown search space.",
+      "scope": "v1 contracts with claim.quantifier UNIVERSAL.",
+      "tradeoff": "Authors must name the searched universe for every universal claim, not only migration ones."
     },
     {
       "asset": "code:RSI_ROUND_KIND_REFUSED",

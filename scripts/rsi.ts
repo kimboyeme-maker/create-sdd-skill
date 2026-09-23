@@ -217,22 +217,11 @@ export const DEBT_THRESHOLDS = {
 } as const satisfies Record<string, readonly number[]>
 export type DebtSignalName = keyof typeof DEBT_THRESHOLDS
 
-/** Existing level names remain compatible, while every kind stays open for evidenced repairs. */
-export const ADMITTED_KINDS: Readonly<Record<DebtLevel, readonly Kind[]>> = {
-  NONE: KINDS,
-  NOTICE: KINDS,
-  REQUIRED: KINDS,
-  FREEZE: KINDS
-}
-
 /**
  * A rule becomes a dormancy candidate only after it has had a chance to fire: its introduction must
  * be older than this many days, and telemetry must hold a full window of distinct revisions.
  */
 export const DORMANCY_MIN_AGE_DAYS = 14
-
-/** Optional margin for an explicit budget adjustment; close never rewrites the budget. */
-export const RATCHET_MARGIN = 0.01
 
 export type ClosedRound = Readonly<{
   id: string
@@ -401,22 +390,6 @@ export function consolidationFindings(
   return findings
 }
 
-/**
- * Compute a smaller ceiling for an explicit budget decision; this helper does not change the file.
- */
-export function ratchet(
-  ceilings: Readonly<Record<string, number>>,
-  measured: Readonly<Record<string, number>>
-): Record<string, number> {
-  const next: Record<string, number> = { ...ceilings }
-  for (const [dimension, ceiling] of Object.entries(ceilings)) {
-    const value = measured[dimension]
-    if (value === undefined) continue
-    next[dimension] = Math.min(ceiling, Math.ceil(value * (1 + RATCHET_MARGIN)))
-  }
-  return next
-}
-
 /** Parse a JSON file, or return the fallback when it is absent. */
 const readJson = <T>(file: string, fallback: T): T =>
   existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as T) : fallback
@@ -438,7 +411,6 @@ export type SkillHealth = Readonly<{
   protocol: 'skill-rsi-health/v1'
   level: DebtLevel
   signals: readonly DebtSignal[]
-  admitted_kinds: readonly Kind[]
   undisposed_dormant: readonly string[]
   redundant_pairs: readonly (readonly [string, string])[]
   measured: Record<string, number>
@@ -485,7 +457,6 @@ export function skillHealth(now = new Date()): SkillHealth {
     protocol: 'skill-rsi-health/v1',
     level,
     signals,
-    admitted_kinds: ADMITTED_KINDS[level],
     undisposed_dormant: undisposed,
     redundant_pairs: [...pairs.values()],
     measured,
@@ -1130,7 +1101,6 @@ function main(argv: readonly string[]): number {
         {
           protocol: 'skill-rsi-update/v1',
           level: current.level,
-          admitted_kinds: current.admitted_kinds,
           signals: current.signals,
           agenda: updateAgenda({
             health: current,
