@@ -1,0 +1,74 @@
+{
+  "protocol": "skill-defect-cases/v1",
+  "note": "Held out of the visible suite. These two were chosen because nothing in the current work touches what they check — a batch's test budget and an acceptance's link to its requirement — so holding them back costs day-to-day feedback nothing and still gives each round a result it was not aiming at.",
+  "cases": [
+    {
+      "id": "CSDD-LINK-101",
+      "defect_class": "acceptance-points-at-a-requirement-that-does-not-exist",
+      "source_delivery": "create-sdd worked example, perturbed",
+      "observed_at": "2026-09-23",
+      "statement": "An acceptance case references a requirement ID no requirement defines.",
+      "fixture": {
+        "base": "references/examples/loop-ready-example.md",
+        "overlay": {
+          "acceptance": {
+            "merge_by_id": [
+              {
+                "id": "YS01",
+                "requirement_ids": [
+                  "XQ99"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "negative_fixture": {
+        "base": "references/examples/loop-ready-example.md",
+        "overlay": {}
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate-draft --draft-file <fixture>",
+        "expected_code": "CONTRACT_ACCEPTANCE_REQUIREMENT_LINK_MISMATCH",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      }
+    },
+    {
+      "id": "CSDD-PLAN-102",
+      "defect_class": "batch-without-a-test-budget",
+      "source_delivery": "create-sdd worked example, perturbed",
+      "observed_at": "2026-09-23",
+      "statement": "A batch carries no test_budget, so nothing bounds what it may run.",
+      "fixture": {
+        "base": "references/examples/loop-ready-example.md",
+        "overlay": {
+          "delivery_plan": {
+            "batches": {
+              "merge_by_id": [
+                {
+                  "id": "PC01",
+                  "test_budget": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      "negative_fixture": {
+        "base": "references/examples/loop-ready-example.md",
+        "overlay": {}
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate-draft --draft-file <fixture>",
+        "expected_code": "DELIVERY_PLAN_TEST_BUDGET_INVALID",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      }
+    }
+  ]
+}

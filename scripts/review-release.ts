@@ -8,9 +8,8 @@ import { join } from 'node:path'
  * well formed. They do not prove that an authoring agent reads, understands or follows the rules.
  */
 const ROOT = join(import.meta.dir, '..')
-/** The delivery skill owns these; both are invoked as CLIs, never imported. */
+/** The delivery skill owns these; they are invoked as CLIs, never imported. */
 const LOOP_ROOT = join(ROOT, '..', 'sdd-loop-delivery')
-const BEHAVIOR_EVAL = join(LOOP_ROOT, 'scripts', 'behavior-eval.ts')
 
 /** `needsLoop` marks a check the sibling skill must be installed to run at all. */
 type ReleaseCheck = readonly [name: string, argv: readonly string[], needsLoop?: true]
@@ -22,8 +21,18 @@ const checks: readonly ReleaseCheck[] = [
   ['receipts', ['scripts/reading-receipt.ts', 'verify']],
   ['links', ['scripts/check-links.ts']],
   ['control-plane', ['scripts/check-control-plane.ts'], true],
-  ['examples', ['scripts/check-examples.ts'], true],
-  ['behavior-cases', [BEHAVIOR_EVAL, '--suite', 'cases/behavior-cases.json', '--runs', '1'], true]
+  // `check-examples` runs this skill's own validator, so its sibling flag was stale.
+  ['examples', ['scripts/check-examples.ts']],
+  // These two check files this skill owns, so they no longer depend on the sibling skill being
+  // installed: a release review that turned invalid over a missing neighbour was reporting a
+  // packaging fact as a coverage gap.
+  [
+    'behavior-cases',
+    ['scripts/behavior-eval.ts', '--suite', 'cases/behavior-cases.json', '--runs', '1']
+  ],
+  ['defect-cases', ['scripts/behavior-eval.ts', '--mechanical']],
+  ['contract-drift', ['scripts/check-contract-drift.ts']],
+  ['budget', ['scripts/check-budget.ts']]
 ]
 
 export type CheckPlan = Readonly<{ check: string; argv: readonly string[]; skipped?: string }>

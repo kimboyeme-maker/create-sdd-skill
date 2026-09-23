@@ -1,0 +1,202 @@
+{
+  "id": "R-20260923015659",
+  "kind": "budget-change",
+  "goal": "raise the references ceiling for the loop's own honesty documentation",
+  "opened_at": "2026-09-23T01:56:59.556Z",
+  "head": "85657102333b426f85da93e9cb91eeca74edb129",
+  "commitments": {
+    "cases/defect-cases.json": "2f688d739feb9d359d90d0468361a7c578acc65e504dcd03f65d884b154da098",
+    "cases/behavior-cases.json": "54bdce804ac38d5a73c0fb361b4b4855e34361804c5217bc64fb0cf82afb7b6d",
+    "cases/fixtures/CSDD-TYPE-001.md": "6088047aa54ed7f7d94d80810b1222f0b9c095ccb15a90ed737c5b3fa33d5a00",
+    "cases/fixtures/CSDD-TYPE-001.ok.md": "7b5a62533dcac4438fb4aa67266181c799e64a4a8f9ede0b33ec3946e7111347",
+    "cases/held-out/README.md": "65a7ec6ec35df4b4a7e2dd397c719ec4445edf9e94b584ad28931d7d79217ba5"
+  },
+  "budget": {
+    "SKILL.md.characters": 8771,
+    "references.lines": 4333,
+    "validator.lines": 4294,
+    "behavior_cases": 48
+  },
+  "prune": {
+    "over_budget": [],
+    "unjustified_additions": []
+  },
+  "baseline": {
+    "at": "2026-09-23T01:57:08.895Z",
+    "results": [
+      {
+        "id": "CSDD-TYPE-001",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "API_SURFACE_DEGENERATE_INPUT"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ADVERSARIAL",
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-LINK-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_ACCEPTANCE_REQUIREMENT_LINK_MISMATCH",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DELIVERY_PLAN_REQUIREMENT_UNKNOWN",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DELIVERY_PLAN_TEST_BUDGET_INVALID",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-INDEX-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "MJ01",
+          "SDD_CONTRACT_INVALID",
+          "SDD_PRESENTATION_OBJECT_UNINDEXED"
+        ]
+      },
+      {
+        "id": "CSDD-OWN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_DRIFT_OWNERSHIP_PACKAGES"
+        ]
+      }
+    ]
+  },
+  "candidate": {
+    "at": "2026-09-23T01:57:09.492Z",
+    "results": [
+      {
+        "id": "CSDD-TYPE-001",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "API_SURFACE_DEGENERATE_INPUT"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ADVERSARIAL",
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-LINK-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_ACCEPTANCE_REQUIREMENT_LINK_MISMATCH",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DELIVERY_PLAN_REQUIREMENT_UNKNOWN",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DELIVERY_PLAN_TEST_BUDGET_INVALID",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-INDEX-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "MJ01",
+          "SDD_CONTRACT_INVALID",
+          "SDD_PRESENTATION_OBJECT_UNINDEXED"
+        ]
+      },
+      {
+        "id": "CSDD-OWN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_DRIFT_OWNERSHIP_PACKAGES"
+        ]
+      }
+    ],
+    "regressions": []
+  },
+  "closed_at": "2026-09-23T01:57:09.531Z",
+  "verdict": "ACCEPTED",
+  "not_proven": [
+    "that the change makes the skill better at anything not covered by a mechanical case",
+    "that an authoring agent reads, understands or follows any rule involved",
+    "that a reader with write access could not have edited a case; the guard makes that visible, not impossible"
+  ]
+}

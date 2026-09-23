@@ -953,31 +953,6 @@
       }
     },
     {
-      "id": "CSDD-TOOLCHAIN-001",
-      "title": "Acceptance runtimes match repository pins",
-      "skill": "create-sdd",
-      "evidence_level": "trace",
-      "single_changed_fact": "whether acceptance runs with a version that contradicts a repository pin",
-      "bad": {
-        "task_mode": "design",
-        "request": "Design a Node service change in a repository that pins its runtime version.",
-        "starting_state": "The repository pins the package manager at one version, but every acceptance environment names the newer version installed on the author machine.",
-        "material_action": "Admit the acceptance environments.",
-        "expected_decision": "REJECT",
-        "decisive_fact": "Verification would run a toolchain the product does not use.",
-        "completion_oracle": "Environments use the pinned version or name an exception."
-      },
-      "good": {
-        "task_mode": "design",
-        "request": "Design a Node service change in a repository that pins its runtime version.",
-        "starting_state": "Acceptance uses the pinned product version; the delivery controller needs a newer runtime and that difference is recorded in environment_exceptions with its reason.",
-        "material_action": "Admit the acceptance environments.",
-        "expected_decision": "ALLOW",
-        "decisive_fact": "Product and controller runtimes are recorded separately.",
-        "completion_oracle": "repo-facts reports no TOOLCHAIN_VERSION_CONFLICT."
-      }
-    },
-    {
       "id": "CSDD-CONVERGENCE-001",
       "title": "An information question is closed or owned, never carried into handoff",
       "skill": "create-sdd",
@@ -1025,56 +1000,6 @@
         "expected_decision": "ALLOW",
         "decisive_fact": "Waiting for an answer is not unfinished design work, and the delivery loop has a user-decision channel for exactly this shape.",
         "completion_oracle": "repo-facts.ts check returns valid true while the status stays IN_REVIEW, and the delivery raises the question as a USER_DECISION admission."
-      }
-    },
-    {
-      "id": "CSDD-CONVERGENCE-003",
-      "title": "All three review lenses are applied, not only the one that agrees",
-      "skill": "create-sdd",
-      "evidence_level": "trace",
-      "single_changed_fact": "whether the adversarial and acceptance-topology lenses were actually applied",
-      "bad": {
-        "task_mode": "design",
-        "request": "Converge a completed design.",
-        "starting_state": "A synthesis pass is recorded whose own evidence says it is a single-owner self-review.",
-        "material_action": "Claim convergence on that one pass and leave the adversarial and acceptance-topology lenses unrecorded.",
-        "expected_decision": "REJECT",
-        "decisive_fact": "A lens with no recorded pass was not applied, and an absent result is not a clean one.",
-        "completion_oracle": "repo-facts.ts check reports DESIGN_GATE_LENS_MISSING for each unrecorded lens."
-      },
-      "good": {
-        "task_mode": "design",
-        "request": "Converge a completed design.",
-        "starting_state": "The same synthesis pass.",
-        "material_action": "Apply the adversarial and acceptance-topology lenses to the final design and record each result with its evidence, rerunning any lens invalidated by a later normative change.",
-        "expected_decision": "ALLOW",
-        "decisive_fact": "Each lens examines a different failure class, so convergence rests on all three being applied after the last normative change.",
-        "completion_oracle": "The contract carries the latest PASS per lens with evidence and repo-facts.ts check returns valid true."
-      }
-    },
-    {
-      "id": "CSDD-TOOLCHAIN-002",
-      "title": "A package is run with the manager it declares, not the one the repository root uses",
-      "skill": "create-sdd",
-      "evidence_level": "trace",
-      "single_changed_fact": "which declaration the command follows when the repository makes two",
-      "bad": {
-        "task_mode": "design",
-        "request": "Design a change to a website package inside a monorepo.",
-        "starting_state": "The workspace file at the repository root lists the package as a pnpm member, while the package manifest declares packageManager bun and carries its own bun lockfile.",
-        "material_action": "Write the acceptance method and probes as pnpm commands because the repository root uses pnpm.",
-        "expected_decision": "REJECT",
-        "decisive_fact": "A manifest declaration plus the package s own lockfile is a statement about that package; a workspace list above it is a statement about the workspace. The nearer and more specific one governs the package s commands.",
-        "completion_oracle": "repo-facts.ts check reports COMMAND_PACKAGE_MANAGER_MISMATCH and the document is not handed off until the commands use bun."
-      },
-      "good": {
-        "task_mode": "design",
-        "request": "Design a change to a website package inside a monorepo.",
-        "starting_state": "The same two declarations.",
-        "material_action": "Read declared_managers from the package facts and write every command for that package with the entry for the ecosystem the command belongs to.",
-        "expected_decision": "ALLOW",
-        "decisive_fact": "The skill resolves the precedence itself rather than asking the author to choose between two things that are not equally authoritative.",
-        "completion_oracle": "Every command for the package names its declared manager and repo-facts.ts check returns valid true."
       }
     },
     {
@@ -1201,6 +1126,26 @@
         "decisive_fact": "Disclosure is not authorization: the host still approves or refuses each operation. What it removes is the interruption caused by discovering a known fact late, which is a design omission rather than a host restriction.",
         "completion_oracle": "Every REQUIRED sensitivity names perturbation_writes, write_disposition and restoration_check, and the Delivery & Verification section lists every operation beyond reading the tree and running the declared acceptance commands."
       }
+    }
+  ],
+  "retired": [
+    {
+      "id": "CSDD-CONVERGENCE-003",
+      "retired_at": "2026-09-23",
+      "superseded_by": "CSDD-CONVERGENCE-101",
+      "reason": "Its completion oracle was a validator report and nothing else, so a judge added no information the detector does not already give. The mechanical case decides it by running the command, where optimising for the test and fixing the defect are the same action."
+    },
+    {
+      "id": "CSDD-TOOLCHAIN-001",
+      "retired_at": "2026-09-23",
+      "superseded_by": "CSDD-TOOLCHAIN-101",
+      "reason": "Its completion oracle was a validator report and nothing else, so a judge added no information the detector does not already give. The mechanical case decides it by running the command, where optimising for the test and fixing the defect are the same action."
+    },
+    {
+      "id": "CSDD-TOOLCHAIN-002",
+      "retired_at": "2026-09-23",
+      "superseded_by": "CSDD-MANAGER-101",
+      "reason": "Its completion oracle was a validator report and nothing else, so a judge added no information the detector does not already give. The mechanical case decides it by running the command, where optimising for the test and fixing the defect are the same action."
     }
   ]
 }

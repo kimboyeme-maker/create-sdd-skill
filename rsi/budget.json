@@ -1,0 +1,45 @@
+{
+  "protocol": "skill-budget/v1",
+  "note": "Measured ceilings, not aspirational ones, and measured by the same counter that checks them: `rsi.ts prune` compares against `measure()`, so a ceiling taken from `wc -l` would sit 47 lines low for no reason anyone could find later. Each value was the measurement on the day it was set, with a small margin, so the skill cannot grow along these dimensions without a --kind budget-change round saying so out loud. A ceiling set below the current value would be a permanently failing check, which teaches the reader to ignore it.",
+  "set_at": "2026-09-23",
+  "ceilings": {
+    "SKILL.md.characters": 8800,
+    "references.lines": 4340,
+    "validator.lines": 4550,
+    "behavior_cases": 48
+  },
+  "raises": [
+    {
+      "dimension": "references.lines",
+      "from": 4290,
+      "to": 4340,
+      "at": "2026-09-23",
+      "round": "budget-change",
+      "reason": "The loop's own guarantees had to be written where a reader of this skill will meet them — references/behavior-evaluation.md — including the three lines that say which guards are convention rather than enforcement. Spending 43 lines of the budget on stating a limit honestly is the trade this ceiling exists to make visible, not to prevent."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 4310,
+      "to": 4400,
+      "at": "2026-09-23",
+      "round": "budget-change",
+      "reason": "The derivation gained write-back (`--emit`), the reverse projection behind `contract-migrate`, and one drift code per derived field. Those 98 lines are the generator's write side; the read side they serve removed far more from the documents than they add here, which is the trade this ceiling exists to surface rather than to block."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 4400,
+      "to": 4420,
+      "at": "2026-09-23",
+      "round": "budget-change",
+      "reason": "A universal claim with no declared universe was accepted everywhere outside a migration. Fifteen lines close that, and the gate stopping the release over seven of them is the ceiling doing its job: the trade is now written down instead of drifting."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 4420,
+      "to": 4550,
+      "at": "2026-09-23",
+      "round": "budget-change",
+      "reason": "Two changes that pay for themselves in the documents rather than here. `resolveDerivable` lets a document that wrote a requirement table omit the JSON copy entirely — the logger SDD lost 94 contract lines to it, more than this raise costs. `readDeclarations` reads an exported surface from a document's own fences when it has no canonical API section, taking the type probe from 8 documents of 83 to 36."
+    }
+  ]
+}

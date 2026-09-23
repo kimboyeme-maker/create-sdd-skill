@@ -40,4 +40,54 @@ A rule that agents skip under pressure needs a pressure scenario, not more empha
 
 Loop retrospectives (`evolution-digest` `trace` proposals targeting create-sdd) are the preferred source of Bad arms: they carry cited delivery evidence.
 
-<!-- reading-receipt: aa09c9b2 -->
+## Who owns this format
+
+`skill-behavior-cases/v1` is defined here and implemented by `scripts/behavior-eval.ts` in this
+skill. A diverged copy of that script still exists in `sdd-loop-delivery`; this skill does not read
+it, and no check here consults it. When the two disagree, this one is right by definition — the
+format's definition and its implementation live in the same place on purpose.
+
+## Mechanical defect cases
+
+A defect case is decided by running one command and comparing the codes it reports: no agent, no
+judge, no credits. `bun <create-sdd-root>/scripts/rsi.ts suite` runs them all; `cases/defect-cases.json`
+holds them. Each one names a fixture where the code must fire and a repaired fixture where it must
+not, and the second half is what makes a pass mean anything — a detector that fired on everything
+would satisfy the first half alone.
+
+Most fixtures are the worked example with one thing changed, written as an overlay rather than a
+copy. A hand-written pair of five-hundred-line documents drifts apart in a dozen incidental ways and
+then a pass no longer says which difference mattered; an overlay on a shared base cannot.
+
+For a mechanically decided case, **optimising for the test and fixing the defect are the same
+action**. That is the whole reason to prefer them: reward hacking needs somewhere to hide, and a
+comparison of code sets offers nowhere. Behaviour cases, which need a judge, keep a weaker evidence
+level for exactly the same reason.
+
+## The improvement loop and what it can enforce
+
+`rsi.ts open → baseline → evaluate → prune → close` runs one change per round. Its guards differ in
+strength and the difference is stated here rather than implied:
+
+| Mechanism | Strength |
+|---|---|
+| Every previously passing case must still pass (`evaluate`) | Real, and needs no trust: a rule relaxed to admit a new case breaks an old one immediately |
+| sha256 commitments taken at `open` over every case file | Real: a change becomes visible in the round record |
+| `evaluate` refuses when the round's diff weakens a detector's expected code or a completion oracle | Real, and it reads untracked files too — reading only the diff once let a round edit an expected code unnoticed |
+| Held-out cases under `cases/held-out/` | Real as detection, **not** as prevention |
+| An improvement round may not amend a case; `--kind case-amendment` exists for that and claims no gain | Real that the two cannot happen in one round; whether the amendment is honest is a human judgement |
+| "The improver does not read the held-out set" | **Convention only.** Same machine, same permissions, no sandbox. Do not describe it as enforced |
+| Sandboxing or a read-only mount | **Not provided.** A published self-improving system has been observed hacking its own reward function and fabricating logs, so this gap is real and is recorded rather than papered over |
+
+`prune` is not optional. An addition must name what it supersedes or say why it supersedes nothing
+(`rsi/supersession.json`), and four measured ceilings in `rsi/budget.json` bound SKILL.md, the
+references, the validator and the behaviour-case count. A ceiling moves only in a `--kind
+budget-change` round, so every raise is a decision somebody made rather than a drift nobody saw.
+
+## What a green round does not prove
+
+That the change improved anything outside the mechanical cases. That an authoring agent reads,
+understands or follows any rule involved. That nobody could have edited a case — only that the edit
+would show.
+
+<!-- reading-receipt: 875a52f4 -->

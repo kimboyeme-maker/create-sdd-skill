@@ -24,14 +24,27 @@ in **Apply** are satisfied.
 
 | Date | Repository / lane | Batch | Estimated | Actual | Ratio | Note |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2026-09-16 | migai / logger | PC01 | 15 min | 10.8 min | 0.72 | Two acceptance cases: one new case in an existing test host, one document row with its own comparison oracle. Delivered to SHIP across four contract revisions. `docs/logger/batch-overflow-coverage.sdd.md.retrospective.json`. |
+| 2026-09-16 | migai / logger | PC01 | 15 min | 10.8 min | 0.72 | Two acceptance cases: one new case in an existing test host, one document row with its own comparison oracle. `docs/logger/batch-overflow-coverage.sdd.md.retrospective.json`. |
+| 2026-09-21 | migai / utils | PC01 | 40 min | 12.2 min | 0.30 | `docs/utils/shared-boundary-primitives.sdd.md.retrospective.json`. |
+| 2026-09-21 | migai / event-subscriber | PC02 | 30 min | 2.1 min | 0.07 | Same delivery. A type-only edge with no product logic. |
+| 2026-09-21 | migai / event-subscriber | PC03 | 50 min | 21 min | 0.42 | Same delivery. The largest batch of the six and still under half its estimate. |
+| 2026-09-21 | migai / middleware-pipeline | PC04 | 30 min | 7.6 min | 0.25 | Same delivery. |
+| 2026-09-21 | migai / utils | PC05 | 25 min | 3.4 min | 0.14 | Same delivery. |
 
-One sample. It says a deliberately small batch came in under its estimate; it cannot say whether
-that is a systematic bias or a property of a batch chosen to be small, which is exactly why one
-sample is not calibration. Note also that this batch's elapsed time is dominated by evidence work —
-readbacks, signed runs, two sensitivity flips — rather than by writing the thirty lines of product
-change, so a lane median built from batches like it would mispredict a batch whose cost is the
-code itself.
+Six samples across two deliveries, every one of them under estimate, with a median ratio near 0.28.
+Read that as a statement about the estimator, not about the work: estimates here are being set two to
+four times higher than the lease actually needs, and the four lowest ratios are all boundary or
+type-level batches whose cost was decided by reading rather than by writing.
+
+It is still not calibration under **Apply**: no lane has three samples, and the overall five is met
+by one delivery of five batches, which is one observation of one estimator on one day, not five
+independent ones. What it does support is a named suspicion — that batches whose work is reading and
+evidence get padded like batches whose work is code — which the next delivery can confirm or kill.
+
+These rows were not transcribed by hand. `bun <create-sdd-root>/scripts/rsi.ts ingest --files <a,b>`
+reads them out of the retrospectives and reports any row the ledger is missing; the five rows above
+were exactly that report. The first sample sat here alone for five days while a second delivery had
+already produced five more, which is the whole reason the command exists.
 
 ## Anti-patterns
 
@@ -39,4 +52,4 @@ code itself.
 - Calibrating from one delivery or from batches shorter than five minutes.
 - Inflating every estimate to the cap to avoid overruns; it destroys wave planning and credit budgets.
 
-<!-- reading-receipt: ed7b1204 -->
+<!-- reading-receipt: ca1beb2e -->

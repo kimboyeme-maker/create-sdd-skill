@@ -1,0 +1,122 @@
+{
+  "protocol": "skill-supersession/v1",
+  "note": "Every rule this skill gains must either replace something or say why it replaces nothing. The requirement exists because the skill's own first invariant says to correct a violation at its cause rather than add an incident-specific clause, and thirteen commits of +14000/-730 show that nothing was enforcing it.",
+  "additions": [
+    {
+      "asset": "code:CONTRACT_DRIFT_PRESENTATION_ITEMS",
+      "added_at": "2026-09-23",
+      "round": "R-20260923-contract-derivation",
+      "supersedes": [],
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+    },
+    {
+      "asset": "code:CONTRACT_DRIFT_DESIGN_DETAIL",
+      "added_at": "2026-09-23",
+      "round": "R-20260923-contract-derivation",
+      "supersedes": [],
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+    },
+    {
+      "asset": "code:CONTRACT_DRIFT_OWNERSHIP_PACKAGES",
+      "added_at": "2026-09-23",
+      "round": "R-20260923-contract-derivation",
+      "supersedes": [],
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+    },
+    {
+      "asset": "code:CONTRACT_DRIFT_MIGRATION_APPLICABILITY",
+      "added_at": "2026-09-23",
+      "round": "R-20260923-contract-derivation",
+      "supersedes": [],
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+    },
+    {
+      "asset": "code:CONTRACT_DRIFT_INVENTORY_AUTHORITIES_SOURCE_INVENTORY_ROOTS",
+      "added_at": "2026-09-23",
+      "round": "R-20260923-contract-derivation",
+      "supersedes": [],
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+    },
+    {
+      "asset": "code:CONTRACT_DRIFT_DESIGN_CONVERGENCE_STATUS",
+      "added_at": "2026-09-23",
+      "round": "R-20260923-contract-derivation",
+      "supersedes": [],
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+    },
+    {
+      "asset": "code:CONTRACT_DRIFT_REQUIREMENTS",
+      "added_at": "2026-09-23",
+      "round": "R-20260923-contract-derivation",
+      "supersedes": [],
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+    },
+    {
+      "asset": "code:CONTRACT_DRIFT_MIGRATION_LEGACY_SURFACES",
+      "added_at": "2026-09-23",
+      "round": "R-20260923-contract-derivation",
+      "supersedes": [],
+      "supersedes_nothing_because": "It is the first check on a field nothing checked before. `validate` accepts a document whose ownership disagrees with what its batches write, whose presentation index is stale, or whose convergence status contradicts its own lists; these codes report exactly that. Each one is pinned to a mechanical case, so a later round can retire it against evidence rather than taste."
+    },
+    {
+      "asset": "code:API_SURFACE_DEGENERATE_INPUT",
+      "added_at": "2026-09-23",
+      "round": "R-20260923-type-probe",
+      "supersedes": [
+        "code:PSEUDOCODE_SYMBOL_UNRESOLVED (partially: the regular-expression candidate never blocked and reported no type information)"
+      ],
+      "supersedes_nothing_because": null,
+      "note": "PSEUDOCODE_SYMBOL_UNRESOLVED is not removed. It covers pseudocode symbols, which the probe does not read; the overlap is the API section, where the probe is strictly stronger."
+    },
+    {
+      "asset": "code:DEFECT_CASE_DETECTOR_NOT_BUN",
+      "added_at": "2026-09-23",
+      "round": "R-20260923015156",
+      "supersedes": [],
+      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule."
+    },
+    {
+      "asset": "code:EXAMPLE_CONTRACT_BLOCK_MISSING",
+      "added_at": "2026-09-23",
+      "round": "R-20260923015156",
+      "supersedes": [],
+      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule."
+    },
+    {
+      "asset": "code:EXAMPLE_OVERLAY_MERGE_TARGET_NOT_ARRAY",
+      "added_at": "2026-09-23",
+      "round": "R-20260923015156",
+      "supersedes": [],
+      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule."
+    },
+    {
+      "asset": "code:RSI_NO_OPEN_ROUND",
+      "added_at": "2026-09-23",
+      "round": "R-20260923015156",
+      "supersedes": [],
+      "supersedes_nothing_because": "A precondition of the new tooling, not a rule imposed on a document: it fires when the loop itself is called wrongly. The ledger cannot tell the two apart from the source alone, so it is recorded here rather than left looking like a new authoring rule."
+    },
+    {
+      "asset": "code:CONTRACT_BLOCK_NOT_FOUND",
+      "added_at": "2026-09-23",
+      "round": "R-20260923025034",
+      "supersedes": [],
+      "supersedes_nothing_because": "A precondition of the generator's write side: it fires when `contract --emit` is called on a document with no contract block, or with an emit mode that does not exist. It constrains the command's caller, not the document."
+    },
+    {
+      "asset": "code:CONTRACT_EMIT_INVALID",
+      "added_at": "2026-09-23",
+      "round": "R-20260923025034",
+      "supersedes": [],
+      "supersedes_nothing_because": "A precondition of the generator's write side: it fires when `contract --emit` is called on a document with no contract block, or with an emit mode that does not exist. It constrains the command's caller, not the document."
+    },
+    {
+      "asset": "code:CONTRACT_UNIVERSAL_CLAIM_UNIVERSE_REQUIRED",
+      "added_at": "2026-09-23",
+      "round": "R-20260923-universal-claim",
+      "supersedes": [],
+      "supersedes_nothing_because": "It generalises a requirement that already existed in one place only. `MIGRATION_ZERO_READER_CLAIM_INVALID` demands a universe for zero-reader migration claims and keeps doing so; this one asks the same of every universal claim, which is where the gap was. Neither is removed: the migration code also checks dimension and oracle sensitivity, which this one does not.",
+      "found_by": "one-field perturbation of the worked example, recorded as an open finding on 2026-09-23 and closed the same day"
+    }
+  ]
+}
