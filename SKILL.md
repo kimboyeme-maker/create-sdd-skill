@@ -55,7 +55,7 @@ Create, refactor and merge work runs directly in the current task. Implementatio
 
 ## Commands
 
-Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's header.
+Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's header. `lifecycle.ts initial` also reports this skill's RSI debt: at `REQUIRED` or `FREEZE` change the skill only through a consolidation round; authoring is never blocked.
 
 | Command | Use |
 |---|---|
@@ -66,7 +66,8 @@ Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's head
 | `validate.ts document-check` | Non-implementation documents only |
 | `repo-facts.ts check --sdd <SDD> [--repository <root>]` | Binds the document's claims to the repository |
 | `reading-receipt.ts check --sdd <SDD>` | Receipt coverage, including every node of a program root |
-| `type-probe.ts check --sdd <SDD>` | Type-checks the API section's declared surface; its output states what it does not prove |
+| `type-probe.ts check --sdd <SDD>` | Type-checks the API section's declared surface |
+| `rsi.ts update` | `/create-sdd update` runs it, then works its agenda (open round → consolidate → enhance) as rounds |
 
 ## Output
 

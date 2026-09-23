@@ -5,18 +5,8 @@ import { join } from 'node:path'
 /**
  * Validate this skill's own behaviour cases, and run the mechanical ones.
  *
- * It lived in `sdd-loop-delivery` until now, which meant this skill's release review was invalid
- * whenever the sibling skill was not installed — for a check over files this skill owns. Whoever
- * defines the format owns the implementation; `validate.ts` settled that for documents and this
- * follows it.
- *
- * **A copy remains at `sdd-loop-delivery/scripts/behavior-eval.ts` and the two have already
- * diverged.** This file is the authority for `skill-behavior-cases/v1`: create-sdd defines the
- * format, owns `cases/behavior-cases.json`, and reads only this copy. Nothing here calls the
- * sibling's, and no check in this skill consults it. If that copy is ever changed, the change does
- * not reach this skill — which is stated here because two implementations of one format is the
- * condition invariant 2 (single authority) exists to forbid, and the honest disposition of the
- * other copy belongs to whoever owns that skill.
+ * This file is the single authority for `skill-behavior-cases/v1`: create-sdd defines the format,
+ * owns `cases/behavior-cases.json`, and implements it here.
  *
  * What it does with a behaviour case is validate its shape and expand its arms. It starts no agent
  * and spends no credits, so a green result here says the suite is well formed, not that any rule was

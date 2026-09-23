@@ -1,0 +1,1887 @@
+{
+  "protocol": "skill-rule-dispositions/v1",
+  "note": "Decisions about dormant rules — never fired in the audit window, older than the minimum age, pinned by no mechanical case. A retained rule leaves the undisposed count until its review falls due, counted in runs; deletion and merging need no entry because the rule leaves the catalog. Reasons are per category and each category is a claim a later round can falsify.",
+  "dispositions": [
+    {
+      "asset": "code:ACCEPTANCE_ARTIFACT_CONSUMPTION_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ACCEPTANCE_EVIDENCE_BOUNDARY_DUPLICATE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ACCEPTANCE_EXECUTION_BOUNDARY_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ACCEPTANCE_EXECUTION_DEPENDENCIES_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ACCEPTANCE_EXECUTION_DEPENDENCY_CYCLE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ACCEPTANCE_EXECUTION_DEPENDENCY_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ACCEPTANCE_EXECUTION_ISOLATION_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ACCEPTANCE_EXECUTION_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ACCEPTANCE_EXECUTION_TIMEOUT_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ACCEPTANCE_FAILURE_CONTAINMENT_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:ACCEPTANCE_INDEPENDENT_TARGET_REUSED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_BLOCK_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_CLASS_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_CLASS_OUTSIDE_BLOCK",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_ENTRY_AMBIGUOUS",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_ENTRY_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_LINK_ESCAPES_ROOT",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_LINK_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_LINK_NOT_FOUND",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_LINK_OUTSIDE_BLOCK",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_MAP_EMPTY",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:AGENT_CONTEXT_SOURCE_CLASS_CONFLICT",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ARCHITECTURE_ADAPTERS_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ARCHITECTURE_ADAPTER_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:ARCHITECTURE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CHALLENGE_REASONED_BUT_CLOSED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_ACCEPTANCE_CLAIM_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_ACCEPTANCE_DUPLICATE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_ACCEPTANCE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_ACCEPTANCE_REFERENCE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_ACCEPTANCE_REFERENCE_UNRESOLVED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_ACCEPTANCE_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_ADMISSION_VERIFICATION_ACCEPTANCE_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_ADMISSION_VERIFICATION_METHOD_MISMATCH",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_ADMISSION_VERIFICATION_PACKAGE_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_ADMISSION_VERIFICATION_REQUIREMENT_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_ADMISSION_VERIFICATION_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_ADMISSION_VERIFICATION_SURFACE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_ADMISSION_WORKSPACE_GATE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_BLOCK_COUNT",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_DECISION_METADATA_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_DECISION_RESOLUTION_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_DECISION_STATUS_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_DEFERRAL_METADATA_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_DEPENDENCY_CYCLE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_DEPENDENCY_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_INVENTORY_AUTHORITIES_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_JSON_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_PROTOCOL_UNSUPPORTED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_REFERENCE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_REQUIREMENTS_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_REQUIREMENT_DUPLICATE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_REQUIREMENT_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_REQUIREMENT_TYPE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_REVISION_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:CONTRACT_RUNTIME_RESOLUTION_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:CONTRACT_SOURCE_INVENTORY_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:DELIVERY_PLAN_BATCH_DUPLICATE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DELIVERY_PLAN_BATCH_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DELIVERY_PLAN_DEPENDENCY_CYCLE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DELIVERY_PLAN_DEPENDENCY_UNKNOWN",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DELIVERY_PLAN_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DELIVERY_PLAN_SHARDS_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DELIVERY_PLAN_SHARD_COVERAGE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DELIVERY_PLATFORMS_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_APPLICABILITY_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_DUPLICATE_FIELD",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_FIELD_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_HEADING_AMBIGUOUS",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_INDEX_DRIFT",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_OBJECT_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_PATHS_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_PROTOCOL_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_PSEUDOCODE_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_SECTION_REUSED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_SOURCE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_STEPS_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_STEP_KIND_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_DETAIL_STEP_SOURCE_REUSED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DESIGN_GATE_LENS_DUPLICATED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:DESIGN_GATE_LENS_NOT_PASSED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:DESIGN_GATE_UNSTABLE",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:DESIGN_NOT_CONVERGED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:DOCUMENT_ID_EXHAUSTED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DOCUMENT_PREFIX_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DRAFT_DOCUMENTS_ARGS_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DRAFT_DOCUMENTS_ARRAY_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DRAFT_DOCUMENT_DUPLICATE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DRAFT_DOCUMENT_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DRAFT_ROOT_CONTENT_CONFLICT",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DRAFT_ROOT_PATH_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:DRAFT_ROOT_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EARLY_FALSIFIER_CLAIM_BINDING_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:EARLY_FALSIFIER_FACT_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:EARLY_FALSIFIER_METHOD_NOT_ACCEPTANCE_ORACLE",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:EARLY_FALSIFIER_ROUTE_INSPECTION_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:EARLY_FALSIFIER_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:EXECUTION_PACKETS_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXECUTION_PACKET_ACCEPTANCE_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXECUTION_PACKET_DEPENDENCIES_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXECUTION_PACKET_DEPENDENCY_CYCLE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXECUTION_PACKET_DEPENDENCY_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXECUTION_PACKET_ID_DUPLICATE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXECUTION_PACKET_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXECUTION_PACKET_REQUIREMENT_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_COMPONENT_HOOK_INVALID",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_CONTRACT_INVALID",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_DELTA_PRODUCT_CONTRACT_REQUIRED",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_JOURNEYS_REQUIRED",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_JOURNEY_INVALID",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_READABILITY_REQUIRED",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_READING_CONTINUATION_REQUIRED",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_ROUTES_REQUIRED",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_ROUTE_INVALID",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_STYLE_HOOKS_REQUIRED",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_STYLE_TOKEN_INVALID",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_TEMPLATES_REQUIRED",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_TEMPLATE_DUPLICATE",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:EXPERIENCE_TEMPLATE_INVALID",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:IMPLEMENTATION_LOGIC_PATH_CYCLE",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_APPLICABILITY_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_CLOSURE_NOT_APPLICABLE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_CLOSURE_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_CONTRACT_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_CUTOVER_MODE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_DISMISSED_CANDIDATE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_DISMISSED_CANDIDATE_IS_READER",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_EARLY_FALSIFIER_MISMATCH",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_INVENTORY_FACT_NOT_PASS",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_LEGACY_RUNTIME_ACCEPTANCE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_LEGACY_RUNTIME_ACCEPTANCE_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_LEGACY_RUNTIME_AUTHORITY_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_LEGACY_RUNTIME_NOT_APPLICABLE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_LEGACY_RUNTIME_PROBE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_READER_CLOSURE_UNRESOLVED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_READER_MODULE_DUPLICATE",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_READER_NOT_ORDERED_BEFORE_REMOVAL",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_READER_PACKET_COVERAGE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_READER_PACKET_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_READER_RETAINS_REMOVED_SURFACE",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_REFINED_ZERO_READER_INVENTORY_INCOMPLETE",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_REFINED_ZERO_READER_RUNTIME_PROOF_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_REMOVAL_PACKET_COVERAGE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_REMOVAL_PACKET_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_SYMBOL_TOO_GENERIC",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MIGRATION_SYMBOL_UNSCANNABLE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:MIGRATION_ZERO_READER_CLAIM_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:MUST_SHIP_DEFERRAL_REQUIRES_USER",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:ORACLE_SENSITIVITY_EVIDENCE_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:ORACLE_SENSITIVITY_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:ORACLE_SENSITIVITY_PROCEDURE_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:ORACLE_SENSITIVITY_REASON_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:ORACLE_SENSITIVITY_RESULTS_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:ORACLE_SENSITIVITY_RESULT_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:ORACLE_SENSITIVITY_RESULT_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:ORACLE_SENSITIVITY_TIMING_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:PRODUCT_ARCHETYPE_INVALID",
+      "disposition": "retain",
+      "category": "domain-conditional",
+      "reason": "Applies only to products with a user interface (experience contract); the corpus so far is libraries, so it has had no chance to fire.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:PRODUCT_ARCHETYPE_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:PROGRAM_CHILD_NOT_FOUND",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:PSEUDOCODE_SYMBOL_UNRESOLVED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:REPOSITORY_NOT_FOUND",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SCOPE_GROWTH_UNAUTHORIZED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SCOPE_LEDGER_BROKEN_CHAIN",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SCOPE_LEDGER_CLAIM_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SCOPE_LEDGER_MISSING",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SCOPE_LEDGER_NOT_CURRENT",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SDD_AND_PREFIX_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_CONTRACT_ID_DUPLICATE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_CONTRACT_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_CONTRACT_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_DOCUMENT_POLICY_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_DOCUMENT_POLICY_UNSUPPORTED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_ID_OR_PREFIX_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_ID_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_IMPLEMENTATION_PLACEHOLDER",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PREFIXES_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PREFIX_CONFLICT",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_BATCH_SCOPE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_DESCRIPTION_DRIFT",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_GATE_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_ITEMS_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_ITEM_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_LINK_COLUMNS_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_ROW_MISSING_OR_DUPLICATE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_SCHEMA_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_SCOPE_EXPANSION",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_SECOND_GRAPH_FORBIDDEN",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_SHIP_COVERAGE_INCOMPLETE",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SDD_PRESENTATION_SOURCE_DRIFT",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SDD_PROGRAM_ROOT",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_REQUIRED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_REQUIRED_SECTION_EMPTY",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_REQUIRED_SECTION_MISSING",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_RETIRED_IDS_INVALID",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SDD_RETIRED_ID_REUSED",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:SHARED_MECHANISM_WRITE_INVALID",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SHARED_MECHANISM_WRITE_POINT_NOT_FOUND",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SHARED_MECHANISM_WRITE_POINT_UNDECLARED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:SPLIT_DECISION_UNRECORDED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:STEP_THRESHOLD_NOT_IN_ACCEPTANCE",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:STEP_WRITE_OUTSIDE_AUTHORITY",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:TEST_FILE_BUSINESS_NAME_REQUIRED",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:TEST_FILE_DELIVERY_METADATA_NAME_FORBIDDEN",
+      "disposition": "retain",
+      "category": "policy-unexercised",
+      "reason": "An incident-derived policy that has not fired in the audit window and no mechanical case pins it. Kept for one short review window only: if it is still dormant and still unpinned at review, the default is deletion, and keeping it requires a mechanical case that shows what it catches.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 100
+    },
+    {
+      "asset": "code:TYPE_PROBE_MODULE_UNAVAILABLE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:TYPE_PROBE_PROJECT_UNAVAILABLE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    },
+    {
+      "asset": "code:TYPE_PROBE_SOURCE_UNAVAILABLE",
+      "disposition": "retain",
+      "category": "structural-guard",
+      "reason": "Rejects malformed or incomplete input (contract JSON, required fields, IDs, CLI arguments, unreadable sources). It is dormant because the corpus is well formed, which is the expected state of an entry guard, not evidence it is useless.",
+      "decided_in": "R-20260923141048",
+      "runs_at_decision": 855,
+      "review_after_runs": 200
+    }
+  ]
+}

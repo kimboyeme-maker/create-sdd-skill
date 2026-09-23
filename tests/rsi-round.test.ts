@@ -63,6 +63,8 @@ test('the budget dimensions are measured, not asserted', () => {
     'SKILL.md.characters',
     'behavior_cases',
     'references.lines',
+    'scripts.lines',
+    'tests.lines',
     'validator.lines'
   ])
   for (const value of Object.values(measured)) expect(value).toBeGreaterThan(0)

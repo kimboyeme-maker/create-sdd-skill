@@ -79,6 +79,10 @@ the workspace, not about the package, and reading the root instead is how a bun 
 `pnpm install`. An owned name the repository cannot resolve is blocking: every later check is scoped
 to these roots, so an unresolved one silently narrows the run to nothing.
 
+It also reads this skill's own RSI debt into `facts.skill_health`. Debt gates changes to the skill,
+never the document: at `REQUIRED` or `FREEZE` the run must not edit the skill except through a
+consolidation round (`rsi.ts update`), and authoring continues.
+
 ## `evidence` — once per run, when the fact ledger is assembled
 
 The ledger belongs to the **run**, not to a document: one harvest reads the repository once, and the

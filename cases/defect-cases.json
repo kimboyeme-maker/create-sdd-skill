@@ -406,5 +406,15 @@
     "CSDD-LINK-101",
     "CSDD-PLAN-102"
   ],
-  "held_out_note": "Moved to cases/held-out/. `rsi.ts suite` does not read them; `rsi.ts evaluate` runs them apart from the rest, so a round has one result its work was not aimed at."
+  "held_out_note": "Moved to cases/held-out/. `rsi.ts suite` does not read them; `rsi.ts evaluate` runs them apart from the rest, so a round has one result its work was not aimed at.",
+  "open_findings": [
+    {
+      "id": "OD-01..OD-08",
+      "statement": "Eight defect classes observed while executing plugin-host-r1.sdd.md batch by batch; all eight passed every current check.",
+      "record": "rsi/observed-defects.md",
+      "found_by": "real delivery, 2026-09-23",
+      "status": "recorded, no detector yet",
+      "next": "OD-03, OD-04 and OD-07 are mechanical and cheap — cases first. OD-02 needs the type probe extended to step pseudocode. OD-06 needs B3 structure. OD-01 and OD-05 are rulings before rules."
+    }
+  ]
 }

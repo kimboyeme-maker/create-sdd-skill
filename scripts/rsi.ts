@@ -44,6 +44,8 @@ const USAGE = [
   'usage:',
   '  rsi.ts catalog [--render]            derive the rule ledger',
   '  rsi.ts audit   [--window <n>]        rule health from the telemetry ledger',
+  '  rsi.ts health                        debt level and the round kinds it still admits',
+  '  rsi.ts update                        self-check and the ordered agenda for the next round',
   '  rsi.ts suite                         run every mechanical defect case',
   '  rsi.ts open --kind <k> --goal <t>    start a round and commit to its case files',
   '  rsi.ts baseline                      record the champion result for the open round',
@@ -53,8 +55,15 @@ const USAGE = [
   '  rsi.ts ingest --files a.json,b.json  read loop retrospectives into calibration rows and candidates'
 ].join('\n')
 
-/** Round kinds. Only `improvement` may claim a gain; the others exist so the two cannot be mixed. */
-const KINDS = ['improvement', 'case-amendment', 'budget-change'] as const
+/**
+ * Round kinds. Only `improvement` may claim a gain; the others exist so the two cannot be mixed.
+ * `consolidation` is the only kind that must leave the skill smaller than it found it.
+ */
+const KINDS = ['improvement', 'case-amendment', 'budget-change', 'consolidation'] as const
+type Kind = (typeof KINDS)[number]
+
+/** Retention decisions for dormant rules, so a consolidation can keep a guard without re-arguing it. */
+const DISPOSITIONS = join(ROOT, 'rsi', 'dispositions.json')
 
 /** How many recent runs a health figure looks back over. */
 const DEFAULT_WINDOW = 50
@@ -188,6 +197,350 @@ export function health(
   })
 }
 
+/* ------------------------------------------------------------------ debt gate */
+
+/**
+ * How much unconsolidated growth the skill carries, lowest first.
+ *
+ * The ledger could always say which rules never fire and how often a ceiling was raised, and nothing
+ * ever acted on it: six rounds in a row were accepted, four of them raising a ceiling, none removing
+ * anything. A level turns those figures into what the next round is allowed to be.
+ */
+export const DEBT_LEVELS = ['NONE', 'NOTICE', 'REQUIRED', 'FREEZE'] as const
+export type DebtLevel = (typeof DEBT_LEVELS)[number]
+
+/**
+ * Thresholds per signal as `[NOTICE, REQUIRED, FREEZE]`; a signal reaches a level when its value is
+ * at least that threshold, and the skill's level is the highest any signal reaches. Every signal but
+ * the last counts since the most recent accepted consolidation, so consolidating is what resets it.
+ * The last counts dormant rules nobody has decided about, so deciding — deleting, merging or
+ * retaining with a reason — is what lowers it.
+ */
+export const DEBT_THRESHOLDS = {
+  rounds_since_consolidation: [3, 6, 9],
+  budget_raises_since_consolidation: [1, 2, 3],
+  exempt_additions_since_consolidation: [5, 10, 15],
+  undisposed_dormant_rules: [25, 50, 100]
+} as const satisfies Record<string, readonly [number, number, number]>
+export type DebtSignalName = keyof typeof DEBT_THRESHOLDS
+
+/**
+ * Round kinds each level still admits. Debt blocks the skill from changing itself in any direction
+ * but smaller; it never blocks authoring a document, which does not change the skill.
+ */
+export const ADMITTED_KINDS: Readonly<Record<DebtLevel, readonly Kind[]>> = {
+  NONE: KINDS,
+  NOTICE: KINDS,
+  REQUIRED: ['case-amendment', 'consolidation'],
+  FREEZE: ['consolidation']
+}
+
+/**
+ * A rule becomes a dormancy candidate only after it has had a chance to fire: its introduction must
+ * be older than this many days, and the telemetry must hold a full audit window of runs.
+ */
+export const DORMANCY_MIN_AGE_DAYS = 14
+
+/** Share of a measured dimension a consolidation may keep as headroom when its ceiling ratchets. */
+export const RATCHET_MARGIN = 0.01
+
+export type ClosedRound = Readonly<{
+  id: string
+  kind: Kind
+  verdict: string
+  closed_at?: string
+  snapshot?: Readonly<{ supersession_additions: number }>
+}>
+
+export type Addition = Readonly<{
+  asset: string
+  added_at?: string
+  supersedes?: readonly string[]
+  supersedes_nothing_because?: string
+}>
+
+export type Disposition = Readonly<{
+  asset: string
+  disposition: 'retain'
+  category: string
+  reason: string
+  decided_in: string
+  runs_at_decision: number
+  review_after_runs: number
+}>
+
+export type DebtSignal = Readonly<{
+  signal: DebtSignalName
+  value: number
+  thresholds: readonly number[]
+  level: DebtLevel
+}>
+
+/** Level a value reaches against `[NOTICE, REQUIRED, FREEZE]` thresholds. */
+export function levelOf(value: number, thresholds: readonly number[]): DebtLevel {
+  let index = 0
+  thresholds.forEach((threshold, at) => {
+    if (value >= threshold) index = at + 1
+  })
+  return DEBT_LEVELS[index]!
+}
+
+/** The higher of two levels. */
+const maxLevel = (a: DebtLevel, b: DebtLevel): DebtLevel =>
+  DEBT_LEVELS.indexOf(a) >= DEBT_LEVELS.indexOf(b) ? a : b
+
+/**
+ * Dormant rules no one has decided about.
+ *
+ * Dormant means: never fired in the audit window, older than the minimum age, and pinned by no
+ * mechanical or held-out case — a pinned rule has evidence of a defect it catches. A `retain`
+ * disposition takes a rule off the list until its review is due, measured in runs, not days, so a
+ * rule is re-examined only after the corpus has had the chance to exercise it.
+ */
+export function undisposedDormant(input: {
+  health: readonly RuleHealth[]
+  pinned: ReadonlySet<string>
+  additions: readonly Addition[]
+  dispositions: readonly Disposition[]
+  runs: number
+  window: number
+  now: Date
+}): readonly string[] {
+  if (input.runs < input.window) return []
+  const youngest = new Map(input.additions.map((entry) => [entry.asset, entry.added_at]))
+  const cutoff = input.now.getTime() - DORMANCY_MIN_AGE_DAYS * 86_400_000
+  const decided = new Map(input.dispositions.map((entry) => [entry.asset, entry]))
+  return input.health
+    .filter((rule) => rule.fires_window === 0)
+    .filter((rule) => !input.pinned.has(rule.asset.slice('code:'.length)))
+    .filter((rule) => {
+      const added = youngest.get(rule.asset)
+      return !added || Date.parse(added) <= cutoff
+    })
+    .filter((rule) => {
+      const entry = decided.get(rule.asset)
+      return !entry || input.runs >= entry.runs_at_decision + entry.review_after_runs
+    })
+    .map((rule) => rule.asset)
+}
+
+/**
+ * Debt signals and the level they put the skill at.
+ *
+ * Rounds are read in id order; everything accepted after the latest accepted consolidation counts
+ * against the skill. The consolidation's snapshot says how many supersession additions existed when
+ * it closed, so an addition is "since" exactly when it sits past that index.
+ */
+export function debt(input: {
+  rounds: readonly ClosedRound[]
+  additions: readonly Addition[]
+  undisposed: number
+}): { level: DebtLevel; signals: readonly DebtSignal[] } {
+  const accepted = [...input.rounds]
+    .filter((round) => round.verdict === 'ACCEPTED')
+    .sort((a, b) => a.id.localeCompare(b.id))
+  let last = -1
+  accepted.forEach((round, index) => {
+    if (round.kind === 'consolidation') last = index
+  })
+  const since = accepted.slice(last + 1)
+  const offset = last >= 0 ? (accepted[last]!.snapshot?.supersession_additions ?? 0) : 0
+  const values: Record<DebtSignalName, number> = {
+    rounds_since_consolidation: since.length,
+    budget_raises_since_consolidation: since.filter((round) => round.kind === 'budget-change')
+      .length,
+    exempt_additions_since_consolidation: input.additions
+      .slice(offset)
+      .filter((entry) => !(entry.supersedes ?? []).length).length,
+    undisposed_dormant_rules: input.undisposed
+  }
+  const signals = (Object.keys(DEBT_THRESHOLDS) as DebtSignalName[]).map((signal) => ({
+    signal,
+    value: values[signal],
+    thresholds: DEBT_THRESHOLDS[signal],
+    level: levelOf(values[signal], DEBT_THRESHOLDS[signal])
+  }))
+  return { level: signals.reduce<DebtLevel>((a, s) => maxLevel(a, s.level), 'NONE'), signals }
+}
+
+/**
+ * What a consolidation has to show before it may close: no measured dimension grew, and the skill
+ * lost rules or lines. Keeping a rule with a written reason is a disposition, not a consolidation —
+ * a round that only records decisions has removed nothing and cannot claim to have converged.
+ */
+export function consolidationFindings(
+  before: Readonly<{ measured: Record<string, number>; rules: number }>,
+  after: Readonly<{ measured: Record<string, number>; rules: number }>
+): string[] {
+  const findings: string[] = []
+  for (const [dimension, value] of Object.entries(after.measured))
+    if (value > (before.measured[dimension] ?? value))
+      findings.push(`${dimension} grew from ${before.measured[dimension]} to ${value}`)
+  if (after.rules > before.rules) findings.push(`rules grew from ${before.rules} to ${after.rules}`)
+  const lines = (m: Record<string, number>) =>
+    Object.entries(m)
+      .filter(([key]) => key.endsWith('.lines'))
+      .reduce((sum, [, value]) => sum + value, 0)
+  if (after.rules >= before.rules && lines(after.measured) >= lines(before.measured))
+    findings.push('neither the rule count nor the measured lines went down')
+  return findings
+}
+
+/**
+ * Ceilings after a consolidation: each one moves down to the new measurement plus a small margin and
+ * never moves up. This is what stops a consolidation from being a pause between raises.
+ */
+export function ratchet(
+  ceilings: Readonly<Record<string, number>>,
+  measured: Readonly<Record<string, number>>
+): Record<string, number> {
+  const next: Record<string, number> = { ...ceilings }
+  for (const [dimension, ceiling] of Object.entries(ceilings)) {
+    const value = measured[dimension]
+    if (value === undefined) continue
+    next[dimension] = Math.min(ceiling, Math.ceil(value * (1 + RATCHET_MARGIN)))
+  }
+  return next
+}
+
+/** Parse a JSON file, or return the fallback when it is absent. */
+const readJson = <T>(file: string, fallback: T): T =>
+  existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as T) : fallback
+
+/** Every closed round on disk. */
+export function closedRounds(dir = ROUNDS): readonly ClosedRound[] {
+  if (!existsSync(dir)) return []
+  return readdirSync(dir)
+    .filter((name) => name.endsWith('.json'))
+    .map((name) => JSON.parse(readFileSync(join(dir, name), 'utf8')) as ClosedRound)
+}
+
+/** Codes a mechanical or held-out case expects; those rules have evidence of what they catch. */
+export function pinnedCodes(): ReadonlySet<string> {
+  return new Set([...defectCases(), ...heldOutCases()].map((entry) => entry.detector.expected_code))
+}
+
+export type SkillHealth = Readonly<{
+  protocol: 'skill-rsi-health/v1'
+  level: DebtLevel
+  signals: readonly DebtSignal[]
+  admitted_kinds: readonly Kind[]
+  undisposed_dormant: readonly string[]
+  redundant_pairs: readonly (readonly [string, string])[]
+  measured: Record<string, number>
+  over_budget: readonly { dimension: string; ceiling: number; measured: number }[]
+  limits: readonly string[]
+}>
+
+/**
+ * The skill's current debt, read-only and without an open round. `lifecycle.ts initial` calls this at
+ * the start of every authoring run, and `update` builds its agenda from it.
+ */
+export function skillHealth(now = new Date()): SkillHealth {
+  const entries = readTelemetry()
+  const rules = catalog()
+  const report = health(rules, entries, DEFAULT_WINDOW)
+  const additions = readJson<{ additions?: Addition[] }>(SUPERSESSION, {}).additions ?? []
+  const dispositions =
+    readJson<{ dispositions?: Disposition[] }>(DISPOSITIONS, {}).dispositions ?? []
+  const runs = new Set(entries.map((entry) => entry.run_id)).size
+  const undisposed = undisposedDormant({
+    health: report,
+    pinned: pinnedCodes(),
+    additions,
+    dispositions,
+    runs,
+    window: DEFAULT_WINDOW,
+    now
+  })
+  const { level, signals } = debt({
+    rounds: closedRounds(),
+    additions,
+    undisposed: undisposed.length
+  })
+  const ceilings = readJson<{ ceilings?: Record<string, number> }>(BUDGET_FILE, {}).ceilings ?? {}
+  const measured = measure()
+  const pairs = new Map<string, readonly [string, string]>()
+  for (const rule of report)
+    for (const other of rule.redundant_with) {
+      const pair = [rule.asset, other].sort() as [string, string]
+      pairs.set(pair.join('|'), pair)
+    }
+  return {
+    protocol: 'skill-rsi-health/v1',
+    level,
+    signals,
+    admitted_kinds: ADMITTED_KINDS[level],
+    undisposed_dormant: undisposed,
+    redundant_pairs: [...pairs.values()],
+    measured,
+    over_budget: Object.entries(ceilings)
+      .filter(([key, limit]) => (measured[key] ?? 0) > limit)
+      .map(([key, limit]) => ({ dimension: key, ceiling: limit, measured: measured[key] ?? 0 })),
+    limits: [
+      'dormant means unfired in this corpus, not useless: a structural guard is dormant whenever documents are well formed',
+      'the level gates changes to this skill, never the authoring of a document'
+    ]
+  }
+}
+
+/**
+ * The ordered agenda a developer gets from `rsi.ts update`: finish what is open, then consolidate
+ * when the level demands it, then — only when the level admits it — look for enhancements.
+ */
+export function updateAgenda(
+  state: Readonly<{
+    health: SkillHealth
+    open_round?: string
+    catalog_drifted: boolean
+  }>
+): { step: string; command?: string; detail: string }[] {
+  const steps: { step: string; command?: string; detail: string }[] = []
+  const { health: h } = state
+  if (state.open_round)
+    steps.push({
+      step: 'finish-open-round',
+      command: 'bun scripts/rsi.ts evaluate && bun scripts/rsi.ts prune',
+      detail: `round ${state.open_round} is still open; close it before starting another`
+    })
+  if (state.catalog_drifted)
+    steps.push({
+      step: 'reconcile-ledger',
+      command: 'bun scripts/rsi.ts catalog --render',
+      detail:
+        'the rule ledger disagrees with the sources; every new code also needs a supersession entry'
+    })
+  const mustConsolidate = h.level === 'REQUIRED' || h.level === 'FREEZE'
+  if (mustConsolidate || h.level === 'NOTICE')
+    steps.push({
+      step: mustConsolidate ? 'consolidate' : 'consider-consolidation',
+      command:
+        'bun scripts/rsi.ts open --kind consolidation --goal <what is merged, retired or ablated>',
+      detail: [
+        `level ${h.level}: ${h.signals
+          .filter((s) => s.level !== 'NONE')
+          .map((s) => `${s.signal}=${s.value}`)
+          .join(', ')}`,
+        `${h.undisposed_dormant.length} dormant rule(s) to delete, merge or retain with a reason in rsi/dispositions.json`,
+        `${h.redundant_pairs.length} rule pair(s) firing on the same documents`,
+        'the round closes only when rules or measured lines went down and no dimension grew; ceilings then ratchet down'
+      ].join('; ')
+    })
+  if (!mustConsolidate)
+    steps.push({
+      step: 'consider-enhancement',
+      command: 'bun scripts/rsi.ts open --kind improvement --goal <defect it catches>',
+      detail:
+        'only for a defect observed in a real run (rsi/observed-defects.md, a retrospective via ingest); add a mechanical case first, and name what the new rule supersedes'
+    })
+  if (h.over_budget.length)
+    steps.push({
+      step: 'over-budget',
+      detail: `${h.over_budget.map((o) => `${o.dimension} ${o.measured}>${o.ceiling}`).join(', ')}; a raise is admitted only below REQUIRED`
+    })
+  return steps
+}
+
 /* ------------------------------------------------------------------ mechanical suite */
 
 /**
@@ -272,8 +625,10 @@ function runDetector(command: string, fixture: string, repository?: string): Set
     .replace('<repository>', repository ?? '')
     .split(/\s+/)
   if (argv[0] !== 'bun') throw Error('DEFECT_CASE_DETECTOR_NOT_BUN')
+  // A fixture run is not an observation of the corpus; recording it filled the dormancy window.
   const run = Bun.spawnSync([process.execPath, ...argv.slice(1)], {
     cwd: ROOT,
+    env: { ...process.env, CREATE_SDD_TELEMETRY: '0' },
     stdout: 'pipe',
     stderr: 'pipe'
   })
@@ -378,7 +733,13 @@ function commitments(): Record<string, string> {
   return files
 }
 
-/** The four dimensions the skill is not allowed to grow along without saying so. */
+/**
+ * The dimensions the skill is not allowed to grow along without saying so.
+ *
+ * `validator.lines` alone once left repo-facts, lifecycle and this file — over half the scripts —
+ * outside every ceiling, so growth simply moved there. `scripts.lines` and `tests.lines` cover all of
+ * it; the validator figure stays because its ceiling history is recorded against it.
+ */
 export function measure(): Record<string, number> {
   const lines = (dir: string) => {
     let total = 0
@@ -404,18 +765,24 @@ export function measure(): Record<string, number> {
     'SKILL.md.characters': readFileSync(join(ROOT, 'SKILL.md'), 'utf8').length,
     'references.lines': lines(join(ROOT, 'references')),
     'validator.lines': lines(join(ROOT, 'scripts', 'validator')),
+    'scripts.lines': lines(join(ROOT, 'scripts')),
+    'tests.lines': existsSync(join(ROOT, 'tests')) ? lines(join(ROOT, 'tests')) : 0,
     behavior_cases: behaviour
   }
 }
 
 type Round = {
   id: string
-  kind: (typeof KINDS)[number]
+  kind: Kind
   goal: string
   opened_at: string
   head: string
   commitments: Record<string, string>
   budget: Record<string, number>
+  /** Rule count when the round opened; a consolidation must end below or at it. */
+  rules_at_open?: number
+  /** Debt level when the round opened, kept so a refused kind is explainable afterwards. */
+  debt_at_open?: DebtLevel
   baseline?: { at: string; results: readonly CaseResult[]; heldOut?: readonly CaseResult[] }
   candidate?: {
     at: string
@@ -672,6 +1039,38 @@ function main(argv: readonly string[]): number {
     return 0
   }
 
+  if (command === 'health') {
+    const current = skillHealth()
+    console.log(JSON.stringify(current, null, 2))
+    return 0
+  }
+  if (command === 'update') {
+    const current = skillHealth()
+    const stored = readJson<{ rules?: readonly Rule[] }>(RULES_FILE, {})
+    const drifted = JSON.stringify(stored.rules ?? []) !== JSON.stringify(catalog())
+    const open = existsSync(OPEN_ROUND) ? openRound().id : undefined
+    console.log(
+      JSON.stringify(
+        {
+          protocol: 'skill-rsi-update/v1',
+          level: current.level,
+          admitted_kinds: current.admitted_kinds,
+          signals: current.signals,
+          agenda: updateAgenda({
+            health: current,
+            ...(open ? { open_round: open } : {}),
+            catalog_drifted: drifted
+          }),
+          undisposed_dormant: current.undisposed_dormant,
+          redundant_pairs: current.redundant_pairs,
+          limits: current.limits
+        },
+        null,
+        2
+      )
+    )
+    return 0
+  }
   if (command === 'suite') {
     const results = runSuite(defectCases())
     const failed = results.filter((result) => !result.pass)
@@ -696,10 +1095,30 @@ function main(argv: readonly string[]): number {
     }
     const kindIndex = rest.indexOf('--kind')
     const goalIndex = rest.indexOf('--goal')
-    const kind = rest[kindIndex + 1] as (typeof KINDS)[number]
+    const kind = rest[kindIndex + 1] as Kind
     if (kindIndex < 0 || !KINDS.includes(kind) || goalIndex < 0) {
       console.error(USAGE)
       return 2
+    }
+    const current = skillHealth()
+    if (!current.admitted_kinds.includes(kind)) {
+      console.log(
+        JSON.stringify(
+          {
+            protocol: 'skill-rsi-round/v1',
+            refused: true,
+            code: 'RSI_ROUND_KIND_REFUSED',
+            kind,
+            level: current.level,
+            admitted_kinds: current.admitted_kinds,
+            signals: current.signals.filter((signal) => signal.level !== 'NONE'),
+            note: 'Debt blocks this skill from changing itself in any direction but smaller. Run rsi.ts update for the agenda; authoring documents is unaffected.'
+          },
+          null,
+          2
+        )
+      )
+      return 1
     }
     const round: Round = {
       id: `R-${new Date()
@@ -711,7 +1130,9 @@ function main(argv: readonly string[]): number {
       opened_at: new Date().toISOString(),
       head: git('rev-parse', 'HEAD'),
       commitments: commitments(),
-      budget: measure()
+      budget: measure(),
+      rules_at_open: catalog().length,
+      debt_at_open: current.level
     }
     mkdirSync(join(ROOT, 'rsi'), { recursive: true })
     saveRound(round)
@@ -839,8 +1260,15 @@ function main(argv: readonly string[]): number {
             ((entry.supersedes ?? []).length > 0 || entry.supersedes_nothing_because)
         )
     )
-    const blocking = round.kind === 'budget-change' ? [] : over
-    round.prune = { over_budget: over, unjustified_additions: unjustified }
+    const net =
+      round.kind === 'consolidation'
+        ? consolidationFindings(
+            { measured: round.budget, rules: round.rules_at_open ?? Number.POSITIVE_INFINITY },
+            { measured: now, rules: catalog().length }
+          )
+        : []
+    const blocking = [...(round.kind === 'budget-change' ? [] : over), ...net]
+    round.prune = { over_budget: over, unjustified_additions: unjustified, not_net_negative: net }
     saveRound(round)
     console.log(
       JSON.stringify(
@@ -850,6 +1278,12 @@ function main(argv: readonly string[]): number {
           measured: now,
           over_budget: over,
           unjustified_additions: unjustified,
+          ...(round.kind === 'consolidation'
+            ? {
+                code: net.length ? 'RSI_CONSOLIDATION_NOT_NET_NEGATIVE' : undefined,
+                not_net_negative: net
+              }
+            : {}),
           note: 'A ceiling is raised only by a --kind budget-change round, so every raise is a recorded decision rather than a drift.'
         },
         null,
@@ -871,10 +1305,12 @@ function main(argv: readonly string[]): number {
     const prune = round.prune as {
       over_budget?: unknown[]
       unjustified_additions?: unknown[]
+      not_net_negative?: unknown[]
     }
     const open = [
       ...(round.kind === 'budget-change' ? [] : (prune.over_budget ?? [])),
-      ...(prune.unjustified_additions ?? [])
+      ...(prune.unjustified_additions ?? []),
+      ...(prune.not_net_negative ?? [])
     ]
     if (open.length) {
       console.error(
@@ -887,10 +1323,33 @@ function main(argv: readonly string[]): number {
       return 1
     }
     mkdirSync(ROUNDS, { recursive: true })
+    const verdict = round.candidate.regressions.length ? 'REJECTED' : 'ACCEPTED'
+    // An accepted consolidation is the only event that resets debt, so it records where the
+    // supersession ledger stood and pulls every ceiling down to what it left behind.
+    const additions = readJson<{ additions?: Addition[] }>(SUPERSESSION, {}).additions ?? []
+    const snapshot =
+      round.kind === 'consolidation' && verdict === 'ACCEPTED'
+        ? { supersession_additions: additions.length }
+        : undefined
+    if (snapshot && existsSync(BUDGET_FILE)) {
+      const budget = JSON.parse(readFileSync(BUDGET_FILE, 'utf8')) as {
+        ceilings: Record<string, number>
+        ratchets?: unknown[]
+      }
+      const measured = measure()
+      const next = ratchet(budget.ceilings, measured)
+      budget.ratchets = [
+        ...(budget.ratchets ?? []),
+        { at: new Date().toISOString(), round: round.id, from: budget.ceilings, to: next }
+      ]
+      budget.ceilings = next
+      writeFileSync(BUDGET_FILE, `${JSON.stringify(budget, null, 2)}\n`)
+    }
     const closed = {
       ...round,
+      ...(snapshot ? { snapshot } : {}),
       closed_at: new Date().toISOString(),
-      verdict: round.candidate.regressions.length ? 'REJECTED' : 'ACCEPTED',
+      verdict,
       not_proven: [
         'that the change makes the skill better at anything not covered by a mechanical case',
         'that an authoring agent reads, understands or follows any rule involved',

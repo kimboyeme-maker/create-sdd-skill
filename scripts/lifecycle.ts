@@ -20,6 +20,7 @@ import {
 } from './lib/run-journal.ts'
 import { validate, type Schema } from './lib/schema.ts'
 import { evaluate as evaluateReceipt } from './reading-receipt.ts'
+import { skillHealth } from './rsi.ts'
 import { type Item } from './facts/repository.ts'
 import {
   checkRepositoryFacts,
@@ -334,6 +335,29 @@ async function onInitial(payload: Record<string, unknown>): Promise<Result> {
           `${output} is inside ${repository}; writing there changes the repository being described`
         )
       )
+  }
+  // The skill's own debt is read before every run. It gates changes to this skill, never the
+  // document being authored, so it is advisory here; a health read that fails is reported, not fatal.
+  try {
+    const debt = skillHealth()
+    facts.skill_health = {
+      level: debt.level,
+      admitted_kinds: debt.admitted_kinds,
+      signals: debt.signals.filter((signal) => signal.level !== 'NONE')
+    }
+    if (debt.level !== 'NONE')
+      advisory.push(
+        finding(
+          'LIFECYCLE_SKILL_DEBT',
+          `create-sdd carries RSI debt at ${debt.level}; rsi.ts update gives the agenda`
+        )
+      )
+    if (debt.level === 'REQUIRED' || debt.level === 'FREEZE')
+      must.push(
+        `This skill is at RSI debt ${debt.level}: do not change the skill in this run except through a consolidation round (bun scripts/rsi.ts update). Authoring continues normally.`
+      )
+  } catch (error) {
+    advisory.push(finding('LIFECYCLE_SKILL_HEALTH_UNAVAILABLE', String(error)))
   }
   if (payload.mode === 'program' && !payload.split)
     blocking.push(

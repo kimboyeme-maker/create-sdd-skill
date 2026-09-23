@@ -3,10 +3,12 @@
   "note": "Measured ceilings, not aspirational ones, and measured by the same counter that checks them: `rsi.ts prune` compares against `measure()`, so a ceiling taken from `wc -l` would sit 47 lines low for no reason anyone could find later. Each value was the measurement on the day it was set, with a small margin, so the skill cannot grow along these dimensions without a --kind budget-change round saying so out loud. A ceiling set below the current value would be a permanently failing check, which teaches the reader to ignore it.",
   "set_at": "2026-09-23",
   "ceilings": {
-    "SKILL.md.characters": 8800,
-    "references.lines": 4340,
+    "SKILL.md.characters": 8774,
+    "references.lines": 4314,
     "validator.lines": 4550,
-    "behavior_cases": 48
+    "behavior_cases": 46,
+    "scripts.lines": 11207,
+    "tests.lines": 3768
   },
   "raises": [
     {
@@ -40,6 +42,39 @@
       "at": "2026-09-23",
       "round": "budget-change",
       "reason": "Two changes that pay for themselves in the documents rather than here. `resolveDerivable` lets a document that wrote a requirement table omit the JSON copy entirely — the logger SDD lost 94 contract lines to it, more than this raise costs. `readDeclarations` reads an exported surface from a document's own fences when it has no canonical API section, taking the type probe from 8 documents of 83 to 36."
+    }
+  ],
+  "introduced": [
+    {
+      "dimensions": [
+        "scripts.lines",
+        "tests.lines"
+      ],
+      "at": "2026-09-23",
+      "round": "R-20260923140423",
+      "reason": "validator.lines covered one directory while repo-facts, lifecycle and rsi — over half the scripts — sat under no ceiling, so growth moved there. These are new ceilings at the measurement plus 1%, a tightening rather than a raise; the first consolidation ratchets them down with the rest."
+    }
+  ],
+  "ratchets": [
+    {
+      "at": "2026-09-23T14:20:04.997Z",
+      "round": "R-20260923141048",
+      "from": {
+        "SKILL.md.characters": 8800,
+        "references.lines": 4340,
+        "validator.lines": 4550,
+        "behavior_cases": 48,
+        "scripts.lines": 11349,
+        "tests.lines": 3768
+      },
+      "to": {
+        "SKILL.md.characters": 8774,
+        "references.lines": 4314,
+        "validator.lines": 4550,
+        "behavior_cases": 46,
+        "scripts.lines": 11207,
+        "tests.lines": 3768
+      }
     }
   ]
 }

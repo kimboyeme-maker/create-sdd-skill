@@ -50,7 +50,10 @@ export function record(entry: {
   readonly codes: readonly string[]
   readonly candidateCodes?: readonly string[]
 }): void {
-  if (process.env.CREATE_SDD_TELEMETRY === '0') return
+  // `bun test` sets NODE_ENV=test and child checks inherit it. Without this, the skill's own test
+  // suite filled the ledger with fixture runs, and a dormancy window of fifty runs measured nothing
+  // but fixtures.
+  if (process.env.CREATE_SDD_TELEMETRY === '0' || process.env.NODE_ENV === 'test') return
   try {
     mkdirSync(dirname(TELEMETRY_FILE), { recursive: true })
     const line: TelemetryEntry = {

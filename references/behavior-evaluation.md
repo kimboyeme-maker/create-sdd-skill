@@ -43,9 +43,7 @@ Loop retrospectives (`evolution-digest` `trace` proposals targeting create-sdd) 
 ## Who owns this format
 
 `skill-behavior-cases/v1` is defined here and implemented by `scripts/behavior-eval.ts` in this
-skill. A diverged copy of that script still exists in `sdd-loop-delivery`; this skill does not read
-it, and no check here consults it. When the two disagree, this one is right by definition — the
-format's definition and its implementation live in the same place on purpose.
+skill: the format's definition and its implementation live in the same place on purpose.
 
 ## Mechanical defect cases
 
@@ -90,4 +88,4 @@ That the change improved anything outside the mechanical cases. That an authorin
 understands or follows any rule involved. That nobody could have edited a case — only that the edit
 would show.
 
-<!-- reading-receipt: 875a52f4 -->
+<!-- reading-receipt: c1b2c4a6 -->
