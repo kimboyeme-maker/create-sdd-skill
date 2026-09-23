@@ -22,7 +22,7 @@ Every step's `**Location:**` must sit inside a root the contract declares in `ow
 - Follow the repository ID scheme, otherwise [document presentation](../document-presentation.md); preserve existing IDs and record aliases on merge.
 - Each delivery batch must be derivable into one execution packet: one observable outcome, requirement and acceptance IDs, prerequisites, causal scope, write packages and stop conditions. Keep runtime owner, status, progress, blockers and assignment out of the SDD.
 - A file may receive several ordered operations from several requirements or batches. That is valid when dependencies order them, one semantic owner remains, and the final state is coherent; reject only unordered incompatible writes, competing owners, contradictory final states or orphan operations.
-- A Must-Ship authority choice uses `requirement_type: "decision"` with `decision` metadata (authority, question, `pending | resolved`, and resolution plus evidence when resolved); dependent requirements list its ID. `validate` enforces the shape: a missing field is `CONTRACT_DECISION_METADATA_REQUIRED`, any status outside the two values is `CONTRACT_DECISION_STATUS_INVALID`, and a `resolved` decision without its resolution and evidence is `CONTRACT_DECISION_RESOLUTION_REQUIRED`. A worked instance is in the [decision example](../examples/decision-example.md).
+- A Must-Ship authority choice uses `requirement_type: "decision"` with `decision` metadata (authority, question, `pending | resolved`, and resolution plus evidence when resolved); dependent requirements list its ID. `validate` enforces the shape: a missing field is `CONTRACT_DECISION_METADATA_REQUIRED`, any status outside the two values is `CONTRACT_DECISION_STATUS_INVALID`, and a `resolved` decision without its resolution and evidence is `CONTRACT_DECISION_RESOLUTION_REQUIRED`. A worked instance is in the [decision variant](../examples/variants.md).
 - Execution-role feasibility (generator, signer, installer or verifier assignment, ephemeral key rotation, bounded local reinstall inside the approved artifact envelope) belongs to the design and Coordinator, not the user, unless it independently crosses an authority boundary.
 
 ## Canonical design content
@@ -67,4 +67,4 @@ Revise an existing SDD in place as a delta. Preserve stable IDs, accepted decisi
 - [ ] Abstractions own invariants; the target tree or subtree follows owners, exports and dependency direction.
 - [ ] An incremental revision preserved IDs, decisions and routing, and changed only the requested or causally required delta.
 
-<!-- reading-receipt: 83c2ef33 -->
+<!-- reading-receipt: 52ea1e33 -->

@@ -79,7 +79,7 @@ test('a decision requirement pulls in the authority documents', async () => {
   const contract = { requirements: [{ id: 'JC01', requirement_type: 'decision' }] }
   const required = requiredDocuments('HANDOFF', contract, derivedConditions(contract))
   expect(required).toContain('references/design/decision-authority.md')
-  expect(required).toContain('references/examples/decision-example.md')
+  expect(required).toContain('references/examples/variants.md')
   const rows = required.map((path) => [path, token(path)] as const)
   expect((await gate(document(contract, rows))).valid).toBe(true)
 })

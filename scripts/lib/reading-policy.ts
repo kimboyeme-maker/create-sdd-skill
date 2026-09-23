@@ -187,12 +187,12 @@ export function requiredDocuments(
     const guide = LANGUAGES[language.toLowerCase()]
     if (guide) docs.push(`product/languages/${guide}.md`)
   }
-  add(0, conditions.authority, 'design/decision-authority.md', 'examples/decision-example.md')
+  add(0, conditions.authority, 'design/decision-authority.md', 'examples/variants.md')
   add(
     0,
     conditions.artifacts || contract?.shared_mechanism_writes?.length,
     'design/artifacts-and-dependencies.md',
-    'examples/shared-mechanism-example.md'
+    'examples/variants.md'
   )
   add(
     1,
