@@ -51,7 +51,13 @@ import {
  * and it was being lost between being derivable and being said.
  */
 const ROOT = resolve(import.meta.dir, '..')
-/** The delivery skill owns the contract validator; it is invoked as a CLI, never imported. */
+/** create-sdd owns the document validator; it is invoked as a CLI so this hook reports its verdict. */
+const VALIDATE = resolve(ROOT, 'scripts', 'validate.ts')
+/**
+ * `program-check` still lives in the delivery skill: it reads repository state (worktree roots) as
+ * well as the program index. Until that part moves, a program root is checked there when the skill
+ * is installed and disclosed as unchecked when it is not.
+ */
 const LOOP_MAIN = resolve(ROOT, '..', 'sdd-loop-delivery', 'scripts', 'main.ts')
 
 /**
@@ -65,24 +71,24 @@ const LOOP_MAIN = resolve(ROOT, '..', 'sdd-loop-delivery', 'scripts', 'main.ts')
 async function loopValidate(
   sdd: string
 ): Promise<{ ran: boolean; ok: boolean; diagnostics: Finding[]; skipped?: string }> {
-  if (!existsSync(LOOP_MAIN))
+  // A program root carries an index of documents, not a contract, and is checked with a different
+  // command — the validator says so itself, as `SDD_PROGRAM_ROOT`. Sending every document to the
+  // leaf validator turned that answer into a blocking diagnostic against a root that was correct: a
+  // fault in this hook, not in the document it refused.
+  const program = programBlock(readFileSync(sdd, 'utf8')).value !== null
+  if (program && !existsSync(LOOP_MAIN))
     return {
       ran: false,
       ok: false,
       diagnostics: [],
-      skipped: 'sdd-loop-delivery not installed beside create-sdd'
+      skipped: 'program-check lives in sdd-loop-delivery, which is not installed beside create-sdd'
     }
-  // A program root carries an index of documents, not a contract, and the delivery skill validates
-  // it with a different command — it says so itself, as `SDD_PROGRAM_ROOT`. Sending every document
-  // to the leaf validator turned that answer into a blocking diagnostic against a root that was
-  // correct: a fault in this hook, not in the document it refused.
-  const program = programBlock(readFileSync(sdd, 'utf8')).value !== null
   const proc = Bun.spawn(
     program
       ? ['bun', LOOP_MAIN, 'program-check', '--program', sdd]
       : [
           'bun',
-          LOOP_MAIN,
+          VALIDATE,
           'validate',
           '--sdd',
           sdd,

@@ -2,7 +2,7 @@
 
 Use this reference for every implementation-targeting SDD after the implementation logic is closed. It turns the closed design into lease-sized batches, a dependency DAG, parallel-safe lanes and final verification shards, and records them in the contract's `delivery_plan`. The plan is a projection of the requirement graph, not a second todo list: it carries no status, owner assignment or progress.
 
-The sibling loop controller validates the plan (`validate` returns `deliveryPlan` with waves, lanes, serial minutes and critical path) and uses it for early Architect preparation, prepared packet checks that surface failures early, and concurrent final-verification shards. Batches with disjoint write sets are also the units a controller with concurrent Operator leases would run side by side; do not claim concurrent execution unless the installed controller's `capabilities` advertises it.
+This skill's validator checks the plan (`validate` returns `deliveryPlan` with waves, lanes, serial minutes and critical path) and uses it for early Architect preparation, prepared packet checks that surface failures early, and concurrent final-verification shards. Batches with disjoint write sets are also the units a controller with concurrent Operator leases would run side by side; do not claim concurrent execution unless the installed controller's `capabilities` advertises it.
 
 ## Inputs
 
@@ -96,4 +96,4 @@ Run `validate` and read `deliveryPlan`. Report waves, lanes, serial minutes and 
 - Adding shards that split one browser journey or shared fixture across Architects.
 - Treating the plan as a promise that concurrent Operators exist in the current controller.
 
-<!-- reading-receipt: 2c646379 -->
+<!-- reading-receipt: 269fe605 -->

@@ -1,6 +1,6 @@
 # SDD numbering and readable progress
 
-New SDDs use `sdd-document/v1` IDs matching `^[A-Z]{2}[0-9]{2,4}$`: PC01, JZ02, BH003 and MJ0004 are valid; PC1, PC-01 and PC10000 are invalid. The authoritative default prefixes come from the sibling controller's `configuration` output. Register additional non-conflicting two-letter prefixes in `presentation.prefixes`. Allocate from 01, extend to three or four digits when needed, keep IDs stable when rows are reordered, and record removed IDs in `presentation.retired_ids`; never recycle them. `bun <loop-skill-root>/scripts/main.ts document-next-id --sdd <SDD> --prefix PC` suggests the next unused ID without reserving or writing it.
+New SDDs use `sdd-document/v1` IDs matching `^[A-Z]{2}[0-9]{2,4}$`: PC01, JZ02, BH003 and MJ0004 are valid; PC1, PC-01 and PC10000 are invalid. The authoritative default prefixes are `SDD_DEFAULT_ID_PREFIXES` in this skill's `scripts/validator/config/constants.ts`. Register additional non-conflicting two-letter prefixes in `presentation.prefixes`. Allocate from 01, extend to three or four digits when needed, keep IDs stable when rows are reordered, and record removed IDs in `presentation.retired_ids`; never recycle them. `bun <loop-skill-root>/scripts/main.ts document-next-id --sdd <SDD> --prefix PC` suggests the next unused ID without reserving or writing it.
 
 Every SDD content table has an exact `description` column with a non-empty sentence in the document language that describes the action and its observable result. An ID, TODO or "完成该项" is not a description. Descriptions never replace requirements, exit conditions, oracle, permission or evidence, and never carry live completion status. Use Markdown pipe tables; fenced examples and indented code are not validated. Escape a literal `|` inside a cell as `\|`. An ID prefix outside the configured defaults (for example `RT`, `TP`, `JN` from the experience contract) is registered in `presentation.prefixes` before its first table row, and each ID is defined in exactly one table row. Diagnostics name the source file, heading or table, and physical row.
 
@@ -58,4 +58,4 @@ Existing SDDs keep their IDs, references and signed history; do not adopt the ne
 
 Progress is reported from the controller's `status` projection: batch overview first, then current closure and gate items, with stages `PENDING`, `ACTIVE`, `AWAITING_VERIFICATION`, `REWORK`, `DONE`, `UNKNOWN`. `DONE` requires authenticated acceptance and requirement evidence; a finished agent or implementation is not enough. Pipeline incidents, pause and waiting-user states are shown separately from product blockers.
 
-<!-- reading-receipt: e46b39c3 -->
+<!-- reading-receipt: 5b1a89dd -->

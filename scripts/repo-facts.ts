@@ -2,6 +2,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 import { loadContract, programBlock, sectionText } from './lib/contract-source.ts'
+import { resolveDerivable } from './validator/domain/derive/contract.ts'
 import {
   commandManagers,
   declaredManager,
@@ -23,6 +24,7 @@ import {
   type Item
 } from './facts/repository.ts'
 import { toolchainPins } from './facts/toolchain.ts'
+import { documentDigest, record } from './lib/telemetry.ts'
 
 /**
  * Read-only repository facts for an SDD. Contracts declare what they touch; this file compares
@@ -222,7 +224,11 @@ export async function checkRepositoryFacts(
 ): Promise<FactReport> {
   const text = readFileSync(sdd, 'utf8')
   const program = asLeaf ? { value: null } : programBlock(text)
-  const { contract, error: contractError } = await loadContract(sdd, text)
+  const { contract: written, error: contractError } = await loadContract(sdd, text)
+  // The document's prose is authoritative for the derivable fields, and a document that hands one
+  // of them to a table carries no JSON copy at all. Reading the raw block here would report that
+  // document for a field it deliberately does not restate.
+  const contract = written ? (resolveDerivable(written, text).contract as typeof written) : written
   const root = repository ? resolve(repository) : repositoryRoot(dirname(sdd))
   const files = walk(root)
   const directories = packageDirectories(root, files)
@@ -896,6 +902,12 @@ if (import.meta.main) {
     (repoFlag === undefined || (repoFlag === '--repository' && repository))
   ) {
     const result = await checkRepositoryFacts(value, repository)
+    record({
+      tool: 'repo-facts',
+      sddSha: documentDigest(readFileSync(value, 'utf8')),
+      codes: result.issues.map((issue) => issue.code),
+      candidateCodes: result.candidates.map((candidate) => candidate.code)
+    })
     console.log(JSON.stringify({ protocol: 'create-sdd-repo-facts/v1', sdd: value, ...result }))
     process.exit(result.valid ? 0 : 1)
   }

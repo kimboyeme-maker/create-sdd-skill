@@ -92,12 +92,25 @@ Before calling a design ready, walk each reachable branch and reverse-trace each
 
 ## Source metadata and shared validation
 
-New output adds a `design_detail` block to the existing contract, alongside current numbering/presentation metadata: one binding per section above, each naming the document and the heading that owns it. Its exact shape is in the [worked example](examples/loop-ready-example.md), which carries the only copy so the two cannot drift.
+New output adds a `design_detail` block to the existing contract, alongside current numbering/presentation metadata: one binding per section above, each naming the document and the heading that owns it. Its exact shape is in the [worked example](examples/loop-ready-example.md).
+
+Bind each section with an anchor comment on the line above its heading — `<!-- sdd-section: breaking_changes -->`, then `api_typing`, `entities_tools`, `implementation_flow`, `delivery_verification`. Without one the binding matches the heading text and requires it to occur exactly once, so renumbering or translating a heading breaks it silently. `contract --check` derives the binding from the anchor when it is there and from the heading when it is not.
+
+## Tables that carry their own machine columns
+
+`contract --check` rebuilds a field from the markdown when the table that defines those objects carries the columns the field needs, and leaves the field to the author when it does not. A table missing a column is not a defect — it is a prose view, and deriving from it would mean inventing the missing values.
+
+| Field | Table rows | Required columns | Optional |
+|---|---|---|---|
+| `requirements` | `XQnn` | `id`, `description`, `kind`, `status`, `acceptance_ids` | `dependencies` |
+| `migration.legacy_surfaces` | `YLnn` | `id`, `owner`, `symbols`, `final_disposition`, `requirement_ids`, `acceptance_ids` | `zero_reader_acceptance_ids` |
+
+One row replaces roughly ten lines of JSON, and the row is the copy a reader actually reads. Two tables defining the same prefix leave the field authored rather than picking one. `presentation`, `design_detail`, `ownership.packages`, `migration_applicability`, `inventory_authorities.SOURCE_INVENTORY.roots` and `design_convergence.status` are derived with no new structure at all; do not maintain them by hand.
 
 A source is the root (`self`) or an existing/proposed normative Agent Context document path relative to the root SDD. Its heading must occur exactly once outside code. Do not use contextual or evidence documents as normative step owners.
 
-Validate proposed documents with the loop's `validate-draft` before anything is written: pass the root SDD plus any new or revised Agent Context map and normative companions as complete strings, or a root-only draft through `--draft-file` or stdin. It reads existing linked evidence from disk, returns the delivery plan when the draft carries one, and never runs document commands, executes acceptance or signs evidence. Exact flags: `bun <loop-skill-root>/scripts/main.ts validate-draft --help`.
+Validate proposed documents with `validate-draft` before anything is written: pass the root SDD plus any new or revised Agent Context map and normative companions as complete strings, or a root-only draft through `--draft-file` or stdin. It reads existing linked evidence from disk, returns the delivery plan when the draft carries one, and never runs document commands, executes acceptance or signs evidence. Exact flags: the header of `bun <create-sdd-root>/scripts/validate.ts`.
 
 Documents without `design_detail` are validated without section bindings; add it through a normal scoped amendment when the design is revised.
 
-<!-- reading-receipt: 3268ea98 -->
+<!-- reading-receipt: 2a1626ea -->
