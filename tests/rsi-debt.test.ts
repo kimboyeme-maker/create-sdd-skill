@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { TELEMETRY_FILE } from '../scripts/lib/telemetry'
 import {
@@ -30,36 +30,44 @@ test('a signal reaches NOTICE, REQUIRED and FREEZE at 3, 6 and 9', () => {
   ])
 })
 
-test('the skill level is the highest any signal reaches, counted since the last consolidation', () => {
-  const rounds = [
-    round('R-1', 'improvement'),
-    round('R-2', 'budget-change'),
-    round('R-3', 'consolidation', { snapshot: { supersession_additions: 1 } }),
-    round('R-4', 'improvement'),
-    round('R-5', 'budget-change'),
-    round('R-6', 'improvement', { verdict: 'REJECTED' })
-  ]
+test('debt counts only unresolved additions: evidence or a retired asset settles one', () => {
+  const evidence = {
+    counterexample: 'fixture X',
+    scope: 'sdd/v2 leaves',
+    tradeoff: 'one more code'
+  }
   const additions = [
     { asset: 'code:A' },
-    { asset: 'code:B' },
-    { asset: 'code:C', supersedes: ['code:A'] }
+    { asset: 'code:B', ...evidence },
+    { asset: 'code:C' },
+    { asset: 'code:C' }
   ]
-  const result = debt({ rounds, additions, undisposed: 0 })
+  const result = debt({ rounds: [round('R-1', 'consolidation')], additions, undisposed: 0 })
   const byName = Object.fromEntries(result.signals.map((signal) => [signal.signal, signal.value]))
-  // A rejected round and everything before the consolidation do not count.
-  expect(byName.rounds_since_consolidation).toBe(2)
-  expect(byName.budget_raises_since_consolidation).toBe(1)
-  // Only additions past the snapshot index that supersede nothing count as exempt.
-  expect(byName.exempt_additions_since_consolidation).toBe(1)
+  // A consolidation does not reset history, and one asset is one decision however often it appears.
+  expect(byName.additions_without_evidence).toBe(2)
   expect(result.level).toBe('NOTICE')
-  expect(debt({ rounds, additions, undisposed: 120 }).level).toBe('FREEZE')
+  const retired = debt({
+    rounds: [],
+    additions,
+    dispositions: [
+      { asset: 'code:A', disposition: 'delete', decided_in: 'R-2', ...evidence },
+      { asset: 'code:C', disposition: 'delete', decided_in: 'R-2', ...evidence }
+    ],
+    currentAssets: new Set(['code:B']),
+    undisposed: 0
+  })
+  expect(retired.level).toBe('NONE')
 })
 
-test('debt narrows the round kinds a level admits, down to consolidation alone', () => {
-  expect(ADMITTED_KINDS.NOTICE).toContain('improvement')
-  expect(ADMITTED_KINDS.REQUIRED).not.toContain('improvement')
-  expect(ADMITTED_KINDS.REQUIRED).not.toContain('budget-change')
-  expect(ADMITTED_KINDS.FREEZE).toEqual(['consolidation'])
+test('debt is advisory: every level still admits every round kind', () => {
+  for (const level of ['NONE', 'NOTICE', 'REQUIRED', 'FREEZE'] as const)
+    expect([...ADMITTED_KINDS[level]].sort()).toEqual([
+      'budget-change',
+      'case-amendment',
+      'consolidation',
+      'improvement'
+    ])
 })
 
 test('a consolidation must shrink the skill and may not grow any dimension', () => {
@@ -109,17 +117,26 @@ test('a dormant rule counts until someone decides, and again once its review is 
       rule('code:KEPT')
     ],
     pinned: new Set(['PINNED']),
-    additions: [{ asset: 'code:YOUNG', added_at: '2026-09-20' }],
+    // Only a rule whose introduction is known to be old enough can be judged dormant.
+    additions: [
+      { asset: 'code:YOUNG', added_at: '2026-09-20' },
+      { asset: 'code:OLD', added_at: '2026-08-01' },
+      { asset: 'code:KEPT', added_at: '2026-08-01' },
+      { asset: 'code:PINNED', added_at: '2026-08-01' }
+    ],
     dispositions: [
       {
         asset: 'code:KEPT',
         disposition: 'retain' as const,
-        category: 'structural-guard',
-        reason: 'rejects malformed contract JSON',
+        counterexample: 'a contract block with a trailing comma',
+        scope: 'every contract document',
+        tradeoff: 'one guard that rarely fires',
         decided_in: 'R-1',
-        runs_at_decision: 60,
-        review_after_runs: 100
-      }
+        revisions_at_decision: 60,
+        review_after_revisions: 100
+      },
+      // A retain with no specific evidence decides nothing and leaves the rule counted.
+      { asset: 'code:OLD', disposition: 'retain' as const, decided_in: 'R-1' }
     ],
     window: 50,
     now: new Date('2026-09-23T00:00:00Z')
@@ -130,7 +147,7 @@ test('a dormant rule counts until someone decides, and again once its review is 
   expect(undisposedDormant({ ...base, runs: 10 })).toEqual([])
 })
 
-test('update puts consolidation first under debt and withholds enhancement until it is paid', () => {
+test('update suggests consolidation under debt but never withholds enhancement', () => {
   const health = (level: SkillHealth['level']): SkillHealth => ({
     protocol: 'skill-rsi-health/v1',
     level,
@@ -144,7 +161,7 @@ test('update puts consolidation first under debt and withholds enhancement until
   })
   const steps = (level: SkillHealth['level']) =>
     updateAgenda({ health: health(level), catalog_drifted: false }).map((entry) => entry.step)
-  expect(steps('FREEZE')).toEqual(['consolidate'])
+  expect(steps('FREEZE')).toEqual(['consider-consolidation', 'consider-enhancement'])
   expect(steps('NOTICE')).toEqual(['consider-consolidation', 'consider-enhancement'])
   expect(steps('NONE')).toEqual(['consider-enhancement'])
   expect(
@@ -156,8 +173,10 @@ test('update puts consolidation first under debt and withholds enhancement until
 
 test('running the test suite leaves the telemetry ledger untouched', () => {
   // The suite spawns real checks; before this guard each run filled the dormancy window with fixtures.
-  const before = readFileSync(TELEMETRY_FILE, 'utf8')
+  // The ledger is local and untracked, so a fresh checkout has none; absent must stay absent.
+  const snapshot = () => (existsSync(TELEMETRY_FILE) ? readFileSync(TELEMETRY_FILE, 'utf8') : null)
+  const before = snapshot()
   const validate = join(import.meta.dir, '..', 'scripts', 'validate.ts')
   Bun.spawnSync([process.execPath, validate, 'validate', '--sdd', validate], { stdout: 'pipe' })
-  expect(readFileSync(TELEMETRY_FILE, 'utf8')).toBe(before)
+  expect(snapshot()).toBe(before)
 })

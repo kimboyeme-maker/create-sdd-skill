@@ -69,18 +69,22 @@ strength and the difference is stated here rather than implied:
 
 | Mechanism | Strength |
 |---|---|
-| Every previously passing case must still pass (`evaluate`) | Real, and needs no trust: a rule relaxed to admit a new case breaks an old one immediately |
+| Previously passing cases stay passing in improvement, budget-change and consolidation rounds (`evaluate`) | Real, and needs no trust: a rule relaxed to admit a new case breaks an old one immediately |
 | sha256 commitments taken at `open` over every case file | Real: a change becomes visible in the round record |
 | `evaluate` refuses when the round's diff weakens a detector's expected code or a completion oracle | Real, and it reads untracked files too — reading only the diff once let a round edit an expected code unnoticed |
 | Held-out cases under `cases/held-out/` | Real as detection, **not** as prevention |
-| An improvement round may not amend a case; `--kind case-amendment` exists for that and claims no gain | Real that the two cannot happen in one round; whether the amendment is honest is a human judgement |
+| An improvement round may not amend a frozen case; a clean `--kind case-amendment` round is `RECORDED` | Real that changing the target cannot earn an `ACCEPTED` repair; whether the amendment is honest is a human judgement |
 | "The improver does not read the held-out set" | **Convention only.** Same machine, same permissions, no sandbox. Do not describe it as enforced |
 | Sandboxing or a read-only mount | **Not provided.** A published self-improving system has been observed hacking its own reward function and fabricating logs, so this gap is real and is recorded rather than papered over |
 
 `prune` is not optional. An addition must name what it supersedes or say why it supersedes nothing
-(`rsi/supersession.json`), and four measured ceilings in `rsi/budget.json` bound SKILL.md, the
-references, the validator and the behaviour-case count. A ceiling moves only in a `--kind
+(`rsi/supersession.json`), and six measured ceilings in `rsi/budget.json` bound SKILL.md, the
+references, the validator, scripts, tests and the behaviour-case count. A ceiling moves only in a `--kind
 budget-change` round, so every raise is a decision somebody made rather than a drift nobody saw.
+
+Only an `improvement` round with a changed source version and a failing frozen case repaired can
+close as `ACCEPTED`; closing reruns the same candidate and held-out cases. Clean maintenance rounds
+close as `RECORDED`.
 
 ## What a green round does not prove
 
@@ -88,4 +92,4 @@ That the change improved anything outside the mechanical cases. That an authorin
 understands or follows any rule involved. That nobody could have edited a case — only that the edit
 would show.
 
-<!-- reading-receipt: c1b2c4a6 -->
+<!-- reading-receipt: 1928636b -->

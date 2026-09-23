@@ -33,9 +33,9 @@ test('every mechanical case fires on its fixture and stays silent on the repaire
   expect(results.length).toBeGreaterThanOrEqual(8)
   const failed = results.filter((result) => !result.pass)
   expect(failed.map((result) => result.id)).toEqual([])
-  // Silence on the negative fixture is the half that makes a pass mean anything: a detector that
-  // fired on everything would satisfy the positive half alone.
-  expect(results.every((result) => result.negative_fired !== true)).toBe(true)
+  // Silence on one side is what makes a pass mean anything: a detector that fired on both fixtures
+  // would satisfy a must-fire case alone. A false-positive case is silent on its positive side.
+  expect(results.every((result) => !(result.fired && result.negative_fired === true))).toBe(true)
 })
 
 test('a held-out case edited after the round opened is reported', () => {

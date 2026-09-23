@@ -4,12 +4,13 @@
  * This skill's own first invariant says to correct violations at their cause rather than adding
  * incident-specific clauses, yet its history is thirteen commits of +14000/-730: rules only ever
  * arrive. Nothing could say otherwise, because nothing measured which rule had ever caught anything.
- * That is what this file exists to change, and it is the hard prerequisite for `rsi prune`.
+ * This file supplies rule-health observations; pruning still needs concrete per-rule evidence.
  *
  * What is written: a run id, a timestamp, the tool, a digest of the document, and the codes that
  * fired. What is never written: the document, its path, its contents, or anything about the author.
- * The file stays inside the skill and nothing sends it anywhere. Set `CREATE_SDD_TELEMETRY=0` to
- * disable it; the checks behave identically either way, they simply stop leaving a trace.
+ * The local file is ignored by Git and nothing sends it anywhere. RSI aggregates entries by the
+ * document digest, so rechecking one revision does not create another debt observation. Set
+ * `CREATE_SDD_TELEMETRY=0` to disable it; checks behave identically either way.
  */
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
