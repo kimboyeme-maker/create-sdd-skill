@@ -3,6 +3,9 @@
  *
  *   init.ts --kind feature|bug|assessment|program --out <absolute .md> [--id <id>] [--repository <root>]
  *   init.ts --kind evidence --sdd <absolute SDD> --out <absolute .json>
+ *   init.ts --kind oracles --sdd <absolute SDD>   failing stubs for missing test oracles
+ *   --branch [name] creates and switches to a branch first (default sdd/<id>);
+ *   --oracle-stubs on a skeleton kind stubs its oracles too
  *
  * A skeleton carries the open decision D1 ("replace this skeleton"), so it validates as
  * AWAITING_USER and can never be handed to a host as a finished design. The repository preset
@@ -19,8 +22,9 @@ import { validateV2Document } from './validator/domain/v2-document.ts'
 import { list, object, text } from './validator/domain/v2-meta.ts'
 import { loadPreset, type Preset, type PresetKind } from './validator/domain/v2-preset.ts'
 import { runnerFor } from './validator/domain/v2-replay.ts'
+import { stepText } from './validator/domain/v2-symbols.ts'
 
-const KINDS = ['feature', 'bug', 'assessment', 'program', 'evidence'] as const
+const KINDS = ['feature', 'bug', 'assessment', 'program', 'evidence', 'oracles'] as const
 type Kind = (typeof KINDS)[number]
 
 const block = (index: unknown, marker = 'sdd-contract') =>
@@ -192,6 +196,44 @@ function evidence(sdd: string, repository: string | null, preset: Preset | null)
   return `${JSON.stringify({ protocol: 'sdd-evidence/v1', sdd: index.id, revision: index.revision, results }, null, 2)}\n`
 }
 
+/**
+ * A failing stub for each declared test oracle that does not exist yet, so the baseline run fails
+ * as convergence requires until the real test replaces it. The import follows the runner the
+ * repository uses (bun, vitest, jest, pytest); other oracle types get no stub.
+ */
+function oracleStubs(sddText: string, repository: string): Map<string, string> {
+  const index = contractBlock(sddText).value
+  const stubs = new Map<string, string>()
+  if (!object(index) || !object(index.oracles)) return stubs
+  const body = sddText.replace(/<!--\s*sdd-contract:start[\s\S]*?sdd-contract:end\s*-->/, '')
+  for (const [id, oracle] of Object.entries(index.oracles)) {
+    if (!text(oracle) || existsSync(join(repository, oracle))) continue
+    const statement = (stepText(body, id).split('\n')[0] ?? id).replace(/^\s*[-*]\s+/, '').trim()
+    const message = `'${id} is not implemented: replace this stub with its oracle'`
+    const runner = runnerFor(repository, oracle)?.join(' ') ?? ''
+    if (oracle.endsWith('.py')) {
+      const name = id.toLowerCase().replace(/\W/g, '_')
+      stubs.set(
+        join(repository, oracle),
+        `# ${statement}\ndef test_${name}():\n    raise NotImplementedError(${message})\n`
+      )
+    } else if (/^(bun|npx vitest|npx jest)/.test(runner)) {
+      const source = runner.startsWith('bun')
+        ? 'bun:test'
+        : runner.includes('vitest')
+          ? 'vitest'
+          : ''
+      const header = source ? `import { test } from '${source}'\n\n` : ''
+      const title = JSON.stringify(statement.slice(0, 120))
+      stubs.set(
+        join(repository, oracle),
+        `${header}test(${title}, () => {\n  throw new Error(${message})\n})\n`
+      )
+    }
+  }
+  return stubs
+}
+
 /** Create the files for one kind; returns every path written. */
 export function init(options: {
   kind: Kind
@@ -199,23 +241,30 @@ export function init(options: {
   id?: string
   repository?: string
   sdd?: string
+  /** Create and switch to this branch (default `sdd/<id>`) before writing; needs a Git repository. */
+  branch?: string | true
+  /** Also write a failing stub for every declared test oracle that does not exist. */
+  oracleStubs?: boolean
 }): {
   written: string[]
+  branch?: string
   validation: { path: string; maturity: string; diagnostics: unknown[] }[]
 } {
   const { kind, out } = options
   if (!(KINDS as readonly string[]).includes(kind)) throw new Error(`INIT_KIND_UNKNOWN:${kind}`)
-  if (!isAbsolute(out)) throw new Error('INIT_OUT_ABSOLUTE_REQUIRED')
-  const detected = repositoryRoot(dirname(out))
+  if (!isAbsolute(out) && kind !== 'oracles') throw new Error('INIT_OUT_ABSOLUTE_REQUIRED')
+  const detected = repositoryRoot(dirname(kind === 'oracles' ? (options.sdd ?? '') : out))
   const repository = options.repository ?? (existsSync(join(detected, '.git')) ? detected : null)
   if (repository && !(existsSync(repository) && statSync(repository).isDirectory()))
     throw new Error('REPOSITORY_NOT_FOUND')
   const preset = loadPreset(repository)
-  const id = options.id ?? basename(out).replace(/\.sdd\.md$|\.md$|\.json$/, '')
+  const id =
+    options.id ??
+    basename(kind === 'oracles' ? (options.sdd ?? '') : out).replace(/\.sdd\.md$|\.md$|\.json$/, '')
   const files = new Map<string, string>()
-  if (kind === 'evidence') {
+  if (kind === 'evidence' || kind === 'oracles') {
     if (!options.sdd || !isAbsolute(options.sdd)) throw new Error('INIT_SDD_ABSOLUTE_REQUIRED')
-    files.set(out, evidence(options.sdd, repository, preset))
+    if (kind === 'evidence') files.set(out, evidence(options.sdd, repository, preset))
   } else {
     const template = preset?.templates[kind]
     if (template)
@@ -230,11 +279,19 @@ export function init(options: {
       )
     } else files.set(out, leaf(id, kind, preset))
   }
+  if (kind === 'oracles' || options.oracleStubs) {
+    if (!repository) throw new Error('INIT_STUBS_REQUIRE_REPOSITORY')
+    const sources = kind === 'oracles' ? [readFileSync(options.sdd!, 'utf8')] : [...files.values()]
+    for (const source of sources)
+      for (const [path, stub] of oracleStubs(source, repository)) files.set(path, stub)
+  }
   for (const path of files.keys())
     if (existsSync(path)) throw new Error(`INIT_TARGET_EXISTS:${path}`)
   // Preflight in memory, with the new files visible to each other, before anything is written:
   // a skeleton that would not validate (or a template with no recognised block) writes nothing.
-  const drafts = [...files].map(([path, content]) => ({ path, content }))
+  const drafts = [...files]
+    .filter(([path]) => path.endsWith('.md'))
+    .map(([path, content]) => ({ path, content }))
   const validation = [...files.keys()]
     .filter((path) => path.endsWith('.md'))
     .map((path) => {
@@ -257,11 +314,23 @@ export function init(options: {
     })
   const failed = validation.filter((item) => item.diagnostics.length)
   if (failed.length) throw new Error(`INIT_PREFLIGHT_FAILED:${JSON.stringify(failed)}`)
+  // The branch is created only after every check passed, and before any file is written.
+  let branch: string | undefined
+  if (options.branch) {
+    branch = options.branch === true ? `sdd/${id}` : options.branch
+    const git = (...args: string[]) => Bun.spawnSync(['git', '-C', repository ?? '', ...args])
+    if (!repository || git('rev-parse', '--git-dir').exitCode !== 0)
+      throw new Error('INIT_BRANCH_REQUIRES_GIT')
+    if (git('show-ref', '--verify', '--quiet', `refs/heads/${branch}`).exitCode === 0)
+      throw new Error(`INIT_BRANCH_EXISTS:${branch}`)
+    if (git('switch', '-q', '-c', branch).exitCode !== 0)
+      throw new Error(`INIT_BRANCH_FAILED:${branch}`)
+  }
   for (const [path, content] of files) {
     mkdirSync(dirname(path), { recursive: true })
     writeFileSync(path, content)
   }
-  return { written: [...files.keys()], validation }
+  return { written: [...files.keys()], ...(branch ? { branch } : {}), validation }
 }
 
 if (import.meta.main) {
@@ -276,7 +345,13 @@ if (import.meta.main) {
       out: value('--out') ?? '',
       id: value('--id'),
       repository: value('--repository'),
-      sdd: value('--sdd')
+      sdd: value('--sdd'),
+      branch: argv.includes('--branch')
+        ? value('--branch')?.startsWith('--') === false
+          ? value('--branch')
+          : true
+        : undefined,
+      oracleStubs: argv.includes('--oracle-stubs')
     })
     console.log(JSON.stringify({ protocol: 'create-sdd-init/v1', ...result }, null, 2))
     process.exit(result.validation.every((item) => !item.diagnostics.length) ? 0 : 1)

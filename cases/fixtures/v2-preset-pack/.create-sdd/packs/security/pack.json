@@ -1,0 +1,10 @@
+{
+  "protocol": "create-sdd-preset/v1",
+  "name": "security",
+  "version": "1",
+  "sections": {
+    "feature": [
+      "Security Review|\u5b89\u5168\u8bc4\u5ba1"
+    ]
+  }
+}

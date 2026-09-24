@@ -11,6 +11,7 @@ import {
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { init } from '../scripts/init'
+import { pack } from '../scripts/preset'
 import { validateV2Document } from '../scripts/validator/domain/v2-document'
 import { runnerFor } from '../scripts/validator/domain/v2-replay'
 
@@ -95,6 +96,72 @@ test('a malformed preset is reported and ignored', () => {
       'SDD_V2_PRESET_INVALID'
     )
     expect(existsSync(join(root, 'a.sdd.md'))).toBe(false)
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('a preset packs into a shareable directory that another repository extends', () => {
+  const source = workspace({
+    'templates/bug.md': '# {{id}} bug template\n',
+    '.create-sdd/preset.json': preset({
+      sections: { feature: ['Security Review'] },
+      blocking_candidates: ['SDD_V2_PATH_GIT_IGNORED'],
+      templates: { bug: 'templates/bug.md' }
+    })
+  })
+  const target = workspace({
+    '.create-sdd/preset.json': preset({ extends: ['.create-sdd/packs/shared'] })
+  })
+  try {
+    const out = join(target, '.create-sdd/packs/shared')
+    const packed = pack({ repository: source, out, name: 'shared' })
+    expect(packed.manifest.templates).toEqual({ bug: 'templates/bug.md' })
+    expect(() => pack({ repository: source, out })).toThrow('PRESET_PACK_TARGET_EXISTS')
+    const made = init({ kind: 'feature', out: join(target, 'docs/a.sdd.md') })
+    expect(readFileSync(made.written[0]!, 'utf8')).toContain('## Security Review')
+    expect(readFileSync(join(out, 'templates/bug.md'), 'utf8')).toBe('# {{id}} bug template\n')
+    // The shared bug template carries no index block, so init refuses it in the target as well.
+    expect(() => init({ kind: 'bug', id: 'b', out: join(target, 'docs/b.md') })).toThrow(
+      'INIT_PREFLIGHT_FAILED'
+    )
+  } finally {
+    rmSync(source, { recursive: true, force: true })
+    rmSync(target, { recursive: true, force: true })
+  }
+})
+
+test('init stubs missing oracles with failing tests and can start a branch first', () => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'v2-init-git-')))
+  const git = (...args: string[]) =>
+    Bun.spawnSync(['git', '-C', root, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args])
+  try {
+    git('init', '-q')
+    writeFileSync(join(root, 'bun.lock'), '')
+    git('add', '.')
+    git('commit', '-q', '-m', 'base')
+    const made = init({
+      kind: 'feature',
+      out: join(root, 'docs/greet.sdd.md'),
+      branch: true,
+      oracleStubs: true
+    })
+    expect(made.branch).toBe('sdd/greet')
+    const head = git('rev-parse', '--abbrev-ref', 'HEAD').stdout.toString().trim()
+    expect(head).toBe('sdd/greet')
+    const stub = join(root, 'src/greet.test.ts')
+    expect(made.written).toContain(stub)
+    // The stub fails, which is exactly the baseline convergence expects before implementation.
+    expect(Bun.spawnSync(['bun', 'test', './src/greet.test.ts'], { cwd: root }).exitCode).not.toBe(
+      0
+    )
+    expect(() =>
+      init({ kind: 'feature', out: join(root, 'docs/other.sdd.md'), id: 'greet', branch: true })
+    ).toThrow('INIT_BRANCH_EXISTS')
+    expect(existsSync(join(root, 'docs/other.sdd.md'))).toBe(false)
+    rmSync(stub)
+    const again = init({ kind: 'oracles', out: '', sdd: join(root, 'docs/greet.sdd.md') })
+    expect(again.written).toEqual([stub])
   } finally {
     rmSync(root, { recursive: true, force: true })
   }

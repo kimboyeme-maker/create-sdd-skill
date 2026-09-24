@@ -1,0 +1,6 @@
+{
+  "protocol": "create-sdd-preset/v1",
+  "extends": [
+    ".create-sdd/packs/security"
+  ]
+}

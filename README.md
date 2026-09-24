@@ -22,7 +22,7 @@ Every document follows six authoring phases — Harvest, Admit, Design, Verify, 
 
 1. **Author.** Run the skill. Answer the open decisions it lists (`[NEEDS CLARIFICATION: D1 …]`); `validate` reports `AWAITING_USER` until they are closed and `STRUCTURALLY_READY` when the structure is complete.
 2. **Hand off.** Give the SDD path and the `validate` handoff to your coding host. The handoff carries the read order, the ordered `tasks` (with files, dependencies and safe parallelism), the MVP task set and advisory `candidates`.
-3. **Implement.** The host implements. To make convergence provable, commit each step separately with its step ID in the message (`S2: add farewell`) and make every must-ship case's `oracles` test (or bounded command) real.
+3. **Implement.** The host implements. To make convergence provable, commit each step separately with its step ID in the message (`S2: add farewell`; qualify it as `<sdd-id>/S2` when several SDDs share a commit range) and make every must-ship case's `oracles` test (or bounded command) real.
 4. **Converge.** The host fills an evidence report (`init --kind evidence` writes the template) and runs `validate --evidence <report> [--replay]`. `closure.status` is `CLOSED`, `OPEN` (missing, stale, unproven, or a design-to-code gap) or `FAILED`. A FAIL or a changed expectation becomes a new SDD revision.
 
 `--replay` runs only the declared oracles, with a runner the validator derives from the repository, in trees exported from Git: the oracle must fail at the baseline, pass at the change, and fail again with this requirement's commits reverted. It never runs the host's own command and never writes to the repository.
@@ -35,6 +35,8 @@ Run from anywhere as `bun <create-sdd-root>/scripts/<script>`; flags are in each
 | --- | --- |
 | `init.ts --kind feature\|bug\|assessment\|program --out <abs.md>` | Write a skeleton that validates as `AWAITING_USER`; never overwrites, writes nothing if it would not validate |
 | `init.ts --kind evidence --sdd <abs SDD> --out <abs.json>` | Write the evidence report a host fills in |
+| `init.ts ... --branch [name] --oracle-stubs`, `init.ts --kind oracles --sdd <SDD>` | Start a branch first; write failing stubs for missing test oracles |
+| `preset.ts pack --repository <root> --out <dir>` | Package the repository's preset for other repositories to `extends` |
 | `validate.ts validate --sdd <abs SDD> [--repository <abs root>]` | Structural check plus the host handoff |
 | `validate.ts validate --sdd <SDD> --evidence <report.json> [--replay]` | Convergence (`closure`) |
 | `validate.ts validate-draft --draft-file <path>` | The same checks before a document is written |
@@ -42,7 +44,7 @@ Run from anywhere as `bun <create-sdd-root>/scripts/<script>`; flags are in each
 
 ## Adapting it to your repository
 
-Put `.create-sdd/preset.json` in the repository to state its rules without editing the skill: required principle files (for example `AGENTS.md` or a spec-kit constitution), extra required sections per document kind, advisory candidates to treat as blockers, the replay runner, and your own `init` templates ([presets](references/v2-presets.md)).
+Put `.create-sdd/preset.json` in the repository to state its rules without editing the skill: required principle files (for example `AGENTS.md` or a spec-kit constitution), extra required sections per document kind, advisory candidates to treat as blockers, the replay runner, and your own `init` templates ([presets](references/v2-presets.md)). Package it with `preset.ts pack` to share it; other repositories list the pack under `extends`.
 
 ## What the checks do not prove
 

@@ -12,10 +12,13 @@ export type PresetKind = (typeof PRESET_KINDS)[number]
  * - `sections`: extra headings each kind requires, alternatives joined by `|`;
  * - `blocking_candidates`: advisory candidate codes this repository treats as blockers;
  * - `runners`: replay commands by oracle extension, with `{oracle}` for the test path;
- * - `templates`: repository skeletons `init` uses instead of the built-in ones.
+ * - `templates`: repository skeletons `init` uses instead of the built-in ones;
+ * - `extends`: shared packs (directories with a `pack.json` of this shape) applied first.
  */
 export type Preset = Readonly<{
   path: string
+  /** The shared packs this preset extends, in the order they were applied. */
+  packs: readonly string[]
   principles: readonly string[]
   sections: Readonly<Partial<Record<PresetKind, readonly string[]>>>
   blocking_candidates: readonly string[]
@@ -27,23 +30,11 @@ export const PRESET_FILE = join('.create-sdd', 'preset.json')
 
 const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every(text)
 
-/** Read and check the repository's preset; a malformed one is reported and ignored. */
-export function loadPreset(repository: string | null, report?: Report): Preset | null {
-  if (!repository || !existsSync(join(repository, PRESET_FILE))) return null
-  const path = join(repository, PRESET_FILE)
-  const bad = (why: string) => {
-    if (report) report('SDD_V2_PRESET_INVALID', `${path}: ${why}`)
-    return null
-  }
-  let raw: unknown
-  try {
-    raw = JSON.parse(readFileSync(path, 'utf8'))
-  } catch {
-    return bad('not JSON')
-  }
-  if (!object(raw) || raw.protocol !== 'create-sdd-preset/v1') return bad('protocol')
+/** One preset file's rules, or why it is malformed. Template paths are made repository-relative. */
+function parse(raw: unknown, templateBase: string): Omit<Preset, 'path' | 'packs'> | string {
+  if (!object(raw) || raw.protocol !== 'create-sdd-preset/v1') return 'protocol'
   const principles = raw.principles ?? []
-  if (!strings(principles) || !principles.every(pathForm)) return bad('principles')
+  if (!strings(principles) || !principles.every(pathForm)) return 'principles'
   const byKind = <T>(value: unknown, check: (item: unknown) => item is T) => {
     if (value === undefined) return {}
     if (!object(value)) return null
@@ -52,11 +43,11 @@ export function loadPreset(repository: string | null, report?: Report): Preset |
     return value as Partial<Record<PresetKind, T>>
   }
   const sections = byKind(raw.sections, strings)
-  if (!sections) return bad('sections')
+  if (!sections) return 'sections'
   const templates = byKind(raw.templates, (item): item is string => text(item) && pathForm(item))
-  if (!templates) return bad('templates')
+  if (!templates) return 'templates'
   const blocking = raw.blocking_candidates ?? []
-  if (!strings(blocking)) return bad('blocking_candidates')
+  if (!strings(blocking)) return 'blocking_candidates'
   const runners = raw.runners ?? {}
   if (
     !object(runners) ||
@@ -65,14 +56,63 @@ export function loadPreset(repository: string | null, report?: Report): Preset |
         /^\.\w+$/.test(ext) && strings(command) && command.some((part) => part.includes('{oracle}'))
     )
   )
-    return bad('runners')
+    return 'runners'
   return {
-    path,
     principles,
     sections,
     blocking_candidates: blocking,
     runners: runners as Record<string, string[]>,
-    templates
+    templates: Object.fromEntries(
+      Object.entries(templates).map(([kind, path]) => [kind, join(templateBase, path)])
+    )
+  }
+}
+
+/**
+ * Read the repository's preset and the shared packs it `extends` (repository-relative directories
+ * holding a `pack.json` of the same shape, templates relative to the pack). Packs apply first; the
+ * repository's own entries add to their lists and override their runners and templates. A malformed
+ * preset or pack is reported and nothing is applied.
+ */
+export function loadPreset(repository: string | null, report?: Report): Preset | null {
+  if (!repository || !existsSync(join(repository, PRESET_FILE))) return null
+  const path = join(repository, PRESET_FILE)
+  const bad = (why: string) => {
+    if (report) report('SDD_V2_PRESET_INVALID', `${path}: ${why}`)
+    return null
+  }
+  const read = (file: string) => {
+    try {
+      return JSON.parse(readFileSync(file, 'utf8')) as unknown
+    } catch {
+      return undefined
+    }
+  }
+  const raw = read(path)
+  if (raw === undefined) return bad('not JSON')
+  const own = parse(raw, '')
+  if (typeof own === 'string') return bad(own)
+  const extended = object(raw) ? (raw.extends ?? []) : []
+  if (!strings(extended) || !extended.every(pathForm)) return bad('extends')
+  const layers: Omit<Preset, 'path' | 'packs'>[] = []
+  for (const pack of extended) {
+    const file = join(repository, pack, 'pack.json')
+    const parsed = existsSync(file) ? parse(read(file), pack) : 'not found'
+    if (typeof parsed === 'string') return bad(`extends ${pack}: ${parsed}`)
+    layers.push(parsed)
+  }
+  layers.push(own)
+  const union = (lists: readonly (readonly string[])[]) => [...new Set(lists.flat())]
+  return {
+    path,
+    packs: extended,
+    principles: union(layers.map((l) => l.principles)),
+    sections: Object.fromEntries(
+      PRESET_KINDS.map((kind) => [kind, union(layers.map((l) => l.sections[kind] ?? []))])
+    ),
+    blocking_candidates: union(layers.map((l) => l.blocking_candidates)),
+    runners: Object.assign({}, ...layers.map((l) => l.runners)),
+    templates: Object.assign({}, ...layers.map((l) => l.templates))
   }
 }
 
