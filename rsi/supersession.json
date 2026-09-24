@@ -682,6 +682,36 @@
       "counterexample": "R15 prescribed setting cause on the original rejection, overwriting its own cause.",
       "scope": "Any prose line prescribing cause on an existing original error.",
       "tradeoff": "Wrap in a new error whose cause keeps the original reachable instead."
+    },
+    {
+      "asset": "code:SDD_V2_ACCEPTANCE_SUBJECT_UNOBSERVABLE",
+      "added_at": "2026-09-24",
+      "round": "R-20260924075616",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-33: ORACLE_BELOW_BOUNDARY compares an oracle's imports with a boundary; no rule compares an acceptance's asserted subject with the declared interface.",
+      "counterexample": "capability-dependency-planner revision 1 A4 asserted the next ordinal, kept private as #nextOrdinal behind snapshot()/order(); the host could not decide it.",
+      "scope": "Acceptance text naming a #field or private member of a ts/js (or bare) fence, by identifier or, for a multi-word name, its phrase in English.",
+      "tradeoff": "Chinese paraphrases of a private member are not recognised; an interface declared outside the document is not read."
+    },
+    {
+      "asset": "code:SDD_V2_REMOVED_EXPORT_ASSERTED_UNCHANGED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924075616",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-34: reader discovery covers error text and construction shape, not exported names; no rule intersects removed exports with files promised unchanged.",
+      "counterexample": "create-pipeline revision 1 removed runSyncMiddleware from the root while S5/A3 kept signal.test.ts assertions unchanged, and MP-T51/MP-T67 assert that export.",
+      "scope": "Code spans in a requirement's export removal clause (private or internal removals excluded) against owned test files named on a line promising unchanged assertions, unless that line states an export-assertion rule.",
+      "tradeoff": "A name is matched as a word in the test file, so a test that mentions the name without asserting the export is also reported; the finding stays advisory."
+    },
+    {
+      "asset": "code:SDD_V2_ACCEPTANCE_BASELINE_UNFALSIFIABLE",
+      "added_at": "2026-09-24",
+      "round": "R-20260924080407",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-35: no rule inspects whether a must-ship case can have a failing baseline at all; the contract had no preserve class to mark one that cannot.",
+      "counterexample": "create-pipeline A7 held at base 6da16be, so the host could not produce the FAIL baseline the behaviour proof demanded and stopped; capability A6 (golden equivalence) had the same shape.",
+      "scope": "A must-ship acceptance not in `preserve` whose text names golden output or a before/after equivalence (same as before, 改动前后, 迁移前后, 与改动前相同).",
+      "tradeoff": "Bare still/仍/不变 are not markers because they usually qualify one assertion inside a change case, so a preservation case phrased only that way (plugin-host-r3 A10) is not flagged."
     }
   ]
 }

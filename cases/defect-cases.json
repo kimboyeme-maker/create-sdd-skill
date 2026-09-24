@@ -1738,6 +1738,242 @@
         "must_fire": true
       },
       "repository": "cases/fixtures/v2-quality"
+    },
+    {
+      "id": "CSDD-V2-PROGRAM-SIBLING-101",
+      "defect_class": "program-child-layout-rejected",
+      "statement": "A program root whose children live in sibling directories inside the repository (a docs/<package>/ layout required by the repository) is blocked as SDD_V2_PATH_ESCAPE, and every Meta of the escaped children then cascades into index and coverage blockers.",
+      "root_cause": "childPath() bounds child SDDs by the root document's directory only, while the neighbouring link and step-source checks already accept any target inside the resolved repository.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 162,
+        "quote": "report('SDD_V2_PATH_ESCAPE', raw, 'child-path-escape')"
+      },
+      "fixture": "cases/fixtures/v2-program-sibling/docs/alpha/escape-root.sdd.md",
+      "negative_fixture": "cases/fixtures/v2-program-sibling/docs/alpha/root.sdd.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_PATH_ESCAPE",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "plugin-host R3 program authoring with sdd/v2 (docs/<package>/ layout), OD-29",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-boundaries.test.ts"
+    },
+    {
+      "id": "CSDD-V2-ERRTEXT-102",
+      "defect_class": "error-text-reader-noise",
+      "statement": "A step touches a test file that throws a sample `new Error('downstream failed')`; an unrelated test elsewhere throws the same text, and it is listed as an undeclared error-text reader although the leaf rewrites no message it owns.",
+      "root_cause": "readerCandidates() harvests thrown messages from every touched file, test files included, so fixture errors inside the leaf's own tests become search fragments across the repository.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-readers.ts",
+        "line": 85,
+        "quote": "for (const [, , message] of source.matchAll(THROWN)) messages.add(message!)"
+      },
+      "repository": "cases/fixtures/v2-readers-test-source",
+      "fixture": "cases/fixtures/v2-readers-test-source-undeclared.md",
+      "negative_fixture": "cases/fixtures/v2-readers-test-source-declared.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_ERROR_TEXT_READER_UNDECLARED",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "capability-dependency-planner, create-pipeline and plugin-host leaves in migai, OD-30",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-031A",
+      "defect_class": "quantifier-fixture-noise",
+      "statement": "An acceptance fixes a two-level chain written with backticked names (`A` ← `B` ← `C`), yet the quantifier candidate still asks for a two-level chain.",
+      "root_cause": "DISCRIMINATING recognises an arrow chain only between bare word characters, so a backtick beside the arrow breaks the match.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-quality.ts",
+        "line": 21,
+        "quote": "const DISCRIMINATING ="
+      },
+      "fixture": "cases/fixtures/v2-quality-od24.md",
+      "negative_fixture": "cases/fixtures/v2-quality-od31a.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_QUANTIFIER_FIXTURE_UNDISCRIMINATING",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "plugin-host R2 leaves in migai, OD-31",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-031B",
+      "defect_class": "quantifier-fixture-noise",
+      "statement": "An acceptance enumerates several named elements with the CJK list separator (`B`、`C`、`D`), yet the quantifier candidate still asks for at least two elements.",
+      "root_cause": "DISCRIMINATING counts only bracketed lists and English or 两个/多个 number words; it has no reading of 、-separated items or CJK counts such as 8 个 or 四个.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-quality.ts",
+        "line": 21,
+        "quote": "const DISCRIMINATING ="
+      },
+      "fixture": "cases/fixtures/v2-quality-od24.md",
+      "negative_fixture": "cases/fixtures/v2-quality-od31b.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_QUANTIFIER_FIXTURE_UNDISCRIMINATING",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "create-pipeline leaf in migai (A5, A7), OD-31",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts"
+    },
+    {
+      "id": "CSDD-V2-PROGRAM-DERIVED-101",
+      "defect_class": "program-meta-hand-copied",
+      "statement": "A program root that declares only its Entries and Assets, naming child Modules by their derivable IDs (M:<child>:<R>), is rejected for missing Modules, Chunks and Bundles, so every child edit forces a hand-copied root index that goes stale (chunk-source-diverged).",
+      "root_cause": "Leaves derive omitted Meta kinds from their index, but validateV2Document() takes a program root's Metas as declared only.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 721,
+        "quote": "? { index: root.index, source: 'declared' as const, derived: new Set<string>() }"
+      },
+      "fixture": "cases/fixtures/v2-program-derived/stale-root.sdd.md",
+      "negative_fixture": "cases/fixtures/v2-program-derived/root.sdd.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_REFERENCE_MISSING",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "plugin-host R3 program root in migai, OD-32",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-boundaries.test.ts"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-033",
+      "defect_class": "acceptance-subject-unobservable",
+      "statement": "An acceptance asserts \"the next ordinal\", state the document's interface fence keeps private (#nextOrdinal) and exposes through no public member, so no public read can decide the case and the host stops.",
+      "root_cause": "ORACLE_BELOW_BOUNDARY compares an oracle's imports with the requirement's boundary; nothing compares an acceptance's asserted subject with the members the declared interface keeps private.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-quality.ts",
+        "line": 187,
+        "quote": "code: 'SDD_V2_ORACLE_BELOW_BOUNDARY',"
+      },
+      "fixture": "cases/fixtures/v2-quality-od33.md",
+      "negative_fixture": "cases/fixtures/v2-quality-od33.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_ACCEPTANCE_SUBJECT_UNOBSERVABLE",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "capability-dependency-planner revision 1 in migai (R4/A4), OD-33",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-034",
+      "defect_class": "removed-export-asserted-unchanged",
+      "statement": "A requirement removes the root export runSync while a step promises that signal.test.ts, which asserts runSync is exported, keeps its assertions unchanged; the host can satisfy only one of them.",
+      "root_cause": "Reader discovery covers error text and construction shape, not exported names; no check intersects names a leaf removes with test files it promises not to change.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-readers.ts",
+        "line": 99,
+        "quote": "code: 'SDD_V2_ERROR_TEXT_READER_UNDECLARED',"
+      },
+      "repository": "cases/fixtures/v2-removed-export",
+      "fixture": "cases/fixtures/v2-removed-export-unchanged.md",
+      "negative_fixture": "cases/fixtures/v2-removed-export-rewritten.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_REMOVED_EXPORT_ASSERTED_UNCHANGED",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "create-pipeline revision 1 in migai (R5 vs S5/A3), OD-34",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-035",
+      "defect_class": "acceptance-baseline-unfalsifiable",
+      "statement": "A must-ship case asserts that a refactored builder's output stays unchanged against golden fixtures; it passes before and after by design, so no honest failing baseline exists, yet nothing marks it as a preservation case.",
+      "root_cause": "The contract has no way to mark a preserved property, and no check notices a golden/unchanged/still claim on a must-ship case.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-closure.ts",
+        "line": 34,
+        "quote": "if (!text(row.command) || !base || base.status !== 'FAIL' || !text(base.evidence))"
+      },
+      "fixture": "cases/fixtures/v2-quality-od35.md",
+      "negative_fixture": "cases/fixtures/v2-quality-od35.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_ACCEPTANCE_BASELINE_UNFALSIFIABLE",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "create-pipeline A7, capability A6, plugin-host-r3 A10 in migai, OD-35",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts"
+    },
+    {
+      "id": "CSDD-V2-PRESERVE-101",
+      "defect_class": "preserved-baseline-unclassified",
+      "statement": "A host honestly reports a must-ship case passing at base and at change with the same command; closure accepts the row as an unproven PASS instead of asking whether the case preserves a property or lacks a failing baseline, and a preserved case can never count as proven.",
+      "root_cause": "proofOf() only knows FAIL-then-PASS; a PASS baseline is silently level none and there is no preserve field to classify it.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-closure.ts",
+        "line": 34,
+        "quote": "if (!text(row.command) || !base || base.status !== 'FAIL' || !text(base.evidence))"
+      },
+      "repository": "cases/fixtures/v2-closure-preserve",
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/other.test.ts"
+          }
+        }
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/other.test.ts"
+          },
+          "preserve": [
+            "A1"
+          ]
+        }
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "create-pipeline A7 host stop in migai, OD-35",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts"
     }
   ],
   "held_out": [

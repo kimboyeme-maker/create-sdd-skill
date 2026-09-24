@@ -5,7 +5,7 @@
   "ceilings": {
     "SKILL.md.characters": 10450,
     "references.lines": 4820,
-    "validator.lines": 7750,
+    "validator.lines": 7868,
     "behavior_cases": 46,
     "scripts.lines": 15000,
     "tests.lines": 5150
@@ -314,6 +314,30 @@
       "at": "2026-09-24",
       "round": "budget-change",
       "reason": "User review 2026-09-24 of round R-20260924035702: the raise was never used — after the OD-15..OD-28 detectors and the review fixes the measured sizes are validator.lines 7720 and scripts.lines 14826, under the previous ceilings — so the headroom is withdrawn. The earlier raise stays on record."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 7750,
+      "to": 7765,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-30..OD-32 update: deriving a program root's omitted child Modules, Chunks and Bundles (OD-32) generalises deriveLeafMetas over child sources and resolves each child Bundle's requires from sibling exports. With the OD-30 and OD-31 fixes the candidate measured validator.lines 7763 after compaction (round R-20260924073519, rejected on this ceiling alone: 7763 > 7750, all four frozen cases repaired, no regressions). The raise covers that measured size plus two lines of formatter slack; scripts.lines stays within 15000."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 7765,
+      "to": 7822,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-33/OD-34 update: two advisory detectors in v2-quality.ts — ACCEPTANCE_SUBJECT_UNOBSERVABLE (an acceptance names a member the interface fence keeps private) and REMOVED_EXPORT_ASSERTED_UNCHANGED (a test file promised unchanged asserts an export the leaf removes). The candidate measured validator.lines 7820 (7763 without them); the raise covers that plus two lines of formatter slack."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 7822,
+      "to": 7868,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-35 update: the preserve acceptance class — index validation of `preserve` (v2-document.ts), PASS-then-PASS proof, replay and causality exemptions and the baseline-class-mismatch finding (v2-closure.ts), and the ACCEPTANCE_BASELINE_UNFALSIFIABLE candidate (v2-quality.ts). The candidate measured validator.lines 7866 (7820 without it); the raise covers that plus two lines of formatter slack."
     }
   ],
   "introduced": [

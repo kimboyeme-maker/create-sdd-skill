@@ -3052,6 +3052,19 @@
     },
     {
       "id": "RL-0235",
+      "asset": "code:SDD_V2_ACCEPTANCE_BASELINE_UNFALSIFIABLE",
+      "kind": "issue-code",
+      "sites": [
+        "scripts/validator/domain/v2-quality.ts"
+      ],
+      "weight": {
+        "sites": 1,
+        "mentions": 1,
+        "test_mentions": 1
+      }
+    },
+    {
+      "id": "RL-0236",
       "asset": "code:SDD_V2_ACCEPTANCE_FORWARD_DEPENDENCY",
       "kind": "issue-code",
       "sites": [
@@ -3064,21 +3077,8 @@
       }
     },
     {
-      "id": "RL-0236",
-      "asset": "code:SDD_V2_BUDGET_GATE_UNOWNED",
-      "kind": "issue-code",
-      "sites": [
-        "scripts/validator/domain/v2-quality.ts"
-      ],
-      "weight": {
-        "sites": 1,
-        "mentions": 1,
-        "test_mentions": 1
-      }
-    },
-    {
       "id": "RL-0237",
-      "asset": "code:SDD_V2_CAUSE_OVERWRITE_PRESCRIBED",
+      "asset": "code:SDD_V2_ACCEPTANCE_SUBJECT_UNOBSERVABLE",
       "kind": "issue-code",
       "sites": [
         "scripts/validator/domain/v2-quality.ts"
@@ -3091,6 +3091,32 @@
     },
     {
       "id": "RL-0238",
+      "asset": "code:SDD_V2_BUDGET_GATE_UNOWNED",
+      "kind": "issue-code",
+      "sites": [
+        "scripts/validator/domain/v2-quality.ts"
+      ],
+      "weight": {
+        "sites": 1,
+        "mentions": 1,
+        "test_mentions": 1
+      }
+    },
+    {
+      "id": "RL-0239",
+      "asset": "code:SDD_V2_CAUSE_OVERWRITE_PRESCRIBED",
+      "kind": "issue-code",
+      "sites": [
+        "scripts/validator/domain/v2-quality.ts"
+      ],
+      "weight": {
+        "sites": 1,
+        "mentions": 1,
+        "test_mentions": 1
+      }
+    },
+    {
+      "id": "RL-0240",
       "asset": "code:SDD_V2_CLARIFICATION_UNTRACKED",
       "kind": "issue-code",
       "sites": [
@@ -3103,7 +3129,7 @@
       }
     },
     {
-      "id": "RL-0239",
+      "id": "RL-0241",
       "asset": "code:SDD_V2_CLOSURE_FAILED",
       "kind": "issue-code",
       "sites": [
@@ -3116,7 +3142,7 @@
       }
     },
     {
-      "id": "RL-0240",
+      "id": "RL-0242",
       "asset": "code:SDD_V2_CLOSURE_OPEN",
       "kind": "issue-code",
       "sites": [
@@ -3124,12 +3150,12 @@
       ],
       "weight": {
         "sites": 1,
-        "mentions": 12,
+        "mentions": 13,
         "test_mentions": 0
       }
     },
     {
-      "id": "RL-0241",
+      "id": "RL-0243",
       "asset": "code:SDD_V2_COUNT_ONLY_PRESERVATION",
       "kind": "issue-code",
       "sites": [
@@ -3142,7 +3168,7 @@
       }
     },
     {
-      "id": "RL-0242",
+      "id": "RL-0244",
       "asset": "code:SDD_V2_COVERAGE_MISSING",
       "kind": "issue-code",
       "sites": [
@@ -3156,7 +3182,7 @@
       }
     },
     {
-      "id": "RL-0243",
+      "id": "RL-0245",
       "asset": "code:SDD_V2_DEPENDENCY_CYCLE",
       "kind": "issue-code",
       "sites": [
@@ -3170,7 +3196,7 @@
       }
     },
     {
-      "id": "RL-0244",
+      "id": "RL-0246",
       "asset": "code:SDD_V2_ERROR_POSITION_UNSTATED",
       "kind": "issue-code",
       "sites": [
@@ -3183,7 +3209,7 @@
       }
     },
     {
-      "id": "RL-0245",
+      "id": "RL-0247",
       "asset": "code:SDD_V2_ERROR_TEXT_READER_UNDECLARED",
       "kind": "issue-code",
       "sites": [
@@ -3192,11 +3218,11 @@
       "weight": {
         "sites": 1,
         "mentions": 1,
-        "test_mentions": 1
+        "test_mentions": 3
       }
     },
     {
-      "id": "RL-0246",
+      "id": "RL-0248",
       "asset": "code:SDD_V2_FAILURE_CLAUSE_UNBOUND",
       "kind": "issue-code",
       "sites": [
@@ -3209,7 +3235,7 @@
       }
     },
     {
-      "id": "RL-0247",
+      "id": "RL-0249",
       "asset": "code:SDD_V2_ID_DUPLICATE",
       "kind": "issue-code",
       "sites": [
@@ -3224,7 +3250,7 @@
       }
     },
     {
-      "id": "RL-0248",
+      "id": "RL-0250",
       "asset": "code:SDD_V2_INDEX_ORACLE_DIRTY_TREE",
       "kind": "issue-code",
       "sites": [
@@ -3237,7 +3263,7 @@
       }
     },
     {
-      "id": "RL-0249",
+      "id": "RL-0251",
       "asset": "code:SDD_V2_INDEX_SHAPE_INVALID",
       "kind": "issue-code",
       "sites": [
@@ -3247,12 +3273,12 @@
       ],
       "weight": {
         "sites": 3,
-        "mentions": 33,
+        "mentions": 35,
         "test_mentions": 0
       }
     },
     {
-      "id": "RL-0250",
+      "id": "RL-0252",
       "asset": "code:SDD_V2_INTEGRATION_OWNER_REQUIRED",
       "kind": "issue-code",
       "sites": [
@@ -3265,7 +3291,7 @@
       }
     },
     {
-      "id": "RL-0251",
+      "id": "RL-0253",
       "asset": "code:SDD_V2_INTERFACE_MISMATCH",
       "kind": "issue-code",
       "sites": [
@@ -3279,7 +3305,7 @@
       }
     },
     {
-      "id": "RL-0252",
+      "id": "RL-0254",
       "asset": "code:SDD_V2_INVARIANT_INVENTORY_MISSING",
       "kind": "issue-code",
       "sites": [
@@ -3292,7 +3318,7 @@
       }
     },
     {
-      "id": "RL-0253",
+      "id": "RL-0255",
       "asset": "code:SDD_V2_INVENTORY_ENTRY_UNCOVERED",
       "kind": "issue-code",
       "sites": [
@@ -3305,7 +3331,7 @@
       }
     },
     {
-      "id": "RL-0254",
+      "id": "RL-0256",
       "asset": "code:SDD_V2_META_SOURCE_MISMATCH",
       "kind": "issue-code",
       "sites": [
@@ -3319,7 +3345,7 @@
       }
     },
     {
-      "id": "RL-0255",
+      "id": "RL-0257",
       "asset": "code:SDD_V2_MUST_SHIP_CHAIN_INCOMPLETE",
       "kind": "issue-code",
       "sites": [
@@ -3333,7 +3359,7 @@
       }
     },
     {
-      "id": "RL-0256",
+      "id": "RL-0258",
       "asset": "code:SDD_V2_NEGATIVE_SEARCH_GENERIC_TOKEN",
       "kind": "issue-code",
       "sites": [
@@ -3346,7 +3372,7 @@
       }
     },
     {
-      "id": "RL-0257",
+      "id": "RL-0259",
       "asset": "code:SDD_V2_ORACLE_BELOW_BOUNDARY",
       "kind": "issue-code",
       "sites": [
@@ -3359,7 +3385,7 @@
       }
     },
     {
-      "id": "RL-0258",
+      "id": "RL-0260",
       "asset": "code:SDD_V2_ORACLE_PROCEDURE_UNSCRIPTED",
       "kind": "issue-code",
       "sites": [
@@ -3372,7 +3398,7 @@
       }
     },
     {
-      "id": "RL-0259",
+      "id": "RL-0261",
       "asset": "code:SDD_V2_OWNER_CONFLICT",
       "kind": "issue-code",
       "sites": [
@@ -3386,7 +3412,7 @@
       }
     },
     {
-      "id": "RL-0260",
+      "id": "RL-0262",
       "asset": "code:SDD_V2_PATH_ESCAPE",
       "kind": "issue-code",
       "sites": [
@@ -3400,7 +3426,7 @@
       }
     },
     {
-      "id": "RL-0261",
+      "id": "RL-0263",
       "asset": "code:SDD_V2_PATH_GIT_IGNORED",
       "kind": "issue-code",
       "sites": [
@@ -3413,7 +3439,7 @@
       }
     },
     {
-      "id": "RL-0262",
+      "id": "RL-0264",
       "asset": "code:SDD_V2_PATH_INVALID",
       "kind": "issue-code",
       "sites": [
@@ -3428,7 +3454,7 @@
       }
     },
     {
-      "id": "RL-0263",
+      "id": "RL-0265",
       "asset": "code:SDD_V2_PATH_NOT_FOUND",
       "kind": "issue-code",
       "sites": [
@@ -3442,7 +3468,7 @@
       }
     },
     {
-      "id": "RL-0264",
+      "id": "RL-0266",
       "asset": "code:SDD_V2_PRESET_BLOCKED",
       "kind": "issue-code",
       "sites": [
@@ -3455,7 +3481,7 @@
       }
     },
     {
-      "id": "RL-0265",
+      "id": "RL-0267",
       "asset": "code:SDD_V2_PRESET_INVALID",
       "kind": "issue-code",
       "sites": [
@@ -3468,7 +3494,7 @@
       }
     },
     {
-      "id": "RL-0266",
+      "id": "RL-0268",
       "asset": "code:SDD_V2_PRINCIPLE_CHECK_UNBOUND",
       "kind": "issue-code",
       "sites": [
@@ -3481,7 +3507,7 @@
       }
     },
     {
-      "id": "RL-0267",
+      "id": "RL-0269",
       "asset": "code:SDD_V2_PROGRAM_LINK_INVALID",
       "kind": "issue-code",
       "sites": [
@@ -3494,7 +3520,7 @@
       }
     },
     {
-      "id": "RL-0268",
+      "id": "RL-0270",
       "asset": "code:SDD_V2_PROSE_DEFINITION_DUPLICATE",
       "kind": "issue-code",
       "sites": [
@@ -3507,7 +3533,7 @@
       }
     },
     {
-      "id": "RL-0269",
+      "id": "RL-0271",
       "asset": "code:SDD_V2_PROSE_DEFINITION_MISSING",
       "kind": "issue-code",
       "sites": [
@@ -3520,7 +3546,7 @@
       }
     },
     {
-      "id": "RL-0270",
+      "id": "RL-0272",
       "asset": "code:SDD_V2_QUANTIFIER_FIXTURE_UNDISCRIMINATING",
       "kind": "issue-code",
       "sites": [
@@ -3533,7 +3559,7 @@
       }
     },
     {
-      "id": "RL-0271",
+      "id": "RL-0273",
       "asset": "code:SDD_V2_REFERENCE_MISSING",
       "kind": "issue-code",
       "sites": [
@@ -3550,7 +3576,20 @@
       }
     },
     {
-      "id": "RL-0272",
+      "id": "RL-0274",
+      "asset": "code:SDD_V2_REMOVED_EXPORT_ASSERTED_UNCHANGED",
+      "kind": "issue-code",
+      "sites": [
+        "scripts/validator/domain/v2-quality.ts"
+      ],
+      "weight": {
+        "sites": 1,
+        "mentions": 1,
+        "test_mentions": 1
+      }
+    },
+    {
+      "id": "RL-0275",
       "asset": "code:SDD_V2_REPO_GATE_NO_DISPOSITION",
       "kind": "issue-code",
       "sites": [
@@ -3563,7 +3602,7 @@
       }
     },
     {
-      "id": "RL-0273",
+      "id": "RL-0276",
       "asset": "code:SDD_V2_REQUIRED_FIELD_EMPTY",
       "kind": "issue-code",
       "sites": [
@@ -3578,7 +3617,7 @@
       }
     },
     {
-      "id": "RL-0274",
+      "id": "RL-0277",
       "asset": "code:SDD_V2_REQUIREMENT_OUTCOME_UNCOVERED",
       "kind": "issue-code",
       "sites": [
@@ -3591,7 +3630,7 @@
       }
     },
     {
-      "id": "RL-0275",
+      "id": "RL-0278",
       "asset": "code:SDD_V2_SECTION_MISSING",
       "kind": "issue-code",
       "sites": [
@@ -3606,7 +3645,7 @@
       }
     },
     {
-      "id": "RL-0276",
+      "id": "RL-0279",
       "asset": "code:SDD_V2_SHAPE_READER_UNDECLARED",
       "kind": "issue-code",
       "sites": [
@@ -3619,7 +3658,7 @@
       }
     },
     {
-      "id": "RL-0277",
+      "id": "RL-0280",
       "asset": "code:SDD_V2_SURFACE_INVENTORY_INCOMPLETE",
       "kind": "issue-code",
       "sites": [
@@ -3632,7 +3671,7 @@
       }
     },
     {
-      "id": "RL-0278",
+      "id": "RL-0281",
       "asset": "code:SDD_V2_WRITES_OWNED_ELSEWHERE",
       "kind": "issue-code",
       "sites": [
@@ -3645,7 +3684,7 @@
       }
     },
     {
-      "id": "RL-0279",
+      "id": "RL-0282",
       "asset": "code:SENSITIVITY_WRITES_UNDECLARED",
       "kind": "issue-code",
       "sites": [
@@ -3658,7 +3697,7 @@
       }
     },
     {
-      "id": "RL-0280",
+      "id": "RL-0283",
       "asset": "code:SHARED_MECHANISM_WRITE_INVALID",
       "kind": "issue-code",
       "sites": [
@@ -3671,7 +3710,7 @@
       }
     },
     {
-      "id": "RL-0281",
+      "id": "RL-0284",
       "asset": "code:SHARED_MECHANISM_WRITE_POINT_NOT_FOUND",
       "kind": "issue-code",
       "sites": [
@@ -3684,7 +3723,7 @@
       }
     },
     {
-      "id": "RL-0282",
+      "id": "RL-0285",
       "asset": "code:SHARED_MECHANISM_WRITE_POINT_UNDECLARED",
       "kind": "issue-code",
       "sites": [
@@ -3697,7 +3736,7 @@
       }
     },
     {
-      "id": "RL-0283",
+      "id": "RL-0286",
       "asset": "code:SPLIT_DECISION_UNRECORDED",
       "kind": "issue-code",
       "sites": [
@@ -3710,7 +3749,7 @@
       }
     },
     {
-      "id": "RL-0284",
+      "id": "RL-0287",
       "asset": "code:STEP_THRESHOLD_NOT_IN_ACCEPTANCE",
       "kind": "issue-code",
       "sites": [
@@ -3723,7 +3762,7 @@
       }
     },
     {
-      "id": "RL-0285",
+      "id": "RL-0288",
       "asset": "code:STEP_WRITE_OUTSIDE_AUTHORITY",
       "kind": "issue-code",
       "sites": [
@@ -3736,7 +3775,7 @@
       }
     },
     {
-      "id": "RL-0286",
+      "id": "RL-0289",
       "asset": "code:TEST_FILE_BUSINESS_NAME_REQUIRED",
       "kind": "issue-code",
       "sites": [
@@ -3749,7 +3788,7 @@
       }
     },
     {
-      "id": "RL-0287",
+      "id": "RL-0290",
       "asset": "code:TEST_FILE_DELIVERY_METADATA_NAME_FORBIDDEN",
       "kind": "issue-code",
       "sites": [
@@ -3762,7 +3801,7 @@
       }
     },
     {
-      "id": "RL-0288",
+      "id": "RL-0291",
       "asset": "code:TOOLCHAIN_VERSION_CONFLICT",
       "kind": "issue-code",
       "sites": [
@@ -3775,7 +3814,7 @@
       }
     },
     {
-      "id": "RL-0289",
+      "id": "RL-0292",
       "asset": "code:TYPE_PROBE_MODULE_UNAVAILABLE",
       "kind": "issue-code",
       "sites": [
@@ -3788,7 +3827,7 @@
       }
     },
     {
-      "id": "RL-0290",
+      "id": "RL-0293",
       "asset": "code:TYPE_PROBE_PROJECT_UNAVAILABLE",
       "kind": "issue-code",
       "sites": [
@@ -3801,7 +3840,7 @@
       }
     },
     {
-      "id": "RL-0291",
+      "id": "RL-0294",
       "asset": "code:TYPE_PROBE_SOURCE_UNAVAILABLE",
       "kind": "issue-code",
       "sites": [
