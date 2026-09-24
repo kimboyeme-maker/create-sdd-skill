@@ -14,6 +14,7 @@ import { applyOverlay, contractOf, withContract, type Json } from '../scripts/li
 import { validateDraftText } from '../scripts/validator/controllers/document.controller'
 import { drainObservations, observations } from '../scripts/rsi'
 import { checkClosure } from '../scripts/validator/domain/v2-closure'
+import { replay, type Oracle } from '../scripts/validator/domain/v2-replay'
 import { validateV2Document } from '../scripts/validator/domain/v2-document'
 
 const FIXTURES = join(import.meta.dir, '..', 'cases', 'fixtures')
@@ -315,6 +316,81 @@ test('requirement-level ablation reverts only the commits naming the case steps'
       verdict: 'proven'
     })
     expect(closure.status).toBe('OPEN')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('replay refuses an ablation it cannot attribute to one requirement', () => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'v2-attribution-')))
+  const git = (...args: string[]) =>
+    Bun.spawnSync(['git', '-C', root, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args])
+      .stdout.toString()
+      .trim()
+  const write = (path: string, content: string) => {
+    mkdirSync(dirname(join(root, path)), { recursive: true })
+    writeFileSync(join(root, path), content)
+  }
+  try {
+    git('init', '-q')
+    write('bun.lock', '')
+    write('src/api.ts', 'export {}\n')
+    write('package.json', JSON.stringify({ name: 'api', scripts: {} }))
+    git('add', '.')
+    git('commit', '-q', '-m', 'base')
+    const base = git('rev-parse', 'HEAD')
+    write('src/api.ts', "export const greet = () => 'hi'\nexport const farewell = () => 'bye'\n")
+    // The finding's case: A1 should check R1 but tests farewell(), and no commit names a step.
+    write(
+      'src/a1.test.ts',
+      "import { expect, test } from 'bun:test'\nimport { farewell } from './api'\ntest('A1', () => expect(farewell()).toBe('bye'))\n"
+    )
+    write(
+      'package.json',
+      JSON.stringify({ name: 'api', scripts: { build: 'mkdir -p dist && echo ok > dist/out.txt' } })
+    )
+    git('add', '.')
+    git('commit', '-q', '-m', 'implement both')
+    const head = git('rev-parse', 'HEAD')
+    const run = (oracle: Oracle, others: { id: string; touches: string[] }[]) =>
+      replay({
+        repository: root,
+        acceptance: 'A1',
+        oracle,
+        base,
+        head,
+        implementing: ['src/api.ts', 'package.json'],
+        steps: ['S1'],
+        others
+      })
+    // File-level fallback would remove R2's code too and call the wrong oracle proven.
+    expect(run('src/a1.test.ts', [{ id: 'S2', touches: ['src/api.ts'] }])).toMatchObject({
+      granularity: 'file',
+      verdict: 'not-proven'
+    })
+    expect(run('src/a1.test.ts', [{ id: 'S2', touches: [] }]).verdict).toBe('not-proven')
+    // A bounded command oracle replays when the file ablation is unambiguous.
+    const command = run({ script: 'build', exists: 'dist/out.txt' }, [])
+    expect(command).toMatchObject({
+      base: 'FAIL',
+      head: 'PASS',
+      ablation: 'FAIL',
+      verdict: 'proven'
+    })
+    // A commit naming both cases' steps cannot be split between them.
+    write('src/api.ts', "export const greet = () => 'hello'\nexport const farewell = () => 'bye'\n")
+    git('commit', '-q', '-am', 'S1 S2: both at once')
+    const mixed = replay({
+      repository: root,
+      acceptance: 'A1',
+      oracle: 'src/a1.test.ts',
+      base,
+      head: git('rev-parse', 'HEAD'),
+      implementing: ['src/api.ts'],
+      steps: ['S1'],
+      others: [{ id: 'S2', touches: ['src/api.ts'] }]
+    })
+    expect(mixed).toMatchObject({ granularity: 'requirement', verdict: 'not-proven' })
   } finally {
     rmSync(root, { recursive: true, force: true })
   }

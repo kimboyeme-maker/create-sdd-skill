@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import type { V2Result } from './v2-document.ts'
 import { list, object, text, type Item, type Report } from './v2-meta.ts'
 import { loadPreset } from './v2-preset.ts'
-import { replay, type Replay } from './v2-replay.ts'
+import { replay, scriptRunner, type Oracle, type Replay } from './v2-replay.ts'
 import { stepRecords } from './v2-tasks.ts'
 
 /**
@@ -48,6 +48,34 @@ function proofOf(row: Item, repository: string | null): { level: string; reason?
   return ordered === 0 && base.commit !== row.commit
     ? { level: 'verified' }
     : { level: 'none', reason: 'baseline is not an earlier commit of the change' }
+}
+
+/** The declared oracle for one case: a test path, or a bounded command `{script, exists|stdout}`. */
+export function oracleOf(index: Item, id: string): Oracle | null {
+  const value = object(index.oracles) ? index.oracles[id] : undefined
+  if (text(value)) return value
+  if (object(value) && text(value.script) && text(value.exists) !== text(value.stdout))
+    return value as Oracle
+  return null
+}
+
+/**
+ * Why a PASS row does not show its oracle ran, or null. A test file must be in the command and
+ * name the case; a command oracle must be exactly the derived script command and the row must
+ * record what was observed.
+ */
+function unlinked(oracle: Oracle, id: string, row: Item, repository: string | null): string | null {
+  const command = String(row.command ?? '').trim()
+  if (typeof oracle !== 'string') {
+    const expected = scriptRunner(repository ?? '.', oracle.script).join(' ')
+    if (command !== expected) return `command is not ${expected}`
+    return text(row.observed) ? null : 'no observed result recorded'
+  }
+  if (!command.includes(oracle)) return `command does not run ${oracle}`
+  const path = repository ? resolve(repository, oracle) : null
+  if (path && !(existsSync(path) && new RegExp(`\\b${id}\\b`).test(readFileSync(path, 'utf8'))))
+    return `${oracle} does not name ${id}`
+  return null
 }
 
 /** The steps that close an acceptance, or else the implementation steps of the requirements owning it. */
@@ -172,47 +200,41 @@ export function checkClosure(
           if (!touched(changes(repository!, from, row!.commit as string), files))
             found = { level: 'none', reason: `change does not touch ${files.join(', ')}` }
         }
-        // The declared oracle: every must-ship case needs one, the host's command must run it,
-        // and it must name this case.
-        const oracle = object(index.oracles) ? index.oracles[id] : undefined
-        if (!text(oracle) && required.has(id)) {
+        // The declared oracle: every must-ship case needs one, and the host's row must show it ran:
+        // a test file that names this case, or the bounded command with its observed result.
+        const oracle = oracleOf(index, id)
+        if (!oracle && required.has(id)) {
           report('SDD_V2_CLOSURE_OPEN', `${id}: declare its test in oracles`, 'oracle-required')
           proof.push({ acceptance: id, level: 'none', reason: 'no declared oracle' })
           unsupported.add(id)
           continue
         }
-        if (text(oracle)) {
-          const named =
-            repository && existsSync(resolve(repository, oracle))
-              ? new RegExp(`\\b${id}\\b`).test(readFileSync(resolve(repository, oracle), 'utf8'))
-              : !repository
-          const why = !String(row!.command ?? '').includes(oracle)
-            ? `command does not run ${oracle}`
-            : !named
-              ? `${oracle} does not name ${id}`
-              : null
-          if (why) {
-            report('SDD_V2_CLOSURE_OPEN', `${id}: ${why}`, 'oracle-unlinked')
-            proof.push({ acceptance: id, level: 'none', reason: why })
-            unsupported.add(id)
-            continue
-          }
+        const why = oracle ? unlinked(oracle, id, row!, repository) : null
+        if (why) {
+          report('SDD_V2_CLOSURE_OPEN', `${id}: ${why}`, 'oracle-unlinked')
+          proof.push({ acceptance: id, level: 'none', reason: why })
+          unsupported.add(id)
+          continue
         }
         proof.push({ acceptance: id, ...found })
         // Replay runs the declared oracle itself: base FAIL, head PASS, head without the change FAIL.
         if (options.replay && required.has(id)) {
+          const mine = closingSteps(index, id)
           const replayed =
-            found.level === 'verified' && text(oracle)
-              ? replay(
-                  repository!,
-                  id,
+            found.level === 'verified' && oracle
+              ? replay({
+                  repository: repository!,
+                  acceptance: id,
                   oracle,
-                  (row!.baseline as Item).commit as string,
-                  row!.commit as string,
-                  files,
-                  closingSteps(index, id).map((step) => step.id),
-                  loadPreset(repository)?.runners
-                )
+                  base: (row!.baseline as Item).commit as string,
+                  head: row!.commit as string,
+                  implementing: files,
+                  steps: mine.map((step) => step.id),
+                  others: stepRecords(index).records.filter(
+                    (step) => !mine.some((m) => m.id === step.id)
+                  ),
+                  runners: loadPreset(repository)?.runners
+                })
               : null
           if (replayed) replays.push(replayed)
           if (replayed?.verdict !== 'proven') {

@@ -1,0 +1,14 @@
+{
+  "protocol": "sdd-evidence/v1",
+  "sdd": "feature-a",
+  "revision": "1",
+  "results": [
+    {
+      "acceptance": "A1",
+      "status": "PASS",
+      "evidence": "ci run 30",
+      "command": "bun run build",
+      "observed": "dist/out.txt contains ok"
+    }
+  ]
+}

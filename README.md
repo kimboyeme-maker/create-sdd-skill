@@ -1,32 +1,70 @@
 # create-sdd
 
-Creates, refactors, merges or audits a repository Software Design Document. Implementation-targeting work produces the loop-ready contract that `sdd-loop-delivery` executes.
+Creates, refactors, merges or audits a repository Software Design Document (SDD). New implementation work produces an `sdd/v2` document that goes **directly to your coding host** (Claude Code, Codex or any other agent). There is no separate delivery controller: the host implements, reports evidence, and `validate --evidence` checks convergence.
+
+This README is a map. [SKILL.md](SKILL.md) is the normative contract; where they differ, SKILL.md wins.
 
 ## Use
 
-Invoke the skill with the target SDD path and the desired product outcome. It works in six phases (harvest, admit, design, verify, decompose, hand off) and stops before implementation unless implementation was separately requested.
+Invoke the skill (`/create-sdd` in Claude Code, `$create-sdd` in Codex) with the outcome you want and the repository. It picks the mode, writes the document and stops before implementation unless you asked for that too.
 
-1. Run `create-sdd` to produce a loop-ready SDD.
-2. Review any genuine product or authority decisions that remain.
-3. Run `sdd-loop-delivery` with that SDD path.
+| You want | Mode | Result |
+| --- | --- | --- |
+| A feature or change | feature (default) | `sdd/v2` leaf |
+| A bug fixed | bug (`intent: bug`) | reproduction, root cause, regression acceptance |
+| To decide whether an idea is worth doing | assessment | `sdd-assessment/v1`: go / no-go / reshape; a go seeds the SDD's Entries |
+| Several independently owned outcomes | program | `sdd-program/v2` root plus one child SDD per outcome |
+| A review of an existing SDD or its implementation | audit | findings, no rewrite unless asked |
+
+Every document follows six authoring phases — Harvest, Admit, Design, Verify, Decompose, Report — and the five-Meta graph Entry → Module → Chunk → Bundle → Asset ([authoring guide](references/v2-authoring.md)). The skill starts new documents from an `init` skeleton, which stays `AWAITING_USER` until the placeholders are replaced.
+
+## The flow for a team
+
+1. **Author.** Run the skill. Answer the open decisions it lists (`[NEEDS CLARIFICATION: D1 …]`); `validate` reports `AWAITING_USER` until they are closed and `STRUCTURALLY_READY` when the structure is complete.
+2. **Hand off.** Give the SDD path and the `validate` handoff to your coding host. The handoff carries the read order, the ordered `tasks` (with files, dependencies and safe parallelism), the MVP task set and advisory `candidates`.
+3. **Implement.** The host implements. To make convergence provable, commit each step separately with its step ID in the message (`S2: add farewell`) and make every must-ship case's `oracles` test (or bounded command) real.
+4. **Converge.** The host fills an evidence report (`init --kind evidence` writes the template) and runs `validate --evidence <report> [--replay]`. `closure.status` is `CLOSED`, `OPEN` (missing, stale, unproven, or a design-to-code gap) or `FAILED`. A FAIL or a changed expectation becomes a new SDD revision.
+
+`--replay` runs only the declared oracles, with a runner the validator derives from the repository, in trees exported from Git: the oracle must fail at the baseline, pass at the change, and fail again with this requirement's commits reverted. It never runs the host's own command and never writes to the repository.
+
+## Commands
+
+Run from anywhere as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's header.
+
+| Command | Use |
+| --- | --- |
+| `init.ts --kind feature\|bug\|assessment\|program --out <abs.md>` | Write a skeleton that validates as `AWAITING_USER`; never overwrites, writes nothing if it would not validate |
+| `init.ts --kind evidence --sdd <abs SDD> --out <abs.json>` | Write the evidence report a host fills in |
+| `validate.ts validate --sdd <abs SDD> [--repository <abs root>]` | Structural check plus the host handoff |
+| `validate.ts validate --sdd <SDD> --evidence <report.json> [--replay]` | Convergence (`closure`) |
+| `validate.ts validate-draft --draft-file <path>` | The same checks before a document is written |
+| `type-probe.ts check --sdd <SDD>` | Optional: type-check exported TypeScript fences |
+
+## Adapting it to your repository
+
+Put `.create-sdd/preset.json` in the repository to state its rules without editing the skill: required principle files (for example `AGENTS.md` or a spec-kit constitution), extra required sections per document kind, advisory candidates to treat as blockers, the replay runner, and your own `init` templates ([presets](references/v2-presets.md)).
+
+## What the checks do not prove
+
+Structure, evidence links and replays do not prove that a design is good, that an oracle covers all of a requirement's behaviour, or that any agent read the guidance. A design-ready SDD grants no authority to run tests, commit, merge or deploy. Read the `evidence_limits` in every result literally.
+
+## Existing v1 documents
+
+Documents in the older `sdd-loop-delivery/v1` or `sdd-program/v1` format still validate through the legacy path ([legacy contract](references/loop-ready.md)), and `sdd-loop-delivery` remains only to finish deliveries already running on it. Do not start new work on it: new documents are `sdd/v2` and go to the host directly.
 
 ## Layout
 
 - [SKILL.md](SKILL.md): the normative skill contract.
-- [references/loading.md](references/loading.md): which documents each phase loads.
-- [references/phases/](references/phases/): one card per phase, each ending with an exit gate.
-- [cases/behavior-cases.json](cases/behavior-cases.json): Bad/Good minimal contrasts for policy changes, evaluated as described in [behavior evaluation](references/behavior-evaluation.md).
+- [references/v2-contract.md](references/v2-contract.md), [v2-authoring.md](references/v2-authoring.md), [v2-program.md](references/v2-program.md), [v2-presets.md](references/v2-presets.md): the v2 format, phase practice, multi-SDD programs, presets and `init`.
+- [references/loading.md](references/loading.md): which guide to read for a platform, language or diagnostic.
+- `scripts/`: `validate.ts`, `init.ts`, `type-probe.ts`, `rsi.ts` and the validator under `scripts/validator/`.
+- `cases/`: frozen defect cases and fixtures; `tests/`: logic tests (`bun test tests`).
+- `rsi/`: the skill's own improvement ledger (below).
 
-This README is a map; it never duplicates or overrides SKILL.md.
+## Maintaining the skill
 
-## Checks
+The skill improves itself only through recorded rounds ([behavior evaluation](references/behavior-evaluation.md)):
 
-Authors run all three before reporting an implementation SDD:
-
-- `bun scripts/reading-receipt.ts check --sdd <SDD>`: every phase and contract-implied document was loaded at its current version.
-- `bun scripts/repo-facts.ts check --sdd <SDD>`: declarations agree with the repository (shared-mechanism writes, toolchain pins, migration candidates; grounding candidates are reported for review, not as failures). On a multi-SDD root both scripts also check every node (receipts) or execution SDD (repository facts), and repo-facts requires a sourced `split_decision`; the root's structure is checked by the delivery controller's `program-check --program <root>` command.
-- `bun <loop-skill-root>/scripts/main.ts validate --sdd <SDD> --document-policy current --design-policy current`: contract, work graph and convergence consistency.
-
-These checks run only when the author runs them; the skill cannot force a host agent to read, understand or run anything. Two stronger points exist outside the author: the delivery controller repeats `validate` at admission and at `program-start`, and a host that supports hooks (for example a stop or pre-report hook) can run the three checks itself before the agent may finish. Hooks are host configuration chosen by the user, not part of this skill.
-
-Maintenance: every `references/**/*.md` ends with a reading-receipt token. After editing references run `bun scripts/reading-receipt.ts stamp`; `verify` fails while a token is stale. Logic tests for the scripts live in `tests/` (`bun test tests`).
+- Record a defect a real run found that the checks missed as an `OD-<n>` entry in [rsi/observed-defects.md](rsi/observed-defects.md). It is a queue: each update settles every entry (`rsi.ts settle`) and closing the round archives it, so after an update the file holds only its header.
+- `bun scripts/rsi.ts update` gives the agenda. A change runs as rounds: `case-amendment` to freeze a failing case, `budget-change` to raise a size ceiling with a reason, `improvement` to repair it (accepted only when a frozen case flips and nothing regresses), `consolidation` to shrink.
+- After editing `references/**/*.md`, run `bun scripts/reading-receipt.ts stamp`. Before finishing a change, run `bun test tests`, `bun run typecheck`, `bun run lint` and `bun scripts/rsi.ts suite`.

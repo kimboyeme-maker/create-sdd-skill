@@ -424,8 +424,16 @@ function checkLeaf(
     report('SDD_V2_INDEX_SHAPE_INVALID', path, 'oracles-invalid')
   for (const [id, oracle] of Object.entries(object(index.oracles) ? index.oracles : {})) {
     if (!acceptanceIds.has(id)) missing('oracles', id, 'oracle-acceptance-missing')
-    if (!nonempty(oracle) || !pathForm(oracle))
-      report('SDD_V2_PATH_INVALID', `${path}: ${id} -> ${String(oracle)}`, 'oracle-path-invalid')
+    // A test path, or a bounded command: one package script and one observable (a path or text).
+    const command =
+      object(oracle) &&
+      nonempty(oracle.script) &&
+      /^[\w:.-]+$/.test(oracle.script) &&
+      (nonempty(oracle.exists)
+        ? pathForm(oracle.exists) && oracle.stdout === undefined
+        : nonempty(oracle.stdout))
+    if (!command && (!nonempty(oracle) || !pathForm(oracle)))
+      report('SDD_V2_PATH_INVALID', `${path}: ${id} -> ${JSON.stringify(oracle)}`, 'oracle-invalid')
   }
   if (index.regression !== undefined && !Array.isArray(index.regression))
     report('SDD_V2_INDEX_SHAPE_INVALID', path, 'regression-invalid')

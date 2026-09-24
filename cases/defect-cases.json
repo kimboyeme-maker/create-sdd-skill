@@ -1284,6 +1284,52 @@
       "owning_test": "tests/v2-preset.test.ts",
       "introduced_detector_at": "2026-09-24",
       "source_delivery": "user requirement 2026-09-24: presets let a repository adapt the skill's defaults"
+    },
+    {
+      "id": "CSDD-V2-CMDORACLE-101",
+      "defect_class": "command-acceptance-forced-into-test-file",
+      "statement": "The authoring guide allows `command → expected observation` acceptance, but closure accepts only a test file that names the case, so a build-output acceptance can never close without inventing a test.",
+      "root_cause": "oracles values must be repository test paths; no bounded command form exists.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-closure.ts",
+        "line": 178,
+        "quote": "if (!text(oracle) && required.has(id))"
+      },
+      "repository": "cases/fixtures/v2-command",
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": {
+              "script": "build",
+              "exists": "dist/out.txt"
+            }
+          }
+        }
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": {
+              "script": "test",
+              "exists": "dist/out.txt"
+            }
+          }
+        }
+      },
+      "negative_expectation": {
+        "must_fire": true
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": false
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "user review 2026-09-24, finding 4"
     }
   ],
   "held_out": [

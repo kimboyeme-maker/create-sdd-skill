@@ -2,8 +2,15 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync }
 import { tmpdir } from 'node:os'
 import { dirname, extname, join } from 'node:path'
 
-/** Seconds one oracle run may take before it counts as not passing. */
+/** Milliseconds one oracle run may take before it counts as an error. */
 const TIMEOUT_MS = 120_000
+
+/**
+ * What decides an acceptance: a repository test file that names the case, or a bounded command —
+ * one package script whose observable result is a path it must produce (`exists`) or text its
+ * output must contain (`stdout`).
+ */
+export type Oracle = string | Readonly<{ script: string; exists?: string; stdout?: string }>
 
 /** Outcome of replaying one oracle: base must fail, head must pass, head without the change must fail. */
 export type Replay = Readonly<{
@@ -13,7 +20,7 @@ export type Replay = Readonly<{
   head: 'FAIL' | 'PASS' | 'ERROR'
   ablation: 'FAIL' | 'PASS' | 'ERROR'
   verdict: 'proven' | 'not-proven'
-  /** `requirement`: only the commits naming this case's steps were reverted; `file`: whole files. */
+  /** `requirement`: only this case's step commits were undone; `file`: files only its steps own. */
   granularity?: 'requirement' | 'file'
   reason?: string
 }>
@@ -34,9 +41,23 @@ function exportTree(repository: string, commit: string, target: string, path?: s
   return Bun.spawnSync(['tar', '-x', '-C', target], { stdin: archive.stdout }).exitCode === 0
 }
 
+/** The package manager command for one script, chosen by the lockfile in `tree`. */
+export function scriptRunner(tree: string, script: string): string[] {
+  const has = (file: string) => existsSync(join(tree, file))
+  const manager =
+    has('bun.lock') || has('bun.lockb')
+      ? 'bun'
+      : has('pnpm-lock.yaml')
+        ? 'pnpm'
+        : has('yarn.lock')
+          ? 'yarn'
+          : 'npm'
+  return [manager, 'run', script]
+}
+
 /**
  * The command that runs one test file, derived from the file type and the repository's tooling —
- * never taken from the host's report. Returns null when no supported runner applies.
+ * never taken from the host's report. A repository preset may supply its own per extension.
  */
 export function runnerFor(
   tree: string,
@@ -44,7 +65,6 @@ export function runnerFor(
   presets: Readonly<Record<string, readonly string[]>> = {}
 ): string[] | null {
   const ext = extname(oracle)
-  // A repository preset may name its own runner; `{oracle}` is the only substitution.
   const preset = presets[ext]
   if (preset) return preset.map((part) => part.replaceAll('{oracle}', oracle))
   if (ext === '.py') return ['python3', '-m', 'pytest', '-q', oracle]
@@ -59,54 +79,67 @@ export function runnerFor(
   return null
 }
 
-/** Run the runner in `tree`; exit status decides PASS or FAIL, a timeout or spawn error is ERROR. */
-function run(tree: string, runner: readonly string[]): 'PASS' | 'FAIL' | 'ERROR' {
+/** Run the oracle in `tree`: exit status decides a test file; a command also needs its observable. */
+function run(tree: string, runner: readonly string[], oracle: Oracle): 'PASS' | 'FAIL' | 'ERROR' {
   try {
     const result = Bun.spawnSync([...runner], {
       cwd: tree,
       env: { ...process.env, CI: '1' },
-      stdout: 'ignore',
+      stdout: 'pipe',
       stderr: 'ignore',
       timeout: TIMEOUT_MS
     })
     if (result.signalCode) return 'ERROR'
-    return result.exitCode === 0 ? 'PASS' : 'FAIL'
+    if (result.exitCode !== 0) return 'FAIL'
+    if (typeof oracle === 'string') return 'PASS'
+    const observed = oracle.exists
+      ? existsSync(join(tree, oracle.exists))
+      : result.stdout.toString().includes(oracle.stdout ?? '')
+    return observed ? 'PASS' : 'FAIL'
   } catch {
     return 'ERROR'
   }
 }
 
+const idPattern = (ids: readonly string[]) =>
+  new RegExp(`\\b(?:${ids.map((id) => id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`)
+
 /**
  * Replay one acceptance's declared oracle in exported trees: at `base` it must fail, at `head` it
- * must pass, and at `head` with the implementing files put back to their `base` content (removed
- * when `base` lacks them) it must fail again. The third run is the ablation: it shows the pass
- * depends on the requirement's implementation, not on anything else the change did. The oracle
- * file itself is kept at `head` in the ablated tree. With `steps`, the ablation reverts only the
- * commits whose message names those steps (requirement level); it falls back to reverting whole
- * implementing files when no commit names them or a patch does not apply. Nothing is written to
- * the repository.
+ * must pass, and at `head` with this case's implementation removed it must fail again (ablation).
+ *
+ * The ablation has to remove this requirement and nothing else, or a wrong oracle that tests
+ * another requirement would fail for the wrong reason and read as proven:
+ * - requirement level: revert the commits whose message names this case's steps; a commit that
+ *   also names another case's step cannot be attributed and makes the replay not-proven;
+ * - file level, only when no commit names the steps: revert the implementing files, and only if
+ *   every other step declares its touches and none of them shares a reverted file.
+ * The oracle file's own changes are kept. Nothing is written to the repository.
  */
-export function replay(
-  repository: string,
-  acceptance: string,
-  oracle: string,
-  base: string,
-  head: string,
-  implementing: readonly string[],
-  steps: readonly string[] = [],
-  runners: Readonly<Record<string, readonly string[]>> = {}
-): Replay {
+export function replay(input: {
+  repository: string
+  acceptance: string
+  oracle: Oracle
+  base: string
+  head: string
+  implementing: readonly string[]
+  steps: readonly string[]
+  others: readonly { id: string; touches: readonly string[] }[]
+  runners?: Readonly<Record<string, readonly string[]>>
+}): Replay {
+  const { repository, acceptance, oracle, base, head } = input
+  const oracleFile = typeof oracle === 'string' ? oracle : null
   const root = mkdtempSync(join(tmpdir(), 'sdd-replay-'))
-  const outcome = (fields: Omit<Replay, 'acceptance'>): Replay => ({ acceptance, ...fields })
-  const unrun = (reason: string) =>
-    outcome({
-      runner: null,
-      base: 'ERROR',
-      head: 'ERROR',
-      ablation: 'ERROR',
-      verdict: 'not-proven',
-      reason
-    })
+  const unrun = (reason: string, granularity?: Replay['granularity']): Replay => ({
+    acceptance,
+    runner: null,
+    base: 'ERROR',
+    head: 'ERROR',
+    ablation: 'ERROR',
+    verdict: 'not-proven',
+    ...(granularity ? { granularity } : {}),
+    reason
+  })
   try {
     const trees = {
       base: join(root, 'base'),
@@ -118,54 +151,51 @@ export function replay(
       ['head', head],
       ['ablation', head]
     ] as const)
-      if (!exportTree(repository, commit, trees[name]))
-        return outcome({
-          runner: null,
-          base: 'ERROR',
-          head: 'ERROR',
-          ablation: 'ERROR',
-          verdict: 'not-proven',
-          reason: `cannot export ${commit}`
-        })
-    // Requirement level first: undo only the commits whose message names one of this case's steps
-    // (the oracle's own changes kept), so other requirements' edits in the same files stay in place.
-    const pattern = steps.length
-      ? new RegExp(
-          `\\b(?:${steps.map((id) => id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`
-        )
-      : null
-    const log = git(repository, [
-      'log',
-      '--format=%H%x00%B%x01',
-      `${base}..${head}`
-    ]).stdout.toString()
-    const owned = pattern
-      ? log
-          .split('\x01')
-          .map((entry) => entry.trim().split('\x00'))
-          .filter(([hash, message]) => hash && pattern.test(message ?? ''))
-          .map(([hash]) => hash!)
-      : []
-    let granularity: 'requirement' | 'file' = 'file'
+      if (!exportTree(repository, commit, trees[name])) return unrun(`cannot export ${commit}`)
+    const log = git(repository, ['log', '--format=%H%x00%B%x01', `${base}..${head}`])
+    const commits = log.stdout
+      .toString()
+      .split('\x01')
+      .map((entry) => entry.trim().split('\x00'))
+      .filter(([hash]) => hash)
+      .map(([hash, message]) => ({ hash: hash!, message: message ?? '' }))
+    const mine = input.steps.length ? idPattern(input.steps) : null
+    const theirs = input.others.length ? idPattern(input.others.map((other) => other.id)) : null
+    const owned = mine ? commits.filter((c) => mine.test(c.message)) : []
+    const mixed = owned.find((c) => theirs?.test(c.message))
+    if (mixed)
+      return unrun(`commit ${mixed.hash.slice(0, 7)} also names another case's step`, 'requirement')
+    let granularity: 'requirement' | 'file'
     if (owned.length) {
       granularity = 'requirement'
-      for (const hash of owned) {
-        const patch = git(repository, ['diff', `${hash}^`, hash, '--', '.', `:(exclude)${oracle}`])
+      for (const { hash } of owned) {
+        const exclude = oracleFile ? [`:(exclude)${oracleFile}`] : []
+        const patch = git(repository, ['diff', `${hash}^`, hash, '--', '.', ...exclude])
         const applied = Bun.spawnSync(['git', 'apply', '-R', '--whitespace=nowarn'], {
           cwd: trees.ablation,
           stdin: patch.stdout
         })
-        if (applied.exitCode !== 0) {
-          granularity = 'file'
-          rmSync(trees.ablation, { recursive: true, force: true })
-          exportTree(repository, head, trees.ablation)
-          break
-        }
+        if (applied.exitCode !== 0)
+          return unrun(`commit ${hash.slice(0, 7)} cannot be reverted on its own`, 'requirement')
       }
-    }
-    const reverted = implementing.filter((path) => path !== oracle)
-    if (granularity === 'file') {
-      if (!reverted.length) return unrun('no implementing file to revert besides the oracle')
+    } else {
+      granularity = 'file'
+      const reverted = input.implementing.filter((path) => path !== oracleFile)
+      if (!reverted.length)
+        return unrun('no implementing file to revert besides the oracle', 'file')
+      const overlaps = (a: string, b: string) =>
+        a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`)
+      const unknown = input.others.filter((other) => !other.touches.length).map((o) => o.id)
+      const shared = input.others
+        .filter((other) => other.touches.some((t) => reverted.some((path) => overlaps(t, path))))
+        .map((o) => o.id)
+      if (unknown.length || shared.length)
+        return unrun(
+          `no commit names ${input.steps.join(', ')}, and ${
+            shared.length ? `${shared.join(', ')} share` : `${unknown.join(', ')} may share`
+          } its files; commit each step separately with its ID`,
+          'file'
+        )
       for (const path of reverted) {
         rmSync(join(trees.ablation, path), { recursive: true, force: true })
         if (git(repository, ['cat-file', '-e', `${base}:${path}`]).exitCode === 0)
@@ -175,33 +205,26 @@ export function replay(
     const modules = join(repository, 'node_modules')
     if (existsSync(modules))
       for (const tree of Object.values(trees)) symlinkSync(modules, join(tree, 'node_modules'))
-    const runner = runnerFor(trees.head, oracle, runners)
-    if (!runner)
-      return outcome({
-        runner: null,
-        base: 'ERROR',
-        head: 'ERROR',
-        ablation: 'ERROR',
-        verdict: 'not-proven',
-        reason: `no supported runner for ${oracle}`
-      })
+    const runner =
+      typeof oracle === 'string'
+        ? runnerFor(trees.head, oracle, input.runners)
+        : scriptRunner(trees.head, oracle.script)
+    if (!runner) return unrun(`no supported runner for ${String(oracleFile)}`, granularity)
     const results = {
-      base: run(trees.base, runner),
-      head: run(trees.head, runner),
-      ablation: run(trees.ablation, runner)
+      base: run(trees.base, runner, oracle),
+      head: run(trees.head, runner, oracle),
+      ablation: run(trees.ablation, runner, oracle)
     }
     const proven = results.base === 'FAIL' && results.head === 'PASS' && results.ablation === 'FAIL'
-    return outcome({
+    const got = `${results.base}, ${results.head}, ${results.ablation}`
+    return {
+      acceptance,
       runner,
       ...results,
       verdict: proven ? 'proven' : 'not-proven',
       granularity,
-      ...(proven
-        ? {}
-        : {
-            reason: `expected base FAIL, head PASS, ablation FAIL; got ${results.base}, ${results.head}, ${results.ablation}`
-          })
-    })
+      ...(proven ? {} : { reason: `expected base FAIL, head PASS, ablation FAIL; got ${got}` })
+    }
   } finally {
     rmSync(root, { recursive: true, force: true })
   }
