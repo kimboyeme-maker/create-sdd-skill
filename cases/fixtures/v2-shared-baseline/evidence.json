@@ -1,0 +1,43 @@
+{
+  "protocol": "sdd-evidence/v1",
+  "sdd": "api",
+  "revision": "1",
+  "results": [
+    {
+      "acceptance": "A1",
+      "status": "PASS",
+      "evidence": "ci",
+      "command": "bun test test/api.test.ts",
+      "commit": "HEAD",
+      "baseline": {
+        "status": "FAIL",
+        "evidence": "base failed to build: upstream export removed",
+        "commit": "HEAD~1"
+      }
+    },
+    {
+      "acceptance": "A2",
+      "status": "PASS",
+      "evidence": "ci",
+      "command": "bun test test/api.test.ts",
+      "commit": "HEAD",
+      "baseline": {
+        "status": "FAIL",
+        "evidence": "base failed to build: upstream export removed",
+        "commit": "HEAD~1"
+      }
+    },
+    {
+      "acceptance": "A3",
+      "status": "PASS",
+      "evidence": "ci",
+      "command": "bun test test/api.test.ts",
+      "commit": "HEAD",
+      "baseline": {
+        "status": "FAIL",
+        "evidence": "base failed to build: upstream export removed",
+        "commit": "HEAD~1"
+      }
+    }
+  ]
+}

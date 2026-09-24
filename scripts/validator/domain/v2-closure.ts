@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import type { V2Result } from './v2-document.ts'
 import { list, object, text, type Item, type Report } from './v2-meta.ts'
 import { loadPreset } from './v2-preset.ts'
+import { TEST } from './v2-readers.ts'
 import { replay, scriptRunner, type Oracle, type Replay } from './v2-replay.ts'
 import { stepRecords } from './v2-tasks.ts'
 
@@ -119,6 +120,14 @@ function changes(repository: string, base: string, head: string): Map<string, st
   )
 }
 
+/** The `test(...)`/`it(...)` titles of one file at one commit. */
+function titles(repository: string, at: string, path: string): Set<string> {
+  const source = Bun.spawnSync(['git', '-C', repository, 'show', `${at}:${path}`]).stdout.toString()
+  return new Set(
+    [...source.matchAll(/\b(?:test|it)(?:\.\w+)?\(\s*(['"`])((?:(?!\1).)+)\1/g)].map((m) => m[2]!)
+  )
+}
+
 /** Whether any changed path is one of `files` or lies under one of them. */
 const touched = (changed: ReadonlyMap<string, string>, files: readonly string[]) =>
   [...changed.keys()].some((path) => files.some((f) => path === f || path.startsWith(`${f}/`)))
@@ -182,6 +191,21 @@ export function checkClosure(
   const proof: { acceptance: string; level: string; reason?: string }[] = []
   const regression = new Set(list(index.regression).filter(text))
   const preserved = new Set(list(index.preserve).filter(text))
+  // One baseline failure shared by three or more cases proves the base did not build, not that
+  // each case can fail (OD-44). Each such case needs its own perturbation or a proven replay.
+  const said = (row: Item) =>
+    object(row.baseline) && text(row.baseline.evidence)
+      ? row.baseline.evidence.trim().toLowerCase().replace(/\s+/g, ' ')
+      : ''
+  const counts = new Map<string, number>()
+  for (const row of passRows)
+    if (required.has(String(row.acceptance)) && said(row))
+      counts.set(said(row), (counts.get(said(row)) ?? 0) + 1)
+  const shared = (row: Item) => (counts.get(said(row)) ?? 0) >= 3
+  const perturbed = (row: Item) =>
+    object(row.perturbation) &&
+    row.perturbation.status === 'FAIL' &&
+    text(row.perturbation.evidence)
   for (const id of known) {
     const row = rows.get(id)
     const value =
@@ -234,6 +258,15 @@ export function checkClosure(
           unsupported.add(id)
           continue
         }
+        if (found.level !== 'none' && shared(row!) && !perturbed(row!) && !options.replay) {
+          found = { level: 'claimed', reason: 'baseline evidence shared by several cases' }
+          report(
+            'SDD_V2_CLOSURE_OPEN',
+            `${id}: its baseline failure is shared; add a perturbation run or --replay`,
+            'baseline-shared'
+          )
+          unsupported.add(id)
+        }
         proof.push({ acceptance: id, ...found })
         // Replay runs the declared oracle itself: base FAIL, head PASS, head without the change FAIL.
         // A preserved case has no flip to ablate.
@@ -252,14 +285,20 @@ export function checkClosure(
                   others: stepRecords(index).records.filter(
                     (step) => !mine.some((m) => m.id === step.id)
                   ),
-                  runners: loadPreset(repository)?.runners
+                  runners: loadPreset(repository)?.runners,
+                  writes: list(index.writes).filter(text),
+                  leaf: text(index.id) ? index.id : undefined
                 })
               : null
           if (replayed) replays.push(replayed)
           if (replayed?.verdict !== 'proven') {
             const why =
               replayed?.reason ?? 'replay needs a verified proof with commits and an oracle'
-            report('SDD_V2_CLOSURE_OPEN', `${id}: ${why}`, 'replay-not-proven')
+            const kind =
+              replayed?.verdict === 'environment-failed'
+                ? 'replay-environment-failed'
+                : 'replay-not-proven'
+            report('SDD_V2_CLOSURE_OPEN', `${id}: ${why}`, kind)
             unsupported.add(id)
             continue
           }
@@ -306,6 +345,28 @@ export function checkClosure(
       .map((item) => `step call not in code: ${item.detail}`)
   ]
   for (const gap of gaps) report('SDD_V2_CLOSURE_OPEN', gap, 'design-gap')
+  // A test title removed or renamed in the change hides whatever it guarded unless the index says
+  // where that guarantee went (OD-39): `replaced-by:<title>`, `superseded-by:BC<n>`, `obsolete-with:<reason>`.
+  const dispositions = object(index.title_dispositions) ? index.title_dispositions : {}
+  for (const [path, kind] of changed ?? [])
+    if (TEST.test(path) && (kind === 'M' || kind === 'D')) {
+      const before = titles(repository!, base!, path)
+      const after = kind === 'D' ? new Set<string>() : titles(repository!, head!, path)
+      const given = object(dispositions[path]) ? dispositions[path] : {}
+      for (const title of before)
+        if (!after.has(title)) {
+          const said = given[title]
+          if (
+            !text(said) ||
+            !/^(?:replaced-by:.+|superseded-by:BC\d+|obsolete-with:.+)$/.test(said)
+          )
+            report(
+              'SDD_V2_CLOSURE_OPEN',
+              `${path}: "${title}" removed; record replaced-by, superseded-by or obsolete-with in title_dispositions`,
+              'test-title-removed'
+            )
+        }
+    }
   const pass = (id: string) => status.get(id) === 'PASS' && !unsupported.has(id)
   const slice = result.handoff.execution_slice
   const entries = (slice?.entries ?? []).map((entry) => ({

@@ -1,0 +1,19 @@
+{
+  "protocol": "sdd-evidence/v1",
+  "sdd": "pipeline",
+  "revision": "1",
+  "results": [
+    {
+      "acceptance": "A1",
+      "status": "PASS",
+      "evidence": "packages/pipeline/pipeline.test.ts",
+      "command": "bun test packages/pipeline/pipeline.test.ts",
+      "commit": "HEAD",
+      "baseline": {
+        "status": "FAIL",
+        "evidence": "ci base",
+        "commit": "HEAD~3"
+      }
+    }
+  ]
+}

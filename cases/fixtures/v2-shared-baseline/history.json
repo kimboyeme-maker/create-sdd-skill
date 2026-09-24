@@ -1,0 +1,15 @@
+{
+  "commits": [
+    {
+      "message": "base",
+      "files": {}
+    },
+    {
+      "message": "S1 S2 S3: run returns ok",
+      "files": {
+        "src/api.ts": "export const run = () => 'ok'\n",
+        "test/api.test.ts": "import { expect, test } from 'bun:test'\nimport { run } from '../src/api'\ntest('A1 one', () => expect(run()).toBe('ok'))\ntest('A2 two', () => expect(run()).toBe('ok'))\ntest('A3 three', () => expect(run()).toBe('ok'))\n"
+      }
+    }
+  ]
+}

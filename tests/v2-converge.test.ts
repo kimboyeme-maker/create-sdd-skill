@@ -448,3 +448,61 @@ test('replay refuses an ablation it cannot attribute to one requirement', () => 
     rmSync(root, { recursive: true, force: true })
   }
 })
+
+test('replay separates a broken environment from a weak oracle and honours leaf-qualified step IDs', () => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'v2-od36-')))
+  const git = (...args: string[]) =>
+    Bun.spawnSync(['git', '-C', root, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args])
+      .stdout.toString()
+      .trim()
+  const write = (path: string, content: string) => {
+    mkdirSync(dirname(join(root, path)), { recursive: true })
+    writeFileSync(join(root, path), content)
+  }
+  try {
+    git('init', '-q')
+    write('bun.lock', '')
+    write('src/run.ts', "export const run = () => 'no'\n")
+    git('add', '.')
+    git('commit', '-q', '-m', 'base')
+    const base = git('rev-parse', 'HEAD')
+    write('src/run.ts', "export const run = () => 'ok'\n")
+    git('commit', '-q', '-am', 'planner/S1: run returns ok')
+    write('src/other.ts', 'export const other = 1\n')
+    git('add', '.')
+    git('commit', '-q', '-m', 'pipeline/S1: unrelated leaf')
+    write(
+      'src/run.test.ts',
+      "import { expect, test } from 'bun:test'\nimport { run } from './run'\ntest('A1', () => expect(run()).toBe('ok'))\n"
+    )
+    // An oracle that cannot load anywhere: its import is missing at every revision.
+    write('src/broken.test.ts', "import { gone } from './gone'\ntest('A1', () => gone())\n")
+    git('add', '.')
+    git('commit', '-q', '-m', 'tests')
+    const head = git('rev-parse', 'HEAD')
+    const replayOf = (oracle: string) =>
+      replay({
+        repository: root,
+        acceptance: 'A1',
+        oracle,
+        base,
+        head,
+        implementing: ['src/run.ts'],
+        steps: ['S1'],
+        others: [{ id: 'S2', touches: ['src/other.ts'] }],
+        writes: ['src'],
+        leaf: 'planner'
+      })
+    // `pipeline/S1` belongs to another leaf, so only `planner/S1` is reverted.
+    expect(replayOf('src/run.test.ts')).toMatchObject({
+      granularity: 'requirement',
+      verdict: 'proven'
+    })
+    expect(replayOf('src/broken.test.ts')).toMatchObject({
+      head: 'FAIL',
+      verdict: 'environment-failed'
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})

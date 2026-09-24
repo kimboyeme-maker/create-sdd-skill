@@ -1,6 +1,15 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync
+} from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, extname, join } from 'node:path'
+import { escape } from './v2-meta.ts'
+import { dirname, extname, join, relative } from 'node:path'
 
 /** Milliseconds one oracle run may take before it counts as an error. */
 const TIMEOUT_MS = 120_000
@@ -19,7 +28,8 @@ export type Replay = Readonly<{
   base: 'FAIL' | 'PASS' | 'ERROR'
   head: 'FAIL' | 'PASS' | 'ERROR'
   ablation: 'FAIL' | 'PASS' | 'ERROR'
-  verdict: 'proven' | 'not-proven'
+  /** `environment-failed`: the oracle does not pass at the change in the exported tree at all. */
+  verdict: 'proven' | 'not-proven' | 'environment-failed'
   /** `requirement`: only this case's step commits were undone; `file`: files only its steps own. */
   granularity?: 'requirement' | 'file'
   reason?: string
@@ -62,7 +72,8 @@ export function scriptRunner(tree: string, script: string): string[] {
 export function runnerFor(
   tree: string,
   oracle: string,
-  presets: Readonly<Record<string, readonly string[]>> = {}
+  presets: Readonly<Record<string, readonly string[]>> = {},
+  cwd = tree
 ): string[] | null {
   const ext = extname(oracle)
   const preset = presets[ext]
@@ -72,8 +83,11 @@ export function runnerFor(
   if (!/^\.[cm]?[jt]sx?$/.test(ext)) return null
   if (['bun.lock', 'bun.lockb', 'bunfig.toml'].some((file) => existsSync(join(tree, file))))
     return ['bun', 'test', `./${oracle}`]
-  const manifest = join(tree, 'package.json')
-  const deps = existsSync(manifest) ? readFileSync(manifest, 'utf8') : ''
+  // The oracle's own package declares its test runner; the repository root may declare it instead.
+  const deps = [join(cwd, 'package.json'), join(tree, 'package.json')]
+    .filter((manifest) => existsSync(manifest))
+    .map((manifest) => readFileSync(manifest, 'utf8'))
+    .join('\n')
   if (deps.includes('"vitest"')) return ['npx', 'vitest', 'run', oracle]
   if (deps.includes('"jest"')) return ['npx', 'jest', oracle]
   return null
@@ -101,8 +115,23 @@ function run(tree: string, runner: readonly string[], oracle: Oracle): 'PASS' | 
   }
 }
 
-const idPattern = (ids: readonly string[]) =>
-  new RegExp(`\\b(?:${ids.map((id) => id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`)
+/**
+ * A step ID in a commit message: bare (`S3`), or qualified with this leaf's ID (`planner/S3`).
+ * An ID qualified with another leaf's ID (`pipeline/S3`) is that leaf's step, not this one's.
+ */
+const idPattern = (ids: readonly string[], leaf?: string) =>
+  new RegExp(
+    `(?:(?<![\\w/-])|(?<=(?:^|[^\\w-])${leaf ? escape(leaf) : '\\0'}/))(?:${ids.map(escape).join('|')})\\b`
+  )
+
+/** Package directories (holding a package.json) in an exported tree, relative to it. */
+function packages(tree: string, dir = ''): string[] {
+  const found: string[] = existsSync(join(tree, dir, 'package.json')) ? [dir] : []
+  for (const entry of readdirSync(join(tree, dir), { withFileTypes: true }))
+    if (entry.isDirectory() && entry.name !== 'node_modules' && !entry.name.startsWith('.'))
+      found.push(...packages(tree, join(dir, entry.name)))
+  return found
+}
 
 /**
  * Replay one acceptance's declared oracle in exported trees: at `base` it must fail, at `head` it
@@ -126,6 +155,10 @@ export function replay(input: {
   steps: readonly string[]
   others: readonly { id: string; touches: readonly string[] }[]
   runners?: Readonly<Record<string, readonly string[]>>
+  /** The leaf's write surfaces: a step's commit must change one of them to count as the step's. */
+  writes?: readonly string[]
+  /** The leaf's ID, for step IDs qualified as `<leaf>/S3` in commit messages. */
+  leaf?: string
 }): Replay {
   const { repository, acceptance, oracle, base, head } = input
   const oracleFile = typeof oracle === 'string' ? oracle : null
@@ -159,9 +192,24 @@ export function replay(input: {
       .map((entry) => entry.trim().split('\x00'))
       .filter(([hash]) => hash)
       .map(([hash, message]) => ({ hash: hash!, message: message ?? '' }))
-    const mine = input.steps.length ? idPattern(input.steps) : null
-    const theirs = input.others.length ? idPattern(input.others.map((other) => other.id)) : null
-    const owned = mine ? commits.filter((c) => mine.test(c.message)) : []
+    const mine = input.steps.length ? idPattern(input.steps, input.leaf) : null
+    const theirs = input.others.length
+      ? idPattern(
+          input.others.map((other) => other.id),
+          input.leaf
+        )
+      : null
+    // A commit is this leaf's only if it also changes the leaf's writes: sibling SDDs number their
+    // steps S1, S2, … too, and their commits share the range.
+    const inLeaf = (hash: string) => {
+      if (!input.writes?.length) return true
+      const changed = git(repository, ['diff-tree', '--no-commit-id', '--name-only', '-r', hash])
+      return changed.stdout
+        .toString()
+        .split('\n')
+        .some((path) => input.writes!.some((w) => path === w || path.startsWith(`${w}/`)))
+    }
+    const owned = mine ? commits.filter((c) => mine.test(c.message) && inLeaf(c.hash)) : []
     const mixed = owned.find((c) => theirs?.test(c.message))
     if (mixed)
       return unrun(`commit ${mixed.hash.slice(0, 7)} also names another case's step`, 'requirement')
@@ -202,21 +250,42 @@ export function replay(input: {
           exportTree(repository, base, trees.ablation, path)
       }
     }
-    const modules = join(repository, 'node_modules')
-    if (existsSync(modules))
-      for (const tree of Object.values(trees)) symlinkSync(modules, join(tree, 'node_modules'))
+    // Recreate the dependency layout: the root's and every package's installed node_modules.
+    for (const dir of packages(trees.head).concat(''))
+      if (existsSync(join(repository, dir, 'node_modules')))
+        for (const tree of Object.values(trees))
+          if (existsSync(join(tree, dir)) && !existsSync(join(tree, dir, 'node_modules')))
+            symlinkSync(join(repository, dir, 'node_modules'), join(tree, dir, 'node_modules'))
+    // A test runs from its own package, as the host ran it, so package config applies.
+    const home = oracleFile
+      ? (packages(trees.head)
+          .filter((dir) => dir && oracleFile.startsWith(`${dir}/`))
+          .sort((a, b) => b.length - a.length)[0] ?? '')
+      : ''
+    const target = oracleFile ? relative(join(trees.head, home), join(trees.head, oracleFile)) : ''
     const runner =
       typeof oracle === 'string'
-        ? runnerFor(trees.head, oracle, input.runners)
+        ? runnerFor(trees.head, target, input.runners, join(trees.head, home))
         : scriptRunner(trees.head, oracle.script)
     if (!runner) return unrun(`no supported runner for ${String(oracleFile)}`, granularity)
     const results = {
-      base: run(trees.base, runner, oracle),
-      head: run(trees.head, runner, oracle),
-      ablation: run(trees.ablation, runner, oracle)
+      base: run(join(trees.base, home), runner, oracle),
+      head: run(join(trees.head, home), runner, oracle),
+      ablation: run(join(trees.ablation, home), runner, oracle)
     }
     const proven = results.base === 'FAIL' && results.head === 'PASS' && results.ablation === 'FAIL'
     const got = `${results.base}, ${results.head}, ${results.ablation}`
+    // The host reported PASS at the change; if the exported tree cannot pass it, the replay
+    // environment differs (dependencies, config, generated files) and says nothing about the oracle.
+    if (results.head !== 'PASS')
+      return {
+        acceptance,
+        runner,
+        ...results,
+        verdict: 'environment-failed',
+        granularity,
+        reason: `the oracle does not pass at the change in the exported tree (${got}); check dependencies, config and generated files`
+      }
     return {
       acceptance,
       runner,

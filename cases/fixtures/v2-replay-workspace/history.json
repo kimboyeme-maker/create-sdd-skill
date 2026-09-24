@@ -1,0 +1,27 @@
+{
+  "commits": [
+    {
+      "message": "base",
+      "files": {}
+    },
+    {
+      "message": "S1: pipeline run returns ok",
+      "files": {
+        "packages/pipeline/pipeline.ts": "import { tag } from '@acme/utils'\nexport const run = () => (tag ? 'ok' : '')\n"
+      }
+    },
+    {
+      "message": "chore: unrelated",
+      "files": {
+        "README.md": "# Replay workspace\n"
+      }
+    },
+    {
+      "message": "tests",
+      "files": {
+        "packages/pipeline/pipeline.test.ts": "import { expect, test } from 'bun:test'\nimport { run } from './pipeline'\ntest('A1 run', () => expect(run()).toBe('ok'))\n",
+        "packages/pipeline/weak.test.ts": "import { expect, test } from 'bun:test'\ntest('A1 weak', () => expect(1).toBe(1))\n"
+      }
+    }
+  ]
+}

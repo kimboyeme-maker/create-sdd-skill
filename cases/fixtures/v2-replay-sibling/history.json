@@ -1,0 +1,26 @@
+{
+  "commits": [
+    {
+      "message": "base",
+      "files": {}
+    },
+    {
+      "message": "feat(capability): S1 S2 add index",
+      "files": {
+        "packages/capability/index.ts": "export const cap = 1\n"
+      }
+    },
+    {
+      "message": "S1: pipeline run returns ok",
+      "files": {
+        "packages/pipeline/pipeline.ts": "export const run = () => 'ok'\n"
+      }
+    },
+    {
+      "message": "tests",
+      "files": {
+        "packages/pipeline/pipeline.test.ts": "import { expect, test } from 'bun:test'\nimport { run } from './pipeline'\ntest('A1 run', () => expect(run()).toBe('ok'))\n"
+      }
+    }
+  ]
+}
