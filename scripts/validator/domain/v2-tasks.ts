@@ -85,6 +85,10 @@ function edges(records: readonly StepRecord[], batches: readonly Item[]): Map<st
   return before
 }
 
+/** Each step's full set of predecessors: its `after` steps and every step of an earlier batch. */
+export const stepOrder = (index: Item) =>
+  ancestors(edges(stepRecords(index).records, list(index.batches).filter(object)))
+
 /** Every step that must finish before `id`, following declared and batch-implied order. */
 export function ancestors(
   before: ReadonlyMap<string, ReadonlySet<string>>

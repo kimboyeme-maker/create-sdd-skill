@@ -156,6 +156,19 @@ const tasked = {
   ]
 }
 const taskedBody = `${body}\n- S3 Build the other story.`
+/** Every must-ship case names the test that decides it, as strict convergence requires. */
+const oracled = {
+  ...tasked,
+  oracles: { A1: 'packages/change/a1.test.ts', A2: 'packages/change/a2.test.ts' }
+}
+/** The files the tasked steps promise and the two oracles, so no design gap remains. */
+const delivered = {
+  'packages/change/a.ts': '',
+  'packages/change/b.ts': '',
+  'packages/change/c.ts': '',
+  'packages/change/a1.test.ts': "test('A1', () => {})\n",
+  'packages/change/a2.test.ts': "test('A2', () => {})\n"
+}
 
 test('step records derive ordered tasks, file-disjoint parallelism and the MVP task set', () => {
   const root = workspace({ 'packages/change/a.ts': '' })
@@ -198,22 +211,32 @@ test('step records are checked: writes, predecessors, acceptance and batch-backe
 })
 
 test('closure compares host evidence with acceptance and revision', () => {
-  const root = workspace({ 'packages/change/a.ts': '' })
+  const root = workspace(delivered)
   try {
-    const result = validateV2Document(join(root, 'change.sdd.md'), leaf(taskedBody, tasked))!
+    const result = validateV2Document(join(root, 'change.sdd.md'), leaf(taskedBody, oracled))!
     expect(result.diagnostics).toEqual([])
     const run = (results: unknown[], revision = '1') =>
       checkClosure(
         result,
-        tasked,
+        oracled,
         { protocol: 'sdd-evidence/v1', sdd: 'change', revision, results },
         root
       )
-    const pass = { acceptance: 'A1', status: 'PASS', evidence: 'packages/change/a.ts' }
-    const closed = run([pass, { acceptance: 'A2', status: 'PASS', evidence: 'ci run 42' }])
+    const pass = {
+      acceptance: 'A1',
+      status: 'PASS',
+      evidence: 'packages/change/a.ts',
+      command: 'bun test packages/change/a1.test.ts'
+    }
+    const second = { acceptance: 'A2', status: 'PASS', evidence: 'ci run 42' }
+    const closed = run([pass, { ...second, command: 'bun test packages/change/a2.test.ts' }])
     expect(closed.status).toBe('CLOSED')
     expect(closed.mvp_closed).toBe(true)
     expect(run([pass]).status).toBe('OPEN')
+    // Strict convergence: a must-ship pass whose command runs no declared oracle stays open.
+    expect(run([pass, second]).findings.map((f) => f.message)).toEqual([
+      'oracle-unlinked: A2: command does not run packages/change/a2.test.ts'
+    ])
     expect(run([pass], '2').status).toBe('OPEN')
     expect(run([pass, { acceptance: 'A2', status: 'FAIL', evidence: 'x' }]).status).toBe('FAILED')
     const missing = run([{ ...pass, evidence: 'packages/change/gone.ts' }])
@@ -302,15 +325,32 @@ test('behaviour proof: a failing baseline of the same command, commits checked i
     git('init', '-q')
     git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'base')
     const base = git('rev-parse', 'HEAD')
-    git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'fix')
+    git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'noop')
+    const unrelated = git('rev-parse', 'HEAD')
+    mkdirSync(join(root, 'packages/change'), { recursive: true })
+    for (const [path, content] of Object.entries(delivered))
+      writeFileSync(join(root, path), content)
+    git('add', '.')
+    git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '-m', 'fix')
     const head = git('rev-parse', 'HEAD')
-    const bug = { ...tasked, intent: 'bug', regression: ['A1'] }
+    const bug = { ...oracled, intent: 'bug', regression: ['A1'] }
     const text = leaf(`${taskedBody}\n\n## Reproduction\n\nRun.\n\n## Root Cause\n\nTypo.`, bug)
     const result = validateV2Document(join(root, 'change.sdd.md'), text)!
     expect(result.diagnostics).toEqual([])
     const row = (extra: Record<string, unknown>) => [
-      { acceptance: 'A1', status: 'PASS', evidence: 'ci 7', command: 'bun test a', ...extra },
-      { acceptance: 'A2', status: 'PASS', evidence: 'ci 8' }
+      {
+        acceptance: 'A1',
+        status: 'PASS',
+        evidence: 'ci 7',
+        command: 'bun test packages/change/a1.test.ts',
+        ...extra
+      },
+      {
+        acceptance: 'A2',
+        status: 'PASS',
+        evidence: 'ci 8',
+        command: 'bun test packages/change/a2.test.ts'
+      }
     ]
     const run = (extra: Record<string, unknown>) =>
       checkClosure(
@@ -325,7 +365,14 @@ test('behaviour proof: a failing baseline of the same command, commits checked i
     expect(verified.status).toBe('CLOSED')
     expect(verified.proof[0]).toEqual({ acceptance: 'A1', level: 'verified' })
     expect(verified.behaviour_proven).toBe(false)
-    expect(run({ baseline: failed }).proof[0]!.level).toBe('claimed')
+    const claimed = run({ baseline: failed })
+    expect(claimed.proof[0]!.level).toBe('claimed')
+    // A regression case closes only on a verified, causal proof; a claimed pair is not enough.
+    expect(claimed.status).toBe('OPEN')
+    // Causality: a flip between commits that never touch the implementing files proves nothing.
+    expect(run({ commit: unrelated, baseline: { ...failed, commit: base } }).proof[0]!.level).toBe(
+      'none'
+    )
     expect(run({ commit: base, baseline: { ...failed, commit: head } }).status).toBe('OPEN')
   } finally {
     rmSync(root, { recursive: true, force: true })

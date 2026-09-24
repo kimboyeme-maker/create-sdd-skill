@@ -51,6 +51,8 @@ const USAGE = [
   '  rsi.ts baseline                      record the champion result for the open round',
   '  rsi.ts evaluate                      re-run the suite and compare against the baseline',
   '  rsi.ts prune                         check supersession and the budget ceilings',
+  '  rsi.ts settle --id <OD-n> --as detector|ruling|rejected --evidence <text>',
+  '                                       settle a queued observation in the open round',
   '  rsi.ts close --confirm <token>       record the verdict and end the round',
   '  rsi.ts ingest --files a.json,b.json  read optional retrospectives into candidates'
 ].join('\n')
@@ -213,7 +215,8 @@ export type DebtLevel = (typeof DEBT_LEVELS)[number]
  */
 export const DEBT_THRESHOLDS = {
   additions_without_evidence: [1],
-  undisposed_dormant_rules: [1]
+  undisposed_dormant_rules: [1],
+  unsettled_observations: [1]
 } as const satisfies Record<string, readonly number[]>
 export type DebtSignalName = keyof typeof DEBT_THRESHOLDS
 
@@ -338,6 +341,8 @@ export function debt(input: {
   dispositions?: readonly Disposition[]
   currentAssets?: ReadonlySet<string>
   undisposed: number
+  /** Entries still queued in rsi/observed-defects.md; an update settles every one of them. */
+  observations?: number
 }): { level: DebtLevel; signals: readonly DebtSignal[] } {
   const retired = new Set(
     (input.dispositions ?? [])
@@ -356,7 +361,8 @@ export function debt(input: {
         .filter((entry) => !hasDecisionEvidence(entry) && !retired.has(entry.asset))
         .map((entry) => entry.asset)
     ).size,
-    undisposed_dormant_rules: input.undisposed
+    undisposed_dormant_rules: input.undisposed,
+    unsettled_observations: input.observations ?? 0
   }
   const signals = (Object.keys(DEBT_THRESHOLDS) as DebtSignalName[]).map((signal) => ({
     signal,
@@ -421,6 +427,42 @@ export type SkillHealth = Readonly<{
 /**
  * The skill's unresolved improvement decisions, read-only and independent of SDD maturity.
  */
+/** Queue of defects observed in real runs, written by authors and hosts; settled by rounds. */
+const OBSERVED = join(ROOT, 'rsi', 'observed-defects.md')
+/** How a round settles an observation: a detector pinned by a case, a written ruling, or rejection. */
+const SETTLEMENTS = ['detector', 'ruling', 'rejected'] as const
+export type Settlement = Readonly<{
+  id: string
+  as: (typeof SETTLEMENTS)[number]
+  evidence: string
+}>
+
+/**
+ * Observation sections of the queue: each `## OD-<n> <title>` heading and its text up to the next
+ * second-level heading. Other second-level sections are commentary on the queued entries.
+ */
+export function observations(text: string): { id: string; text: string }[] {
+  const parts = text.split(/^(?=## )/m).slice(1)
+  return parts.flatMap((part) => {
+    const id = /^## (OD-\d+)\b/.exec(part)?.[1]
+    return id ? [{ id, text: part.trimEnd() }] : []
+  })
+}
+
+/**
+ * Remove settled entries from the queue. Once no entry remains, commentary about them goes too, so
+ * after an update the file is its header alone and every settled text lives in a round record.
+ */
+export function drainObservations(text: string, settled: ReadonlySet<string>): string {
+  const [header = '', ...parts] = text.split(/^(?=## )/m)
+  const kept = parts.filter((part) => {
+    const id = /^## (OD-\d+)\b/.exec(part)?.[1]
+    return id ? !settled.has(id) : true
+  })
+  const open = kept.some((part) => /^## OD-\d+\b/.test(part))
+  return `${[header.trimEnd(), ...(open ? kept.map((part) => part.trimEnd()) : [])].join('\n\n')}\n`
+}
+
 export function skillHealth(now = new Date()): SkillHealth {
   const entries = readTelemetry()
   const rules = catalog()
@@ -429,6 +471,7 @@ export function skillHealth(now = new Date()): SkillHealth {
   const dispositions =
     readJson<{ dispositions?: Disposition[] }>(DISPOSITIONS, {}).dispositions ?? []
   const runs = new Set(entries.map((entry) => entry.sdd_sha)).size
+  const queued = existsSync(OBSERVED) ? observations(readFileSync(OBSERVED, 'utf8')).length : 0
   const undisposed = undisposedDormant({
     health: report,
     pinned: pinnedCodes(),
@@ -443,7 +486,8 @@ export function skillHealth(now = new Date()): SkillHealth {
     additions,
     dispositions,
     currentAssets: new Set(rules.map((rule) => rule.asset)),
-    undisposed: undisposed.length
+    undisposed: undisposed.length,
+    observations: queued
   })
   const ceilings = readJson<{ ceilings?: Record<string, number> }>(BUDGET_FILE, {}).ceilings ?? {}
   const measured = measure()
@@ -489,6 +533,14 @@ export function updateAgenda(
       step: 'finish-open-round',
       command: 'bun scripts/rsi.ts evaluate && bun scripts/rsi.ts prune',
       detail: `round ${state.open_round} is still open; close it before starting another`
+    })
+  const queued = h.signals.find((s) => s.signal === 'unsettled_observations')?.value ?? 0
+  if (queued)
+    steps.push({
+      step: 'settle-observations',
+      command:
+        'bun scripts/rsi.ts settle --id <OD-n> --as detector|ruling|rejected --evidence <text>',
+      detail: `${queued} observation(s) queued in rsi/observed-defects.md: settle every one inside a round (a detector names its frozen case); close archives them into the round record and empties the queue`
     })
   if (state.catalog_drifted)
     steps.push({
@@ -796,6 +848,8 @@ type Round = {
   rules_at_open?: number
   /** Advisory debt level when the round opened. */
   debt_at_open?: DebtLevel
+  /** Observations this round settles; close moves their text from the queue into the record. */
+  settles?: Settlement[]
   baseline?: { at: string; results: readonly CaseResult[]; heldOut?: readonly CaseResult[] }
   candidate?: {
     at: string
@@ -1379,6 +1433,42 @@ function main(argv: readonly string[]): number {
     )
     return blocking.length ? 1 : 0
   }
+  if (command === 'settle') {
+    const round = openRound()
+    const value = (flag: string) => {
+      const at = rest.indexOf(flag)
+      return at >= 0 ? rest[at + 1] : undefined
+    }
+    const [id, as, evidence] = [value('--id'), value('--as'), value('--evidence')]
+    const queue = existsSync(OBSERVED) ? observations(readFileSync(OBSERVED, 'utf8')) : []
+    if (!id || !queue.some((entry) => entry.id === id)) {
+      console.error(`OBSERVATION_NOT_QUEUED: ${String(id)}`)
+      return 1
+    }
+    if (!(SETTLEMENTS as readonly string[]).includes(String(as)) || !evidence?.trim()) {
+      console.error(
+        'usage: rsi.ts settle --id <OD-n> --as detector|ruling|rejected --evidence <text>'
+      )
+      return 1
+    }
+    // A detector settlement must name the frozen case that pins it.
+    const cases = new Set(defectCases().map((entry) => entry.id))
+    if (
+      as === 'detector' &&
+      ![...evidence.matchAll(/\bCSDD-[\w-]+/g)].some((m) => cases.has(m[0]))
+    ) {
+      console.error('SETTLEMENT_CASE_REQUIRED: a detector settlement names its defect case')
+      return 1
+    }
+    const settles = [...(round.settles ?? []).filter((entry) => entry.id !== id)]
+    settles.push({ id, as: as as Settlement['as'], evidence })
+    writeFileSync(OPEN_ROUND, `${JSON.stringify({ ...round, settles }, null, 2)}\n`)
+    console.log(
+      JSON.stringify({ protocol: 'skill-rsi-settle/v1', round: round.id, settles }, null, 2)
+    )
+    return 0
+  }
+
   if (command === 'close') {
     const round = openRound()
     const confirmIndex = rest.indexOf('--confirm')
@@ -1472,7 +1562,19 @@ function main(argv: readonly string[]): number {
         'that a reader with write access could not have edited a case; the guard makes that visible, not impossible'
       ]
     }
-    writeFileSync(join(ROUNDS, `${round.id}.json`), `${JSON.stringify(closed, null, 2)}\n`)
+    // Settled observations leave the queue only with an unrejected round, and keep their text here.
+    const queueText = existsSync(OBSERVED) ? readFileSync(OBSERVED, 'utf8') : ''
+    const settled = verdict === 'REJECTED' ? [] : (round.settles ?? [])
+    const record = {
+      ...closed,
+      settled_observations: settled.map((entry) => ({
+        ...entry,
+        text: observations(queueText).find((item) => item.id === entry.id)?.text ?? ''
+      }))
+    }
+    writeFileSync(join(ROUNDS, `${round.id}.json`), `${JSON.stringify(record, null, 2)}\n`)
+    if (settled.length)
+      writeFileSync(OBSERVED, drainObservations(queueText, new Set(settled.map((e) => e.id))))
     unlinkSync(OPEN_ROUND)
     console.log(
       JSON.stringify(

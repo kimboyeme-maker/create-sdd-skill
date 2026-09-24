@@ -6,7 +6,7 @@
  * 2 for a usage error or a document that could not be read. What the loop adds on top — the
  * sidecar files a run would write — is not a property of the document and is not reported here.
  *
- *   validate          --sdd <path> [--repository <root>] [--evidence <report.json>] [--document-policy current] [--design-policy current]
+ *   validate          --sdd <path> [--repository <root>] [--evidence <report.json> [--replay]] [--document-policy current] [--design-policy current]
  *   validate-draft    --sdd <path> | --draft-file <path> | (stdin)
  *                     --sdd <absolute root> --documents-file <json array of {path, content}>
  *   document-check    --sdd <path>
@@ -43,7 +43,7 @@ const COMMANDS = [
   'contract-migrate'
 ] as const
 const USAGE =
-  'usage: validate.ts validate|validate-draft|document-check|contract|contract-migrate --sdd <path> [--repository <absolute-root>] [--evidence <sdd-evidence.json>] [--document-policy current] [--design-policy current] | contract --sdd <path> [--check | --emit inline|sidecar|stdout] | validate-draft --draft-file <path> | validate-draft --sdd <abs> --documents-file <json> | document-next-id --sdd <path> --prefix <XX>'
+  'usage: validate.ts validate|validate-draft|document-check|contract|contract-migrate --sdd <path> [--repository <absolute-root>] [--evidence <sdd-evidence.json> [--replay]] [--document-policy current] [--design-policy current] | contract --sdd <path> [--check | --emit inline|sidecar|stdout] | validate-draft --draft-file <path> | validate-draft --sdd <abs> --documents-file <json> | document-next-id --sdd <path> --prefix <XX>'
 
 /** Read `--flag value` pairs; a bare flag reads as present with no value. */
 function flags(argv: readonly string[]): Map<string, string | undefined> {
@@ -216,7 +216,9 @@ export async function run(
     const report: unknown = JSON.parse(readFileSync(evidence, 'utf8'))
     // The protocol check above leaves only the v2 leaf result.
     const v2 = result as V2Result
-    const closure = checkClosure(v2, index, report, v2.handoff.repository)
+    const closure = checkClosure(v2, index, report, v2.handoff.repository, {
+      replay: options.has('--replay')
+    })
     return {
       output: { ...result, closure },
       exit: result.valid && closure.status === 'CLOSED' ? 0 : 1

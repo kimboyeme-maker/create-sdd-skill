@@ -82,6 +82,8 @@ strength and the difference is stated here rather than implied:
 references, the validator, scripts, tests and the behaviour-case count. A ceiling moves only in a `--kind
 budget-change` round, so every raise is a decision somebody made rather than a drift nobody saw.
 
+Defects observed in real runs queue in `rsi/observed-defects.md`. Each update settles every queued entry inside a round (`rsi.ts settle`: a detector names its frozen case, or a ruling or rejection says why not); `close` archives the settled text into the round record and drains the queue, and `health` reports `unsettled_observations` until it is empty.
+
 Only an `improvement` round with a changed source version and a failing frozen case repaired can
 close as `ACCEPTED`; closing reruns the same candidate and held-out cases. Clean maintenance rounds
 close as `RECORDED`.
@@ -92,4 +94,4 @@ That the change improved anything outside the mechanical cases. That an authorin
 understands or follows any rule involved. That nobody could have edited a case — only that the edit
 would show.
 
-<!-- reading-receipt: 1928636b -->
+<!-- reading-receipt: 5eab3a0c -->

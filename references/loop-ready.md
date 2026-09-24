@@ -15,6 +15,7 @@ Read the owning document before fixing the SDD; do not patch a field until the d
 | `CONTRACT_INVENTORY_*`, `CONTRACT_DEFERRAL_*`, `MUST_SHIP_DEFERRAL_REQUIRES_USER` | [admission card](phases/2-admit.md) and [decision authority](design/decision-authority.md) |
 | `TEST_FILE_*` | [verification card](phases/4-verify.md#test-hosts-and-names) |
 | `IMPLEMENTATION_LOGIC_*`, `DESIGN_CONVERGENCE_*`, `CONTRACT_NOT_CONVERGED` | [design card](phases/3-design.md) and [loop-ready](loop-ready.md) |
+| `DESIGN_CONVERGENCE_STALE` | The recorded CONVERGED status predates a rule that now fails: fix the listed diagnostics, then re-run convergence; the claim, not only the draft, is stale |
 | `SDD_PRESENTATION_SHIP_COVERAGE_INCOMPLETE` | [document presentation](document-presentation.md) |
 | `ACCEPTANCE_ARTIFACT_*` | [verification card](phases/4-verify.md#atomic-execution-and-failure-isolation) |
 | `CONTRACT_REFERENCE_*` | [Agent Context map](design/agent-context-map.md#evidence-companion) |
@@ -142,4 +143,4 @@ Implementation-targeting output converges before it is handed off. An open infor
 
 Independent review is subject to the user's agent and budget permissions; disclose when it was not performed. A review that runs must assess split rationale, source fidelity, execution ownership and implementability against the current candidate, not merely count IDs or receipts.
 
-<!-- reading-receipt: 8ec2ad7b -->
+<!-- reading-receipt: b66b7875 -->

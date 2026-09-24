@@ -402,6 +402,66 @@
       "counterexample": "--evidence passed with a v1 contract or a program root: there is no leaf acceptance set to compare, and silently ignoring the flag would report a closure that was never checked.",
       "scope": "validate.ts CLI.",
       "tradeoff": "Program-level convergence is per child leaf, not one command on the root."
+    },
+    {
+      "asset": "code:SDD_V2_PATH_GIT_IGNORED",
+      "added_at": "2026-09-24",
+      "round": "R-20260923181511",
+      "supersedes": [],
+      "supersedes_nothing_because": "No check looked at ignore status: SDD_V2_PATH_NOT_FOUND only asks whether a Bundle read exists locally, which an ignored file does.",
+      "counterexample": "store-devtools public-exports.test.ts read docs/store/public-exports.baseline.json under an ignored docs/ tree: present for the author, absent in every clean checkout (OD-09).",
+      "scope": "sdd/v2 leaves validated with a resolved repository: Bundle reads, Asset paths and repository-relative paths on acceptance lines.",
+      "tradeoff": "Advisory only; one git check-ignore call per validate, plus a temporary bare git dir when the workspace has no usable .git."
+    },
+    {
+      "asset": "code:SDD_V2_WRITES_OWNED_ELSEWHERE",
+      "added_at": "2026-09-24",
+      "round": "R-20260923181511",
+      "supersedes": [],
+      "supersedes_nothing_because": "Ownership conflicts were checked only between children of one program root; independent SDDs in one repository were never compared.",
+      "counterexample": "The plugin-host R2 draft wrote website/scripts/generate/signatures.ts while the active website-library-runtime SDD owned migaia-website (OD-10).",
+      "scope": "sdd/v2 leaves with a resolved repository, against other *.sdd.md files that are not linked from the leaf, not its program root or siblings, and not marked shipped/retired in their header.",
+      "tradeoff": "Advisory only; a header-status heuristic decides which documents are finished, so an unmarked finished SDD can still be reported."
+    },
+    {
+      "asset": "code:DESIGN_CONVERGENCE_STALE",
+      "added_at": "2026-09-24",
+      "round": "R-20260923182304",
+      "supersedes": [],
+      "supersedes_nothing_because": "No check distinguished a stale CONVERGED claim from an ordinary invalid draft (OD-11).",
+      "counterexample": "CSDD-V1-STALE-101; observed on website-library-runtime r6: CONVERGED while the current validator reports MIGRATION_READER_BATCH_COVERAGE_INVALID.",
+      "scope": "v1 documents whose design_convergence.status is CONVERGED and which yield any diagnostic.",
+      "tradeoff": "One extra diagnostic on already-invalid CONVERGED documents; it never fires on a valid one."
+    },
+    {
+      "asset": "code:SDD_V2_ACCEPTANCE_FORWARD_DEPENDENCY",
+      "added_at": "2026-09-24",
+      "round": "R-20260923182304",
+      "supersedes": [],
+      "supersedes_nothing_because": "Nothing compared what an acceptance names with the step that produces it and its order (OD-03).",
+      "counterexample": "CSDD-V2-FWD-101; observed in plugin-host R1: YS13/YS14 in PC06 required defineHost, delivered by BZ17 in PC08.",
+      "scope": "sdd/v2 leaves: backticked paths or names on an acceptance's line versus step touches and names declared in step text. Advisory candidate in the v2 handoff; never blocks readiness.",
+      "tradeoff": "Only backticked tokens and declared names are matched; an unquoted reference is not seen."
+    },
+    {
+      "asset": "code:SDD_V2_ERROR_TEXT_READER_UNDECLARED",
+      "added_at": "2026-09-24",
+      "round": "R-20260923182304",
+      "supersedes": [],
+      "supersedes_nothing_because": "Reader scans were symbol-based; a test asserting message text references no symbol (OD-04).",
+      "counterexample": "CSDD-V2-ERRTEXT-101; observed in plugin-host R1: packages/logger/logger.test.ts asserted the old INSTALL_RESULT_THENABLE message.",
+      "scope": "sdd/v2 leaves with a resolved repository: literal Error messages (8+ characters) in existing touched files, searched in test files outside the writes. Advisory candidate in the v2 handoff; never blocks readiness.",
+      "tradeoff": "Reads every source file once per validate; messages built at runtime are not seen."
+    },
+    {
+      "asset": "code:SDD_V2_SHAPE_READER_UNDECLARED",
+      "added_at": "2026-09-24",
+      "round": "R-20260923182304",
+      "supersedes": [],
+      "supersedes_nothing_because": "Shape dependencies (prototype spies, subclassing, instanceof) name no migrated symbol (OD-07).",
+      "counterexample": "CSDD-V2-SHAPE-101; observed in plugin-host R1: web-rpc, store-middleware and tray broke when the host class became a factory.",
+      "scope": "sdd/v2 leaves with a resolved repository: classes declared in existing touched files, searched as Name.prototype, extends Name and instanceof Name outside the writes. Advisory candidate in the v2 handoff; never blocks readiness.",
+      "tradeoff": "Fires for any touched class with shape readers, even when the step keeps the class; the author names the reader or dismisses it."
     }
   ]
 }

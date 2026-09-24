@@ -1,0 +1,1292 @@
+{
+  "id": "R-20260923182304",
+  "kind": "improvement",
+  "goal": "Detectors for OD-03/04/07/11, convergence proof linking commands to requirements and code to design, and the settled observation queue",
+  "opened_at": "2026-09-23T18:23:04.023Z",
+  "head": "f3d4bc68b9d73508ef603cc5a89d1bb014ab3a79",
+  "commitments": {
+    "cases/defect-cases.json": "911ce643547718043e79581bbb583fd21fe67d3529569a1532e6a085029442f2",
+    "cases/behavior-cases.json": "303b26cb6746cd4afefb72697952b5fb9b140ddeda69c78ffc8a29ba9ecabdad",
+    "cases/fixtures/CSDD-TYPE-001.md": "6088047aa54ed7f7d94d80810b1222f0b9c095ccb15a90ed737c5b3fa33d5a00",
+    "cases/fixtures/CSDD-TYPE-001.ok.md": "7b5a62533dcac4438fb4aa67266181c799e64a4a8f9ede0b33ec3946e7111347",
+    "cases/fixtures/repo-pnpm/README.md": "736a7464308f34462c9dd91b9b55f19593edcd29fc197a9a5996715dde3f563f",
+    "cases/fixtures/repo-pnpm/package.json": "d30ebf7e7519657fbd2a5bf1f5b835c8e2b5e62839346db0b4053d6cf4ee063e",
+    "cases/fixtures/repo-pnpm/packages/core/package.json": "a4ebf53ed9739ac129abbdd3c4d79595497195d38bfb1d84af46789674557ba2",
+    "cases/fixtures/repo-pnpm/pnpm-lock.yaml": "24965b460770baebf4cf4e19bff4e40fffb38bf8a22609162416761c1081d551",
+    "cases/fixtures/rsi-telemetry-probe.ts": "f919cba87a6f8b2590bd3f45cf7dd83ccc2a747d8f10710cee8b7dd7797492f7",
+    "cases/fixtures/v2-assessment-go-empty.md": "600a042b897bd05574927d985903cd3ff221c5f2fc1629a53966e9069c1f8f73",
+    "cases/fixtures/v2-assessment-go.md": "65705469c62a354b5a04dc200e939d328e3f68123ba018fa79299980f2f2cba4",
+    "cases/fixtures/v2-bug.md": "80c75022a1893503fd4e4cce08836cef79672bf5ef4082c8ba65c079d7d16efd",
+    "cases/fixtures/v2-clarification-inline.md": "59c0e13fc753746f9853b031e507c5702bd535e9aaf1a9976c7d79c6334e4d16",
+    "cases/fixtures/v2-clarification-tracked.md": "14c0485d28f19d91aa20731b2c5643a70bb10658f7be7214c0a7c116cc10abf2",
+    "cases/fixtures/v2-clarification-untracked.md": "c00858a076ae535402684a4cbc6c3b7e5600e909e56f6ed45da5d355d157038e",
+    "cases/fixtures/v2-closure/README.md": "d992fe53ef0e8e31c66fc50d631087501787e7d9bbf1d56341cefc6c30397b20",
+    "cases/fixtures/v2-closure/evidence.json": "d17cf49ae3aca006620cce8fed437ab27a286d4268ba254dcef7d5fa8368a641",
+    "cases/fixtures/v2-closure/packages/feature-a/index.ts": "52ec580463db307042c98652a684a470295423092669507fd265c2585e9d4076",
+    "cases/fixtures/v2-closure-duplicate/README.md": "94378515e9d202bcdd9ed2ab3330371a345b1b3a087030007ad4c715bd44e355",
+    "cases/fixtures/v2-closure-duplicate/evidence.json": "729948baa2088d075f5d4f744d477119ac4538c25a1bf2e7fb47e76969ce6734",
+    "cases/fixtures/v2-closure-duplicate/packages/feature-a/index.ts": "52ec580463db307042c98652a684a470295423092669507fd265c2585e9d4076",
+    "cases/fixtures/v2-converge/README.md": "fb985158e748ec07969a2b9a638d36452317d960e8b1d5335cdf39f66940dd2a",
+    "cases/fixtures/v2-converge/evidence.json": "cb206c95e68a12d033246b583efa1f3f4fd404c1f3eb065bef60c12fba69b812",
+    "cases/fixtures/v2-converge/packages/feature-a/feature.test.ts": "cbc0e9705ccaf26e76a056acaa75a537260add6d6ba195add4bf5b56db9d9f7b",
+    "cases/fixtures/v2-converge/packages/feature-a/index.ts": "52ec580463db307042c98652a684a470295423092669507fd265c2585e9d4076",
+    "cases/fixtures/v2-converge/packages/feature-a/other.test.ts": "34b7c070fdc4d5a014c1119831fffb2d48d11fd90715e96b39455c1ce6324705",
+    "cases/fixtures/v2-duplicate.md": "9984e997e214af67e6df01bad3a34afedf2e4a88c5719ffc05d1ea654890ba11",
+    "cases/fixtures/v2-external-missing.md": "99a2eca240b0391aeb0387f345771494aeed195985e0b0f6f84b08dcd1b9d85f",
+    "cases/fixtures/v2-external-missing.plan.md": "9c715ad450a07da41977ef8a7f56b82a8281347f1b10888e40ab4a145338514c",
+    "cases/fixtures/v2-external-ok.md": "5d883d193e1a0df3b29c588d55af4873cb406d97249f12b43a9c0cc77401151e",
+    "cases/fixtures/v2-external-ok.plan.md": "f126b2f20e632a8ce1ea82cac40c92a92b14d046e3e30f4a6c6a529d19ede9bf",
+    "cases/fixtures/v2-forward-dependency.md": "bd9e9848981ac0c1d0b1978b3e3aa11766806556e7e1867a76099d5eb0b68222",
+    "cases/fixtures/v2-forward-dependency.ok.md": "d376da3c8ba94d4ae887bf526d48103b8d1e81ec7909652f624bf1af8395215e",
+    "cases/fixtures/v2-ignored/.gitignore": "b46d3006cb0d9cc950ae1bae2701fd93d6ce66955465a0064042d0e5ea8f3d73",
+    "cases/fixtures/v2-ignored/README.md": "fa6fed5d8fb791e117ea2a007f2c883b718f8f1dbceb0a6833e2be6d692c968e",
+    "cases/fixtures/v2-ignored/packages/feature-a/index.ts": "52ec580463db307042c98652a684a470295423092669507fd265c2585e9d4076",
+    "cases/fixtures/v2-ignored-input.md": "40b2e76fcad5c70385f313e2734ec61b156cbff299abb775e4612b2ee8e87b41",
+    "cases/fixtures/v2-ignored-input.ok.md": "2ec9ab7f707b73d386cd325bf7c5045fc6ed388401a02035b6c284ae8bf63942",
+    "cases/fixtures/v2-leaf.md": "855c72a31263fe9d2d0dca51633874b4e0e4c4ce0699ed4c2c93d408d7bc7232",
+    "cases/fixtures/v2-no-metas.md": "1c8abf89b3d224c002f1730383324e57d34e7fdaad75ba92a3da763969e28b13",
+    "cases/fixtures/v2-owned/README.md": "905b98668575a40860233ec92411316730c1d0b38b66c203e8bdc019bbef41fa",
+    "cases/fixtures/v2-owned/packages/feature-a/index.ts": "52ec580463db307042c98652a684a470295423092669507fd265c2585e9d4076",
+    "cases/fixtures/v2-owned/packages/feature-b/index.ts": "3239c4ef0c405fa8da70d71068b773661a161b636ee7d8d67ec1bfa8a816db9c",
+    "cases/fixtures/v2-owned/packages/feature-b/package.json": "801abb8b36503a3138a44c5ce88e54fe76ebec57e27c557c2b4cea56f5a16f82",
+    "cases/fixtures/v2-owned/plans/active.sdd.md": "c3904196122e79102b814ce645df0bee8fa9c8a507bdeec76826392dfb80cf05",
+    "cases/fixtures/v2-owned/plans/shipped.sdd.md": "22a9d5bca69e5fee81a2757526ef8e65cf428288c9d4b867bdba819d48e76526",
+    "cases/fixtures/v2-owned-writes.md": "6ee25bf60d5daf1ea35424f3f54028a041a33d2bf6b00f57d2d8d30d0c2602b2",
+    "cases/fixtures/v2-owned-writes.ok.md": "855c72a31263fe9d2d0dca51633874b4e0e4c4ce0699ed4c2c93d408d7bc7232",
+    "cases/fixtures/v2-readers/README.md": "91e3774038204abc7b708b0b39ac54feb48461e3396049aaf2eadac0c3505e18",
+    "cases/fixtures/v2-readers/packages/host/index.ts": "22c68ec645af318ec01fd726d1f275a4c2b0cfa0b5c55fff6aa22c372e8eb528",
+    "cases/fixtures/v2-readers/packages/logger/logger.test.ts": "444f71332795bb5fb47ac9ff1280510ac87cc965036d6cdc904cd07f6e755884",
+    "cases/fixtures/v2-readers/packages/tray/tray.test.ts": "ce43f3e711ce253e4252947ef23041034e33b9f3e0ca98f45384fd1d68f3bdb7",
+    "cases/fixtures/v2-readers-declared.md": "d89f08b52f616a4020e9737828547a37e933fc0f823cbf420ac6f03db381bb50",
+    "cases/fixtures/v2-readers-undeclared.md": "291e46b9b4c9187e4ab39edb5b1f8217d9c1e48bd6bd54221800da20402b1cb2",
+    "cases/fixtures/v2-repo/README.md": "8511375eb2700089a2e827e93e753f9c3274c1cece86bd51953c115ae9048c70",
+    "cases/fixtures/v2-repo/packages/feature-a/index.ts": "52ec580463db307042c98652a684a470295423092669507fd265c2585e9d4076",
+    "cases/fixtures/v2-symbol-missing.md": "41774d440a5c749e7d076390be4cee552fae76eed5b0f072c99c87c5f8813cad",
+    "cases/fixtures/v2-symbol-ok.md": "c3c9dd27606f7b9de481a40243aa772cc815f39a5ba4a08fb15685e501e59ff3",
+    "cases/fixtures/v2-trace.md": "410582c61e796fd25735e5a843946b4291fe27640604b664ef0eee10550466b5",
+    "cases/held-out/README.md": "65a7ec6ec35df4b4a7e2dd397c719ec4445edf9e94b584ad28931d7d79217ba5",
+    "cases/held-out/cases.json": "8fafbaa44ccd55a7e1cb597c7e9a5e74b69d5f69f1b520b6f396f7b59398236c"
+  },
+  "budget": {
+    "SKILL.md.characters": 9442,
+    "references.lines": 4478,
+    "validator.lines": 6757,
+    "scripts.lines": 13466,
+    "tests.lines": 4155,
+    "behavior_cases": 45
+  },
+  "source_at_open": "8fe33451cf24ce1f754bf2cfa68207b74803dde049825246060d0f7c7bdab1fc",
+  "rule_assets_at_open": [
+    "code:ACCEPTANCE_ARTIFACT_CONSUMPTION_INVALID",
+    "code:ACCEPTANCE_EVIDENCE_BOUNDARY_DUPLICATE",
+    "code:ACCEPTANCE_EXECUTION_BOUNDARY_REQUIRED",
+    "code:ACCEPTANCE_EXECUTION_DEPENDENCIES_INVALID",
+    "code:ACCEPTANCE_EXECUTION_DEPENDENCY_CYCLE",
+    "code:ACCEPTANCE_EXECUTION_DEPENDENCY_SCOPE_INVALID",
+    "code:ACCEPTANCE_EXECUTION_ISOLATION_INVALID",
+    "code:ACCEPTANCE_EXECUTION_REQUIRED",
+    "code:ACCEPTANCE_EXECUTION_TIMEOUT_INVALID",
+    "code:ACCEPTANCE_FAILURE_CONTAINMENT_REQUIRED",
+    "code:ACCEPTANCE_INDEPENDENT_TARGET_REUSED",
+    "code:ACCEPTANCE_METHOD_ZERO_OBSERVATION",
+    "code:AGENT_CONTEXT_BLOCK_INVALID",
+    "code:AGENT_CONTEXT_CLASS_INVALID",
+    "code:AGENT_CONTEXT_CLASS_OUTSIDE_BLOCK",
+    "code:AGENT_CONTEXT_ENTRY_AMBIGUOUS",
+    "code:AGENT_CONTEXT_ENTRY_INVALID",
+    "code:AGENT_CONTEXT_LINK_ESCAPES_ROOT",
+    "code:AGENT_CONTEXT_LINK_INVALID",
+    "code:AGENT_CONTEXT_LINK_NOT_FOUND",
+    "code:AGENT_CONTEXT_LINK_OUTSIDE_BLOCK",
+    "code:AGENT_CONTEXT_MAP_EMPTY",
+    "code:AGENT_CONTEXT_SOURCE_CLASS_CONFLICT",
+    "code:API_SURFACE_DEGENERATE_INPUT",
+    "code:ARCHITECTURE_ADAPTERS_REQUIRED",
+    "code:ARCHITECTURE_ADAPTER_INVALID",
+    "code:ARCHITECTURE_INVALID",
+    "code:CHALLENGE_EVIDENCE_CITES_SUBJECT_ONLY",
+    "code:CHALLENGE_EVIDENCE_PATH_MISSING",
+    "code:CHALLENGE_REASONED_BUT_CLOSED",
+    "code:COMMAND_PACKAGE_MANAGER_MISMATCH",
+    "code:CONJUNCTIVE_REQUIREMENT_SINGLE_ORACLE",
+    "code:CONTRACT_ACCEPTANCE_CLAIM_REQUIRED",
+    "code:CONTRACT_ACCEPTANCE_DUPLICATE",
+    "code:CONTRACT_ACCEPTANCE_INVALID",
+    "code:CONTRACT_ACCEPTANCE_REFERENCE_INVALID",
+    "code:CONTRACT_ACCEPTANCE_REFERENCE_UNRESOLVED",
+    "code:CONTRACT_ACCEPTANCE_REQUIRED",
+    "code:CONTRACT_ACCEPTANCE_REQUIREMENT_LINK_MISMATCH",
+    "code:CONTRACT_ADMISSION_VERIFICATION_ACCEPTANCE_SCOPE_INVALID",
+    "code:CONTRACT_ADMISSION_VERIFICATION_METHOD_MISMATCH",
+    "code:CONTRACT_ADMISSION_VERIFICATION_PACKAGE_SCOPE_INVALID",
+    "code:CONTRACT_ADMISSION_VERIFICATION_REQUIREMENT_SCOPE_INVALID",
+    "code:CONTRACT_ADMISSION_VERIFICATION_SCOPE_INVALID",
+    "code:CONTRACT_ADMISSION_VERIFICATION_SURFACE_INVALID",
+    "code:CONTRACT_ADMISSION_WORKSPACE_GATE_INVALID",
+    "code:CONTRACT_BLOCK_COUNT",
+    "code:CONTRACT_BLOCK_NOT_FOUND",
+    "code:CONTRACT_DECISION_METADATA_REQUIRED",
+    "code:CONTRACT_DECISION_RESOLUTION_REQUIRED",
+    "code:CONTRACT_DECISION_STATUS_INVALID",
+    "code:CONTRACT_DEFERRAL_METADATA_REQUIRED",
+    "code:CONTRACT_DEPENDENCY_CYCLE",
+    "code:CONTRACT_DEPENDENCY_INVALID",
+    "code:CONTRACT_EMIT_INVALID",
+    "code:CONTRACT_INVENTORY_AUTHORITIES_REQUIRED",
+    "code:CONTRACT_JSON_INVALID",
+    "code:CONTRACT_PROTOCOL_UNSUPPORTED",
+    "code:CONTRACT_REFERENCE_INVALID",
+    "code:CONTRACT_REQUIRED",
+    "code:CONTRACT_REQUIREMENTS_REQUIRED",
+    "code:CONTRACT_REQUIREMENT_DUPLICATE",
+    "code:CONTRACT_REQUIREMENT_INVALID",
+    "code:CONTRACT_REQUIREMENT_TYPE_INVALID",
+    "code:CONTRACT_REVISION_REQUIRED",
+    "code:CONTRACT_RUNTIME_RESOLUTION_INVALID",
+    "code:CONTRACT_SOURCE_INVENTORY_INVALID",
+    "code:CONTRACT_UNIVERSAL_CLAIM_UNIVERSE_REQUIRED",
+    "code:DEFECT_CASE_DETECTOR_NOT_BUN",
+    "code:DELIVERY_PLAN_BATCH_DUPLICATE",
+    "code:DELIVERY_PLAN_BATCH_INVALID",
+    "code:DELIVERY_PLAN_DEPENDENCY_CYCLE",
+    "code:DELIVERY_PLAN_DEPENDENCY_UNKNOWN",
+    "code:DELIVERY_PLAN_INVALID",
+    "code:DELIVERY_PLAN_REQUIREMENT_UNKNOWN",
+    "code:DELIVERY_PLAN_SHARDS_INVALID",
+    "code:DELIVERY_PLAN_SHARD_COVERAGE_INVALID",
+    "code:DELIVERY_PLATFORMS_INVALID",
+    "code:DESIGN_CONVERGENCE_INCONSISTENT",
+    "code:DESIGN_DETAIL_APPLICABILITY_REQUIRED",
+    "code:DESIGN_DETAIL_DUPLICATE_FIELD",
+    "code:DESIGN_DETAIL_FIELD_REQUIRED",
+    "code:DESIGN_DETAIL_HEADING_AMBIGUOUS",
+    "code:DESIGN_DETAIL_INDEX_DRIFT",
+    "code:DESIGN_DETAIL_OBJECT_REQUIRED",
+    "code:DESIGN_DETAIL_PATHS_REQUIRED",
+    "code:DESIGN_DETAIL_PROTOCOL_INVALID",
+    "code:DESIGN_DETAIL_PSEUDOCODE_REQUIRED",
+    "code:DESIGN_DETAIL_SECTION_REUSED",
+    "code:DESIGN_DETAIL_SOURCE_INVALID",
+    "code:DESIGN_DETAIL_STEPS_REQUIRED",
+    "code:DESIGN_DETAIL_STEP_KIND_INVALID",
+    "code:DESIGN_DETAIL_STEP_SOURCE_REUSED",
+    "code:DESIGN_GATE_ITEM_OPEN",
+    "code:DESIGN_GATE_LENS_DUPLICATED",
+    "code:DESIGN_GATE_LENS_MISSING",
+    "code:DESIGN_GATE_LENS_NOT_CURRENT",
+    "code:DESIGN_GATE_LENS_NOT_PASSED",
+    "code:DESIGN_GATE_LENS_REVISION_MISSING",
+    "code:DESIGN_GATE_UNSTABLE",
+    "code:DESIGN_NOT_CONVERGED",
+    "code:DOCUMENT_ID_EXHAUSTED",
+    "code:DOCUMENT_PREFIX_INVALID",
+    "code:DRAFT_DOCUMENTS_ARGS_INVALID",
+    "code:DRAFT_DOCUMENTS_ARRAY_REQUIRED",
+    "code:DRAFT_DOCUMENT_DUPLICATE",
+    "code:DRAFT_DOCUMENT_INVALID",
+    "code:DRAFT_ROOT_CONTENT_CONFLICT",
+    "code:DRAFT_ROOT_PATH_REQUIRED",
+    "code:DRAFT_ROOT_REQUIRED",
+    "code:EARLY_FALSIFIER_CLAIM_BINDING_INVALID",
+    "code:EARLY_FALSIFIER_FACT_SCOPE_INVALID",
+    "code:EARLY_FALSIFIER_METHOD_NOT_ACCEPTANCE_ORACLE",
+    "code:EARLY_FALSIFIER_ROUTE_INSPECTION_INVALID",
+    "code:EARLY_FALSIFIER_SCOPE_INVALID",
+    "code:EVIDENCE_REQUIRES_V2_LEAF",
+    "code:EXAMPLE_CONTRACT_BLOCK_MISSING",
+    "code:EXAMPLE_OVERLAY_MERGE_TARGET_NOT_ARRAY",
+    "code:EXECUTION_PACKETS_REQUIRED",
+    "code:EXECUTION_PACKET_ACCEPTANCE_SCOPE_INVALID",
+    "code:EXECUTION_PACKET_DEPENDENCIES_INVALID",
+    "code:EXECUTION_PACKET_DEPENDENCY_CYCLE",
+    "code:EXECUTION_PACKET_DEPENDENCY_SCOPE_INVALID",
+    "code:EXECUTION_PACKET_ID_DUPLICATE",
+    "code:EXECUTION_PACKET_INVALID",
+    "code:EXECUTION_PACKET_REQUIREMENT_SCOPE_INVALID",
+    "code:EXPERIENCE_COMPONENT_HOOK_INVALID",
+    "code:EXPERIENCE_CONTRACT_INVALID",
+    "code:EXPERIENCE_DELTA_PRODUCT_CONTRACT_REQUIRED",
+    "code:EXPERIENCE_JOURNEYS_REQUIRED",
+    "code:EXPERIENCE_JOURNEY_INVALID",
+    "code:EXPERIENCE_READABILITY_REQUIRED",
+    "code:EXPERIENCE_READING_CONTINUATION_REQUIRED",
+    "code:EXPERIENCE_ROUTES_REQUIRED",
+    "code:EXPERIENCE_ROUTE_INVALID",
+    "code:EXPERIENCE_SCOPE_INVALID",
+    "code:EXPERIENCE_STYLE_HOOKS_REQUIRED",
+    "code:EXPERIENCE_STYLE_TOKEN_INVALID",
+    "code:EXPERIENCE_TEMPLATES_REQUIRED",
+    "code:EXPERIENCE_TEMPLATE_DUPLICATE",
+    "code:EXPERIENCE_TEMPLATE_INVALID",
+    "code:IMPLEMENTATION_LOGIC_PATH_CYCLE",
+    "code:MIGRATION_APPLICABILITY_INVALID",
+    "code:MIGRATION_CANDIDATE_UNDISPOSED",
+    "code:MIGRATION_CLOSURE_NOT_APPLICABLE_INVALID",
+    "code:MIGRATION_CLOSURE_REQUIRED",
+    "code:MIGRATION_CONTRACT_SCOPE_INVALID",
+    "code:MIGRATION_CUTOVER_MODE_INVALID",
+    "code:MIGRATION_DISMISSED_CANDIDATE_INVALID",
+    "code:MIGRATION_DISMISSED_CANDIDATE_IS_READER",
+    "code:MIGRATION_EARLY_FALSIFIER_MISMATCH",
+    "code:MIGRATION_INVENTORY_FACT_NOT_PASS",
+    "code:MIGRATION_LEGACY_RUNTIME_ACCEPTANCE_INVALID",
+    "code:MIGRATION_LEGACY_RUNTIME_ACCEPTANCE_SCOPE_INVALID",
+    "code:MIGRATION_LEGACY_RUNTIME_AUTHORITY_SCOPE_INVALID",
+    "code:MIGRATION_LEGACY_RUNTIME_NOT_APPLICABLE_INVALID",
+    "code:MIGRATION_LEGACY_RUNTIME_PROBE_INVALID",
+    "code:MIGRATION_READER_CLOSURE_UNRESOLVED",
+    "code:MIGRATION_READER_MODULE_DUPLICATE",
+    "code:MIGRATION_READER_NOT_ORDERED_BEFORE_REMOVAL",
+    "code:MIGRATION_READER_PACKET_COVERAGE_INVALID",
+    "code:MIGRATION_READER_PACKET_SCOPE_INVALID",
+    "code:MIGRATION_READER_RETAINS_REMOVED_SURFACE",
+    "code:MIGRATION_REFINED_ZERO_READER_INVENTORY_INCOMPLETE",
+    "code:MIGRATION_REFINED_ZERO_READER_RUNTIME_PROOF_REQUIRED",
+    "code:MIGRATION_REMOVAL_PACKET_COVERAGE_INVALID",
+    "code:MIGRATION_REMOVAL_PACKET_SCOPE_INVALID",
+    "code:MIGRATION_SYMBOL_TOO_GENERIC",
+    "code:MIGRATION_SYMBOL_UNSCANNABLE",
+    "code:MIGRATION_ZERO_READER_CLAIM_INVALID",
+    "code:MUST_SHIP_DEFERRAL_REQUIRES_USER",
+    "code:ORACLE_SENSITIVITY_EVIDENCE_REQUIRED",
+    "code:ORACLE_SENSITIVITY_INVALID",
+    "code:ORACLE_SENSITIVITY_PROCEDURE_REQUIRED",
+    "code:ORACLE_SENSITIVITY_REASON_REQUIRED",
+    "code:ORACLE_SENSITIVITY_RESULTS_REQUIRED",
+    "code:ORACLE_SENSITIVITY_RESULT_INVALID",
+    "code:ORACLE_SENSITIVITY_RESULT_SCOPE_INVALID",
+    "code:ORACLE_SENSITIVITY_TIMING_INVALID",
+    "code:PRODUCT_ARCHETYPE_INVALID",
+    "code:PRODUCT_ARCHETYPE_REQUIRED",
+    "code:PROGRAM_CHILD_NOT_FOUND",
+    "code:PROSE_TOTAL_DISAGREES_WITH_CONTRACT",
+    "code:PSEUDOCODE_SYMBOL_UNRESOLVED",
+    "code:REPOSITORY_NOT_FOUND",
+    "code:REPOSITORY_PATH_ABSOLUTE_REQUIRED",
+    "code:RSI_NO_OPEN_ROUND",
+    "code:SCOPE_GROWTH_UNAUTHORIZED",
+    "code:SCOPE_LEDGER_BROKEN_CHAIN",
+    "code:SCOPE_LEDGER_CLAIM_INVALID",
+    "code:SCOPE_LEDGER_MISSING",
+    "code:SCOPE_LEDGER_NOT_CURRENT",
+    "code:SDD_AND_PREFIX_REQUIRED",
+    "code:SDD_CONTRACT_ID_DUPLICATE",
+    "code:SDD_CONTRACT_INVALID",
+    "code:SDD_CONTRACT_REQUIRED",
+    "code:SDD_DESCRIPTION_EMPTY",
+    "code:SDD_DOCUMENT_POLICY_REQUIRED",
+    "code:SDD_DOCUMENT_POLICY_UNSUPPORTED",
+    "code:SDD_ID_DANGLING",
+    "code:SDD_ID_DUPLICATE",
+    "code:SDD_ID_INVALID",
+    "code:SDD_ID_OR_PREFIX_INVALID",
+    "code:SDD_ID_REQUIRED",
+    "code:SDD_IMPLEMENTATION_PLACEHOLDER",
+    "code:SDD_PREFIXES_INVALID",
+    "code:SDD_PREFIX_CONFLICT",
+    "code:SDD_PRESENTATION_BATCH_SCOPE_INVALID",
+    "code:SDD_PRESENTATION_DESCRIPTION_DRIFT",
+    "code:SDD_PRESENTATION_GATE_INVALID",
+    "code:SDD_PRESENTATION_ITEMS_REQUIRED",
+    "code:SDD_PRESENTATION_ITEM_INVALID",
+    "code:SDD_PRESENTATION_LINK_COLUMNS_REQUIRED",
+    "code:SDD_PRESENTATION_OBJECT_UNINDEXED",
+    "code:SDD_PRESENTATION_REQUIRED",
+    "code:SDD_PRESENTATION_ROW_MISSING_OR_DUPLICATE",
+    "code:SDD_PRESENTATION_SCHEMA_INVALID",
+    "code:SDD_PRESENTATION_SCOPE_EXPANSION",
+    "code:SDD_PRESENTATION_SECOND_GRAPH_FORBIDDEN",
+    "code:SDD_PRESENTATION_SHIP_COVERAGE_INCOMPLETE",
+    "code:SDD_PRESENTATION_SOURCE_DRIFT",
+    "code:SDD_PROGRAM_ROOT",
+    "code:SDD_REQUIRED",
+    "code:SDD_REQUIRED_SECTION_EMPTY",
+    "code:SDD_REQUIRED_SECTION_MISSING",
+    "code:SDD_RETIRED_IDS_INVALID",
+    "code:SDD_RETIRED_ID_REUSED",
+    "code:SDD_TABLE_COLUMNS_MISMATCH",
+    "code:SDD_TABLE_DESCRIPTION_MISSING",
+    "code:SDD_V2_CLARIFICATION_UNTRACKED",
+    "code:SDD_V2_CLOSURE_FAILED",
+    "code:SDD_V2_CLOSURE_OPEN",
+    "code:SDD_V2_COVERAGE_MISSING",
+    "code:SDD_V2_DEPENDENCY_CYCLE",
+    "code:SDD_V2_ID_DUPLICATE",
+    "code:SDD_V2_INDEX_SHAPE_INVALID",
+    "code:SDD_V2_INTEGRATION_OWNER_REQUIRED",
+    "code:SDD_V2_INTERFACE_MISMATCH",
+    "code:SDD_V2_META_SOURCE_MISMATCH",
+    "code:SDD_V2_MUST_SHIP_CHAIN_INCOMPLETE",
+    "code:SDD_V2_OWNER_CONFLICT",
+    "code:SDD_V2_PATH_ESCAPE",
+    "code:SDD_V2_PATH_GIT_IGNORED",
+    "code:SDD_V2_PATH_INVALID",
+    "code:SDD_V2_PATH_NOT_FOUND",
+    "code:SDD_V2_PROGRAM_LINK_INVALID",
+    "code:SDD_V2_PROSE_DEFINITION_DUPLICATE",
+    "code:SDD_V2_PROSE_DEFINITION_MISSING",
+    "code:SDD_V2_REFERENCE_MISSING",
+    "code:SDD_V2_REQUIRED_FIELD_EMPTY",
+    "code:SDD_V2_SECTION_MISSING",
+    "code:SDD_V2_WRITES_OWNED_ELSEWHERE",
+    "code:SENSITIVITY_WRITES_UNDECLARED",
+    "code:SHARED_MECHANISM_WRITE_INVALID",
+    "code:SHARED_MECHANISM_WRITE_POINT_NOT_FOUND",
+    "code:SHARED_MECHANISM_WRITE_POINT_UNDECLARED",
+    "code:SPLIT_DECISION_UNRECORDED",
+    "code:STEP_THRESHOLD_NOT_IN_ACCEPTANCE",
+    "code:STEP_WRITE_OUTSIDE_AUTHORITY",
+    "code:TEST_FILE_BUSINESS_NAME_REQUIRED",
+    "code:TEST_FILE_DELIVERY_METADATA_NAME_FORBIDDEN",
+    "code:TOOLCHAIN_VERSION_CONFLICT",
+    "code:TYPE_PROBE_MODULE_UNAVAILABLE",
+    "code:TYPE_PROBE_PROJECT_UNAVAILABLE",
+    "code:TYPE_PROBE_SOURCE_UNAVAILABLE"
+  ],
+  "ceilings_at_open": {
+    "SKILL.md.characters": 9850,
+    "references.lines": 4680,
+    "validator.lines": 7200,
+    "behavior_cases": 46,
+    "scripts.lines": 14100,
+    "tests.lines": 4550
+  },
+  "rules_at_open": 265,
+  "debt_at_open": "NONE",
+  "baseline": {
+    "at": "2026-09-23T18:23:05.752Z",
+    "results": [
+      {
+        "id": "CSDD-TYPE-001",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "API_SURFACE_DEGENERATE_INPUT"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ADVERSARIAL",
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DELIVERY_PLAN_REQUIREMENT_UNKNOWN",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-INDEX-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "MJ01",
+          "SDD_CONTRACT_INVALID",
+          "SDD_PRESENTATION_OBJECT_UNINDEXED"
+        ]
+      },
+      {
+        "id": "CSDD-OWN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_DRIFT_OWNERSHIP_PACKAGES"
+        ]
+      },
+      {
+        "id": "CSDD-CLAIM-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_UNIVERSAL_CLAIM_UNIVERSE_REQUIRED",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-MANAGER-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "COMMAND_PACKAGE_MANAGER_MISMATCH",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS",
+          "YS01"
+        ]
+      },
+      {
+        "id": "CSDD-TOOLCHAIN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS",
+          "TOOLCHAIN_VERSION_CONFLICT"
+        ]
+      },
+      {
+        "id": "CSDD-CONVERGENCE-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_LENS_MISSING",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS"
+        ]
+      },
+      {
+        "id": "CSDD-CONVERGENCE-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_ITEM_OPEN",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS"
+        ]
+      },
+      {
+        "id": "CSDD-V2-REPO-101",
+        "fired": false,
+        "negative_fired": null,
+        "pass": true,
+        "codes": []
+      },
+      {
+        "id": "CSDD-V2-TRACE-101",
+        "fired": false,
+        "negative_fired": true,
+        "pass": true,
+        "codes": [
+          "PSEUDOCODE_SYMBOL_UNRESOLVED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-META-101",
+        "fired": false,
+        "negative_fired": null,
+        "pass": true,
+        "codes": [
+          "PSEUDOCODE_SYMBOL_UNRESOLVED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-CLAR-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CLARIFICATION",
+          "NEEDS",
+          "PSEUDOCODE_SYMBOL_UNRESOLVED",
+          "SDD_V2_CLARIFICATION_UNTRACKED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-READS-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_PATH_NOT_FOUND"
+        ]
+      },
+      {
+        "id": "CSDD-V2-CLAR-102",
+        "fired": false,
+        "negative_fired": true,
+        "pass": true,
+        "codes": [
+          "PSEUDOCODE_SYMBOL_UNRESOLVED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-STEP-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_META_SOURCE_MISMATCH"
+        ]
+      },
+      {
+        "id": "CSDD-V2-CLOSURE-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_CLOSURE_OPEN"
+        ]
+      },
+      {
+        "id": "CSDD-V2-BUG-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_SECTION_MISSING"
+        ]
+      },
+      {
+        "id": "CSDD-V2-ASSESS-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_REQUIRED_FIELD_EMPTY"
+        ]
+      },
+      {
+        "id": "CSDD-V2-SYMBOL-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "PSEUDOCODE_SYMBOL_UNRESOLVED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-PROOF-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_CLOSURE_OPEN"
+        ]
+      },
+      {
+        "id": "CSDD-V2-CLOSURE-102",
+        "fired": true,
+        "negative_fired": null,
+        "pass": true,
+        "codes": [
+          "SDD_V2_CLOSURE_OPEN"
+        ]
+      },
+      {
+        "id": "CSDD-V2-SYMBOL-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "PSEUDOCODE_SYMBOL_UNRESOLVED"
+        ]
+      },
+      {
+        "id": "CSDD-RSI-TEL-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "RSI_TELEMETRY_CANDIDATES_RECORDED"
+        ]
+      },
+      {
+        "id": "CSDD-RSI-TEL-102",
+        "fired": true,
+        "negative_fired": null,
+        "pass": true,
+        "codes": [
+          "RSI_TELEMETRY_CLOSURE_RECORDED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-IGNORED-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_PATH_GIT_IGNORED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-OWNED-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_WRITES_OWNED_ELSEWHERE"
+        ]
+      },
+      {
+        "id": "CSDD-V2-FWD-101",
+        "fired": false,
+        "negative_fired": false,
+        "pass": false,
+        "codes": []
+      },
+      {
+        "id": "CSDD-V2-ERRTEXT-101",
+        "fired": false,
+        "negative_fired": false,
+        "pass": false,
+        "codes": []
+      },
+      {
+        "id": "CSDD-V2-SHAPE-101",
+        "fired": false,
+        "negative_fired": false,
+        "pass": false,
+        "codes": []
+      },
+      {
+        "id": "CSDD-V1-STALE-101",
+        "fired": false,
+        "negative_fired": false,
+        "pass": false,
+        "codes": [
+          "DELIVERY_PLAN_REQUIREMENT_UNKNOWN",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-V2-ORACLE-101",
+        "fired": false,
+        "negative_fired": false,
+        "pass": false,
+        "codes": []
+      },
+      {
+        "id": "CSDD-V2-GAP-101",
+        "fired": false,
+        "negative_fired": false,
+        "pass": false,
+        "codes": []
+      }
+    ],
+    "heldOut": [
+      {
+        "id": "CSDD-LINK-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_ACCEPTANCE_REQUIREMENT_LINK_MISMATCH",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "DELIVERY_PLAN_TEST_BUDGET_INVALID",
+          "SDD_CONTRACT_INVALID"
+        ]
+      }
+    ]
+  },
+  "prune": {
+    "source_version": "ac891e22e08cfc936a0c0a014d81484fd2a1edb0c46520fce92b43627da545f5",
+    "over_budget": [],
+    "unjustified_additions": [],
+    "undecided_removals": [],
+    "not_net_negative": []
+  },
+  "settles": [
+    {
+      "id": "OD-01",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §4 Verify: compare acceptance cases with each other; opposite expectations on one subject or suite are resolved before implementation. Not mechanical: contradiction needs semantics; convergence FAIL rows surface it at the latest."
+    },
+    {
+      "id": "OD-02",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §3 Design: read each step's failure and state claims back against its own pseudocode. A detector would need a reachability analysis of prose branches; no reliable cheap form exists."
+    },
+    {
+      "id": "OD-03",
+      "as": "detector",
+      "evidence": "CSDD-V2-FWD-101: SDD_V2_ACCEPTANCE_FORWARD_DEPENDENCY compares acceptance tokens with step producers and order."
+    },
+    {
+      "id": "OD-04",
+      "as": "detector",
+      "evidence": "CSDD-V2-ERRTEXT-101: SDD_V2_ERROR_TEXT_READER_UNDECLARED finds tests asserting error text of touched files."
+    },
+    {
+      "id": "OD-05",
+      "as": "ruling",
+      "evidence": "Covered by convergence behaviour proof (CSDD-V2-PROOF-101): a PASS needs a failing baseline of the same command, and regression cases cannot close without it; v2-authoring.md §4 states that an oracle must be able to fail."
+    },
+    {
+      "id": "OD-06",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §4 Verify: an oracle naming a function must test a fact the design routes to it. Mechanical routing needs per-step requires/produces facts that v2 does not model; the oracles map plus convergence's requirement link narrow it."
+    },
+    {
+      "id": "OD-07",
+      "as": "detector",
+      "evidence": "CSDD-V2-SHAPE-101: SDD_V2_SHAPE_READER_UNDECLARED finds Name.prototype, extends Name and instanceof Name readers of touched classes."
+    },
+    {
+      "id": "OD-08",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §3 Design: for a new guard that runs before downstream code, ask which downstream error contract now competes for the same call. A review question, as the observation itself concluded."
+    },
+    {
+      "id": "OD-09",
+      "as": "detector",
+      "evidence": "CSDD-V2-IGNORED-101: SDD_V2_PATH_GIT_IGNORED (rounds R-20260923180955, R-20260923181511)."
+    },
+    {
+      "id": "OD-10",
+      "as": "detector",
+      "evidence": "CSDD-V2-OWNED-101: SDD_V2_WRITES_OWNED_ELSEWHERE (rounds R-20260923181049, R-20260923181511)."
+    },
+    {
+      "id": "OD-11",
+      "as": "detector",
+      "evidence": "CSDD-V1-STALE-101: DESIGN_CONVERGENCE_STALE on CONVERGED legacy documents that now fail."
+    },
+    {
+      "id": "OD-12",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §1 Harvest: re-verify a predecessor's numeric and universal claims against live source before reuse. Low reliability as a detector, as recorded."
+    },
+    {
+      "id": "OD-13",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §6 Report: under the host's plan mode the plan file carries the full draft validate-draft accepted."
+    },
+    {
+      "id": "OD-14",
+      "as": "detector",
+      "evidence": "CSDD-RSI-TEL-101 and CSDD-RSI-TEL-102: validate records candidates and closure findings in telemetry (round R-20260923180447)."
+    }
+  ],
+  "candidate": {
+    "at": "2026-09-23T18:28:11.336Z",
+    "source_version": "ac891e22e08cfc936a0c0a014d81484fd2a1edb0c46520fce92b43627da545f5",
+    "results": [
+      {
+        "id": "CSDD-TYPE-001",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "API_SURFACE_DEGENERATE_INPUT"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONVERGED",
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "DESIGN_CONVERGENCE_STALE",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-CONV-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ADVERSARIAL",
+          "CONVERGED",
+          "DESIGN_CONVERGENCE_INCONSISTENT",
+          "DESIGN_CONVERGENCE_STALE",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONVERGED",
+          "DELIVERY_PLAN_REQUIREMENT_UNKNOWN",
+          "DESIGN_CONVERGENCE_STALE",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-INDEX-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONVERGED",
+          "DESIGN_CONVERGENCE_STALE",
+          "MJ01",
+          "SDD_CONTRACT_INVALID",
+          "SDD_PRESENTATION_OBJECT_UNINDEXED"
+        ]
+      },
+      {
+        "id": "CSDD-OWN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_DRIFT_OWNERSHIP_PACKAGES"
+        ]
+      },
+      {
+        "id": "CSDD-CLAIM-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_UNIVERSAL_CLAIM_UNIVERSE_REQUIRED",
+          "CONVERGED",
+          "DESIGN_CONVERGENCE_STALE",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-MANAGER-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "COMMAND_PACKAGE_MANAGER_MISMATCH",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS",
+          "YS01"
+        ]
+      },
+      {
+        "id": "CSDD-TOOLCHAIN-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS",
+          "TOOLCHAIN_VERSION_CONFLICT"
+        ]
+      },
+      {
+        "id": "CSDD-CONVERGENCE-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_LENS_MISSING",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS"
+        ]
+      },
+      {
+        "id": "CSDD-CONVERGENCE-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "ACCEPTANCE_TOPOLOGY",
+          "ADVERSARIAL",
+          "DESIGN_GATE_ITEM_OPEN",
+          "DESIGN_GATE_LENS_REVISION_MISSING",
+          "SYNTHESIS"
+        ]
+      },
+      {
+        "id": "CSDD-V2-REPO-101",
+        "fired": false,
+        "negative_fired": null,
+        "pass": true,
+        "codes": []
+      },
+      {
+        "id": "CSDD-V2-TRACE-101",
+        "fired": false,
+        "negative_fired": true,
+        "pass": true,
+        "codes": [
+          "PSEUDOCODE_SYMBOL_UNRESOLVED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-META-101",
+        "fired": false,
+        "negative_fired": null,
+        "pass": true,
+        "codes": [
+          "PSEUDOCODE_SYMBOL_UNRESOLVED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-CLAR-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CLARIFICATION",
+          "NEEDS",
+          "PSEUDOCODE_SYMBOL_UNRESOLVED",
+          "SDD_V2_CLARIFICATION_UNTRACKED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-READS-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_PATH_NOT_FOUND"
+        ]
+      },
+      {
+        "id": "CSDD-V2-CLAR-102",
+        "fired": false,
+        "negative_fired": true,
+        "pass": true,
+        "codes": [
+          "PSEUDOCODE_SYMBOL_UNRESOLVED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-STEP-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_META_SOURCE_MISMATCH"
+        ]
+      },
+      {
+        "id": "CSDD-V2-CLOSURE-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_CLOSURE_OPEN"
+        ]
+      },
+      {
+        "id": "CSDD-V2-BUG-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_SECTION_MISSING"
+        ]
+      },
+      {
+        "id": "CSDD-V2-ASSESS-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_REQUIRED_FIELD_EMPTY"
+        ]
+      },
+      {
+        "id": "CSDD-V2-SYMBOL-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "PSEUDOCODE_SYMBOL_UNRESOLVED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-PROOF-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_CLOSURE_OPEN"
+        ]
+      },
+      {
+        "id": "CSDD-V2-CLOSURE-102",
+        "fired": true,
+        "negative_fired": null,
+        "pass": true,
+        "codes": [
+          "SDD_V2_CLOSURE_OPEN"
+        ]
+      },
+      {
+        "id": "CSDD-V2-SYMBOL-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "PSEUDOCODE_SYMBOL_UNRESOLVED"
+        ]
+      },
+      {
+        "id": "CSDD-RSI-TEL-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "RSI_TELEMETRY_CANDIDATES_RECORDED"
+        ]
+      },
+      {
+        "id": "CSDD-RSI-TEL-102",
+        "fired": true,
+        "negative_fired": null,
+        "pass": true,
+        "codes": [
+          "RSI_TELEMETRY_CLOSURE_RECORDED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-IGNORED-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_PATH_GIT_IGNORED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-OWNED-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_WRITES_OWNED_ELSEWHERE"
+        ]
+      },
+      {
+        "id": "CSDD-V2-FWD-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_ACCEPTANCE_FORWARD_DEPENDENCY"
+        ]
+      },
+      {
+        "id": "CSDD-V2-ERRTEXT-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_ERROR_TEXT_READER_UNDECLARED",
+          "SDD_V2_SHAPE_READER_UNDECLARED"
+        ]
+      },
+      {
+        "id": "CSDD-V2-SHAPE-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_ERROR_TEXT_READER_UNDECLARED",
+          "SDD_V2_SHAPE_READER_UNDECLARED"
+        ]
+      },
+      {
+        "id": "CSDD-V1-STALE-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONVERGED",
+          "DELIVERY_PLAN_REQUIREMENT_UNKNOWN",
+          "DESIGN_CONVERGENCE_STALE",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-V2-ORACLE-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_CLOSURE_OPEN"
+        ]
+      },
+      {
+        "id": "CSDD-V2-GAP-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "SDD_V2_CLOSURE_OPEN"
+        ]
+      }
+    ],
+    "regressions": [],
+    "repairs": [
+      "CSDD-V2-FWD-101",
+      "CSDD-V2-ERRTEXT-101",
+      "CSDD-V2-SHAPE-101",
+      "CSDD-V1-STALE-101",
+      "CSDD-V2-ORACLE-101",
+      "CSDD-V2-GAP-101"
+    ],
+    "missing_cases": [],
+    "heldOut": [
+      {
+        "id": "CSDD-LINK-101",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONTRACT_ACCEPTANCE_REQUIREMENT_LINK_MISMATCH",
+          "CONVERGED",
+          "DESIGN_CONVERGENCE_STALE",
+          "SDD_CONTRACT_INVALID"
+        ]
+      },
+      {
+        "id": "CSDD-PLAN-102",
+        "fired": true,
+        "negative_fired": false,
+        "pass": true,
+        "codes": [
+          "CONVERGED",
+          "DELIVERY_PLAN_TEST_BUDGET_INVALID",
+          "DESIGN_CONVERGENCE_STALE",
+          "SDD_CONTRACT_INVALID"
+        ]
+      }
+    ]
+  },
+  "closed_at": "2026-09-23T18:28:20.049Z",
+  "verdict": "ACCEPTED",
+  "repair_ids": [
+    "CSDD-V2-FWD-101",
+    "CSDD-V2-ERRTEXT-101",
+    "CSDD-V2-SHAPE-101",
+    "CSDD-V1-STALE-101",
+    "CSDD-V2-ORACLE-101",
+    "CSDD-V2-GAP-101"
+  ],
+  "rejection_reasons": [],
+  "not_proven": [
+    "that the change makes the skill better at anything not covered by a mechanical case",
+    "that an authoring agent reads, understands or follows any rule involved",
+    "that a reader with write access could not have edited a case; the guard makes that visible, not impossible"
+  ],
+  "settled_observations": [
+    {
+      "id": "OD-01",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §4 Verify: compare acceptance cases with each other; opposite expectations on one subject or suite are resolved before implementation. Not mechanical: contradiction needs semantics; convergence FAIL rows surface it at the latest.",
+      "text": "## OD-01 Two acceptance criteria require opposite behaviour\n\n**Observed:** `YS10` requires `revokeRegistration` to retire the stage slot (\"卸载摘除 stage slot …\n反复装卸不增长\"). `YS15` requires the full `packages/tray` suite to pass. Tray fails precisely\nbecause of that retirement: toggling the one block flips tray between 8 failures and 0.\n\n**Evidence:** `packages/plugin-host/src/removal-runtime.ts` revoke path; `packages/tray` suite\n121 passed / 0 failed with the block removed, 113 / 8 with it present.\n\n**Why the checks missed it:** nothing compares acceptance criteria against each other. Each one is\nchecked for shape, binding and oracle sensitivity in isolation. Two oracles that cannot both hold\nare a contradiction only a reader — or an execution — can see.\n\n**What a detector would need:** hard. A cheap approximation: flag two acceptance cases whose\nmethods run the same command with different expected outcomes, or whose requirement texts contain a\nnegation of each other over the same subject. Neither is reliable. The honest candidate is a\n*process* rule rather than a detector — an acceptance that constrains a second package must name\nthat package's suite as a reader, and the reader table would then show the collision."
+    },
+    {
+      "id": "OD-02",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §3 Design: read each step's failure and state claims back against its own pseudocode. A detector would need a reachability analysis of prose branches; no reliable cheap form exists.",
+      "text": "## OD-02 A step's Failure clause contradicts its own pseudocode\n\n**Observed:** `BZ08` Failure says \"若 slot 属于另一个 host（组合场景），条件不成立则不摘除，交由\n`retireDataOrderSlot` 处理\". Its pseudocode guards with `slot.host === this.#port.host`, which is\ntrue for every entry in the table — `stageSlots` is written only by `createDataOrderSlot`, the\ncomposition entry, so every slot in it belongs to a composition owner *on this host*. The guard can\nnever express the case the prose describes.\n\n**Why the checks missed it:** `complete-design.md` already prescribes exactly this read-back —\n\"read its **Failure**, **State changes** and **Observable result** back against its own\n**Pseudocode**, claim by claim\" — and says plainly that the validator \"can never check that the\nlabels describe the code beneath them\". That is the gap, stated by the skill itself, now with a\nworked instance.\n\n**What a detector would need:** this is the strongest candidate on the list. The type probe already\nreads fenced TypeScript out of a document; a step's pseudocode is fenced TypeScript too. A probe\nthat extracted the identifiers a Failure clause names (`slot`, `host`, `retireDataOrderSlot`) and\nchecked they appear in the pseudocode with a reachable branch would have caught this one: the prose\nnames a branch (`条件不成立`) the code cannot take."
+    },
+    {
+      "id": "OD-03",
+      "as": "detector",
+      "evidence": "CSDD-V2-FWD-101: SDD_V2_ACCEPTANCE_FORWARD_DEPENDENCY compares acceptance tokens with step producers and order.",
+      "text": "## OD-03 A batch's acceptance depends on a later batch's deliverable\n\n**Observed:** `YS13` and `YS14` (PC06) require `defineHost` handles. `defineHost` is `BZ17`,\ndelivered by PC08. The dependency chain is PC06 → PC07 → PC08, so PC06's acceptance cannot pass at\nPC06.\n\n**Why the checks missed it:** `delivery_plan` checks batch dependencies and requirement coverage,\nnot whether an acceptance's *oracle text* mentions something a later batch produces.\n\n**What a detector would need:** feasible and cheap. Every batch produces named symbols (they are in\nthe step `produces` lists and the API section). An acceptance bound to batch N whose oracle names a\nsymbol first produced by batch M > N is a mechanical finding. This one is worth a case."
+    },
+    {
+      "id": "OD-04",
+      "as": "detector",
+      "evidence": "CSDD-V2-ERRTEXT-101: SDD_V2_ERROR_TEXT_READER_UNDECLARED finds tests asserting error text of touched files.",
+      "text": "## OD-04 A cross-package assertion on error text was never declared a reader\n\n**Observed:** `INSTALL_RESULT_THENABLE` replaced the sync path's bare `TypeError`, changing its\nmessage. `packages/logger/logger.test.ts` asserted the old message and broke. r1's migration readers\ndo not list it.\n\n**Why the checks missed it:** `repo-facts` scans for *symbols*. A test that asserts a message string\nreferences no symbol, so no scan reaches it. `AGENTS.md` already requires cross-package assertions to\nbe updated on a message migration; nothing connects that requirement to the reader inventory.\n\n**What a detector would need:** straightforward. When a delivery changes a member of the owning\npackage's error-text module, scan the declared inventory roots for string literals matching the old\ntext and require each hit to appear as a reader. The old text is available from git."
+    },
+    {
+      "id": "OD-05",
+      "as": "ruling",
+      "evidence": "Covered by convergence behaviour proof (CSDD-V2-PROOF-101): a PASS needs a failing baseline of the same command, and regression cases cannot close without it; v2-authoring.md §4 states that an oracle must be able to fail.",
+      "text": "## OD-05 An acceptance whose observable cannot fail\n\n**Observed:** `XQ08` / `YS10` observe \"反复装卸同名插件 N 次后 `stageSlots` 尺寸恒定\". The table is\nkeyed by plugin name, so its size is bounded by the number of distinct names no matter what the\nchange does. The observation holds before the change and after it, and would hold if the change were\nreverted.\n\n**Why the checks missed it:** `oracle_sensitivity` demands a perturbation only for guards and\nabsence claims. A positive structural observation carries no such obligation, so nothing asks\nwhether the oracle can distinguish the two worlds.\n\n**What a detector would need:** the general form is the same question `oracle_sensitivity` already\nasks — \"flip the thing, does this case flip?\" — applied to more kinds of acceptance. Widening that\nobligation is a design decision with a real cost (every case then needs a perturbation), so this is\na candidate for a *ruling*, not an obvious rule."
+    },
+    {
+      "id": "OD-06",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §4 Verify: an oracle naming a function must test a fact the design routes to it. Mechanical routing needs per-step requires/produces facts that v2 does not model; the oracles map plus convergence's requirement link narrow it.",
+      "text": "## OD-06 An acceptance names an implementation site the design's own behaviour rules out\n\n**Observed:** `YS22` requires that \"storage-web 在提供的 native contexts 数量与安装批次大小不符时,\ndomainCore 显式抛错\". The domain-core callback cannot make that judgement: a storage batch installs a\nreactive service plugin and one adapter per reactive entry *in addition to* its entries, so the\ncontext queue running dry there is ordinary rather than a fault. The callback sees one registration\nat a time and never learns how many contexts were supposed to cover how many entries.\n\n**Evidence:** implementing it as written turned 28 passing storage-web cases red. The check belongs\nat `setNativeContexts`, which receives both numbers.\n\n**Why the checks missed it:** an acceptance oracle may name a function by name, and nothing compares\nthat name against what the design says the function is given. The information the oracle demands was\nnever routed to the place the oracle points at.\n\n**What a detector would need:** the step `requires`/`produces` lists, if they were populated, would\nsay which facts reach which step. An oracle naming a symbol whose owning step does not `require` the\nfact the oracle tests is a mechanical finding. It needs the markdown structure from B3 first."
+    },
+    {
+      "id": "OD-07",
+      "as": "detector",
+      "evidence": "CSDD-V2-SHAPE-101: SDD_V2_SHAPE_READER_UNDECLARED finds Name.prototype, extends Name and instanceof Name readers of touched classes.",
+      "text": "## OD-07 A design change invalidates a whole technique, and the reader inventory sees none of it\n\n**Observed:** `XQ15`/`XQ19` replace class inheritance with a factory handle. Every test that reached\nthe old surface through `vi.spyOn(Class.prototype, ...)`, `class X extends Host`, `Object.assign(host, …)`\nor `Reflect.ownKeys(host)` broke — across three packages — and r1's migration readers list none of\nthem. The readers table is built from *symbol* scans, and none of these reference the migrated\nsymbol at all.\n\n**Evidence:** `web-rpc` (4 sites), `store-middleware` (2), plus `tray` earlier. Each needed a\ndifferent replacement, and two of them turned out to be asserting paths production cannot reach\n(see OD-05's family).\n\n**Why the checks missed it:** the migration model is symbol-based. \"Everything that depends on the\nsubject being a class\" is a *shape* dependency, not a symbol reference, so no scan can see it.\n\n**What a detector would need:** when a legacy surface's disposition changes its construction form —\nclass to factory, instance to handle — scan the inventory roots for the four techniques above and\nrequire each hit to appear as a reader. The technique list is short and stable, which makes this the\ncheapest of the shape-dependency checks worth having."
+    },
+    {
+      "id": "OD-08",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §3 Design: for a new guard that runs before downstream code, ask which downstream error contract now competes for the same call. A review question, as the observation itself concluded.",
+      "text": "## OD-08 A new host guarantee overrides a downstream package's published error contract\n\n**Observed:** `XQ06` makes a published extension closure throw `VIEW_REVOKED` as soon as its\nregistrations are revoked, and `publication.ts` checks that *before* the member body runs. WebRPC\npublishes its control members (`send`, `pingAll`, `sendAll`) as host extensions and documents\n`ENDPOINT_DISPOSED` as what a disposed endpoint throws. After `XQ06` the endpoint can no longer\nproduce its own code from those members: the host's check always wins.\n\n**Evidence:** four WebRPC contract cases, failing since PC04 landed. The endpoint's only place to\ntranslate is its projection, and the projection's own contract is that it copies values by\nreference — so the two guarantees cannot both hold as written.\n\n**Why the checks missed it:** `XQ06`'s reader inventory lists what references the *symbol* being\nchanged. WebRPC references no symbol here; it depends on an ordering — \"my member body runs before\nanything else can reject\" — that no scan represents. Same shape as `OD-07`, one level deeper: not a\nconstruction form this time but an interception point.\n\n**What a detector would need:** the honest answer is that this one is a design review question, not\na scan. What would have surfaced it is the acceptance-topology lens asking, for each new guard,\n\"which downstream error contract now has a competitor for the same call\". That is a checklist item\nfor a human, and it belongs in the lens rather than in a script.\n\n---"
+    },
+    {
+      "id": "OD-09",
+      "as": "detector",
+      "evidence": "CSDD-V2-IGNORED-101: SDD_V2_PATH_GIT_IGNORED (rounds R-20260923180955, R-20260923181511).",
+      "text": "## OD-09 An acceptance or test reads a git-ignored path\n\n**Observed:** `packages/store-devtools/test/public-exports.test.ts` reads\n`docs/store/public-exports.baseline.json`, and `docs/` is ignored (`.gitignore:14` in the migai\nrepository). On a clean checkout the file does not exist and the test fails. The repository's error\nregistry `docs/contracts/error-codes.md` sits in the same ignored tree while an acceptance (R1's\nYS02) reads it.\n\n**Evidence:** `git check-ignore -v docs/store/public-exports.baseline.json` → `.gitignore:14:docs/`.\n\n**Why the checks missed it:** `validate` checks that Bundle `reads` exist in the resolved repository.\nAn ignored file exists locally, so the check passes on the author's machine and nowhere else.\n\n**What a detector would need:** cheap and deterministic — run `git check-ignore` over the paths named\nin acceptance methods and step `touches`; any hit is a candidate (\"this input will not exist in a\nclean checkout\").\n\n**Status (2026-09-24):** detector added. `SDD_V2_PATH_GIT_IGNORED` (v2 handoff candidate) reports Bundle\nreads, Asset paths and repository-relative paths on acceptance lines that Git ignores; pinned by\n`CSDD-V2-IGNORED-101` (case-amendment R-20260923180955, improvement R-20260923181511 ACCEPTED)."
+    },
+    {
+      "id": "OD-10",
+      "as": "detector",
+      "evidence": "CSDD-V2-OWNED-101: SDD_V2_WRITES_OWNED_ELSEWHERE (rounds R-20260923181049, R-20260923181511).",
+      "text": "## OD-10 A leaf's write set enters another SDD's ownership\n\n**Observed:** the first R2 draft carried a requirement to change `website/scripts/generate/signatures.ts`.\nThe user had already assigned all website work to `docs/website/website-library-runtime.sdd.md`; the\nrequirement had to be moved there (it became that document's XQ07).\n\n**Evidence:** R2 revision before the move listed `website/scripts/generate/signatures.ts` in\n`writes`; the website SDD owns `migaia-website`.\n\n**Why the checks missed it:** v2 validates one leaf's `writes` in isolation. Ownership conflicts are\nchecked only between children of one program root, and these two documents share no root.\n\n**What a detector would need:** read the ownership other SDDs in the same repository declare\n(`writes`, v1 `ownership`/`modification_packages`) and intersect it with the leaf's `writes`; an\nintersection is a candidate naming the other document.\n\n**Status (2026-09-24):** detector added. `SDD_V2_WRITES_OWNED_ELSEWHERE` reports a leaf's writes that\nintersect another active, unlinked SDD's `writes` or v1 `modification_packages` (package names resolved\nto directories); pinned by `CSDD-V2-OWNED-101`. On the migai repository it reported three genuine\noverlaps for plugin-host R2 (`docs/contracts` twice, `scripts` once)."
+    },
+    {
+      "id": "OD-11",
+      "as": "detector",
+      "evidence": "CSDD-V1-STALE-101: DESIGN_CONVERGENCE_STALE on CONVERGED legacy documents that now fail.",
+      "text": "## OD-11 A CONVERGED legacy document fails the current validator\n\n**Observed:** `website-library-runtime.sdd.md` at revision `2026-09-16-r6` declares design status\nCONVERGED, yet the current legacy `validate` reports `MIGRATION_READER_BATCH_COVERAGE_INVALID`\n(reader DY01 needs XQ02 and XQ06, split across PC02 and PC06). The r6 text was validated unchanged\nto confirm the diagnostic predates the r7 amendment.\n\n**Evidence:** `validate.ts validate --sdd <r6 copy> --document-policy current --design-policy current`\n→ `valid: false`, one diagnostic.\n\n**Why the checks missed it:** convergence was judged by the validator of its day. When a later rule\ntightens, nothing re-announces that an existing CONVERGED claim no longer holds; the document keeps\nreading as settled.\n\n**What a detector would need:** a v1 document whose recorded status is CONVERGED but which yields\ndiagnostics is reported as \"convergence predates the current validator\" rather than as an ordinary\ninvalid draft, so the reader knows the claim, not the draft, is stale."
+    },
+    {
+      "id": "OD-12",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §1 Harvest: re-verify a predecessor's numeric and universal claims against live source before reuse. Low reliability as a detector, as recorded.",
+      "text": "## OD-12 A predecessor's numeric facts go stale, or were wrong\n\n**Observed:** R1 §1.1 #4 stated 11 `context ? f(v, ctx) : f(v)` conditional calls in\nmiddleware-pipeline, three `isRecord` definitions in event-subscriber, and six assertions that a\nnever-existing dependency is absent. Live source for R2 showed 4, 2 and 4 — and two of the six\n\"vacuous\" assertions are valid tree-shaking checks (the async entry must not bundle the sync runner).\n\n**Evidence:** `packages/middleware-pipeline/test/tree-shaking.test.ts:40-51`,\n`packages/event-subscriber/src/style.ts:209`, `packages/event-subscriber/src/channel.ts:96`.\n\n**Why the checks missed it:** the claims passed every check and all three lenses when R1 was written.\nA successor that cites a predecessor as `basis` inherits its prose without any prompt to re-read.\n\n**What a detector would need:** low reliability, recorded for judgement — list the predecessor's\nnumeric or universal claims as \"re-verify before reuse\" items when a new SDD names it as basis."
+    },
+    {
+      "id": "OD-13",
+      "as": "ruling",
+      "evidence": "v2-authoring.md §6 Report: under the host's plan mode the plan file carries the full draft validate-draft accepted.",
+      "text": "## OD-13 Host plan mode overrides the skill's Plan Mode rule\n\n**Observed:** `SKILL.md` says Plan Mode outputs the complete proposed SDD through `validate-draft`.\nWhen the host entered plan mode mid-authoring, the agent followed the host's instruction (write a\nshort plan file, then exit plan mode) and produced a plan instead of the SDD draft.\n\n**Evidence:** this session's plan file `sorted-bubbling-lighthouse.md` held a step list, not a\nvalidated draft.\n\n**Why the checks missed it:** no check sees the reply, and the two instructions are not reconciled\nanywhere — both read as authoritative.\n\n**What a detector would need:** not a detector. A behaviour case, plus one SKILL.md line stating that\nunder host plan mode the plan file carries the full draft that `validate-draft` accepted."
+    },
+    {
+      "id": "OD-14",
+      "as": "detector",
+      "evidence": "CSDD-RSI-TEL-101 and CSDD-RSI-TEL-102: validate records candidates and closure findings in telemetry (round R-20260923180447).",
+      "text": "## OD-14 sdd/v2 work reaches RSI only as diagnostic counts\n\n**Observed:** writing and validating a full SDD leaves exactly one kind of RSI trace — the codes in\n`validate`'s `diagnostics`. Three things never arrive:\n\n1. **v2 candidates.** The first R2 `validate` returned three `PSEUDOCODE_SYMBOL_UNRESOLVED`\n   candidates in `handoff.candidates`; its telemetry line records `candidate_codes: []`.\n   `validate.ts` builds the entry with `codesOf(output)`, which reads only `output.diagnostics`, and\n   passes no `candidateCodes`. Advisory findings are therefore invisible to rule health.\n2. **Authoring-time defects.** The v2 workflow (SKILL.md Report step, `references/v2-authoring.md`\n   §6) never asks the author to record a defect the checks missed; this file is referenced only from\n   `rsi.ts update`'s agenda text.\n3. **Implementation-time failures.** `rsi.ts ingest` reads retrospectives in the retired\n   `sdd-loop-delivery` format. v2 hosts report through `validate --evidence` (`sdd-evidence/v1`), and\n   the v2 closure feeds nothing to RSI, so a FAIL found while implementing never arrives.\n\n**Evidence:** telemetry line for R2's first run (2026-09-23T17:45:45Z, `codes:\n[\"SDD_V2_PROSE_DEFINITION_DUPLICATE\"]`, `candidate_codes: []`) against the same run's handoff; the\n`record({ tool, sddSha, codes: codesOf(output) })` call at the end of `scripts/validate.ts`.\n\n**Correction recorded for honesty:** the investigation first concluded that telemetry writes were\nsilently failing. They were not — the file's local mtime (01:50 +08:00) was read as if it were the\nUTC timestamps in the ledger (17:50Z), which are the same moment. A controlled rerun appended\nnormally through both the `~/.codex` path and the `~/.claude` symlink.\n\n**Why the checks missed it:** each piece works on its own, and a channel that delivers nothing looks\nexactly like a quiet corpus — dormancy statistics read an absence of input as an absence of defects.\n\n**What a detector would need:** not a detector, three small wiring changes: pass\n`handoff.candidates` codes as `candidateCodes` in `validate.ts`; one Report-step line pointing\nauthors here; let `validate --evidence` record FAIL and stale-revision closures.\n\n**Status (2026-09-24):** repaired. Round R-20260923180325 (case-amendment) pinned gaps 1 and 3 as\n`CSDD-RSI-TEL-101`/`102`, both failing on the unchanged code; round R-20260923180447 (improvement,\nACCEPTED) made `validate.ts` record `handoff.candidates` as `candidate_codes` and `closure.findings`\nas `codes`, flipping both to PASS, and added the Report-step line in SKILL.md for gap 2."
+    }
+  ]
+}

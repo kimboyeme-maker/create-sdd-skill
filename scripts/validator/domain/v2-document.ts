@@ -18,6 +18,8 @@ import {
   type ExecutionSlice,
   type Report
 } from './v2-meta.ts'
+import { ignoredInputCandidates, ownershipCandidates } from './v2-boundaries.ts'
+import { forwardDependencyCandidates, readerCandidates } from './v2-readers.ts'
 import { symbolCandidates } from './v2-symbols.ts'
 import { ancestors, checkStepRecords, stepRecords } from './v2-tasks.ts'
 
@@ -413,6 +415,14 @@ function checkLeaf(
       report('SDD_V2_SECTION_MISSING', path, 'root-cause-missing')
     if (!list(index.regression).length)
       report('SDD_V2_REQUIRED_FIELD_EMPTY', path, 'regression-required')
+  }
+  // Each declared oracle is the test that decides one acceptance case at convergence.
+  if (index.oracles !== undefined && !object(index.oracles))
+    report('SDD_V2_INDEX_SHAPE_INVALID', path, 'oracles-invalid')
+  for (const [id, oracle] of Object.entries(object(index.oracles) ? index.oracles : {})) {
+    if (!acceptanceIds.has(id)) missing('oracles', id, 'oracle-acceptance-missing')
+    if (!nonempty(oracle) || !pathForm(oracle))
+      report('SDD_V2_PATH_INVALID', `${path}: ${id} -> ${String(oracle)}`, 'oracle-path-invalid')
   }
   if (index.regression !== undefined && !Array.isArray(index.regression))
     report('SDD_V2_INDEX_SHAPE_INVALID', path, 'regression-invalid')
@@ -848,15 +858,37 @@ export function validateV2Document(
       ...(selected ? { execution_slice: slices.get(root ? selected.id : 'self') } : {}),
       meta_source: meta.source,
       candidates: selected
-        ? symbolCandidates(
-            selected.index,
-            prose(selected.text, 'sdd-contract'),
-            repo,
-            slices.get(root ? selected.id : 'self')?.reads ?? [],
-            new Map(
-              selectedSourcePaths.map(({ step, path }) => [step, io.read(path).toString('utf8')])
+        ? [
+            ...symbolCandidates(
+              selected.index,
+              prose(selected.text, 'sdd-contract'),
+              repo,
+              slices.get(root ? selected.id : 'self')?.reads ?? [],
+              new Map(
+                selectedSourcePaths.map(({ step, path }) => [step, io.read(path).toString('utf8')])
+              )
+            ),
+            ...ignoredInputCandidates(
+              selected.index,
+              prose(selected.text, 'sdd-contract'),
+              repo,
+              slices.get(root ? selected.id : 'self')?.reads ?? []
+            ),
+            ...ownershipCandidates(selected.index, selected.path, selected.text, repo),
+            ...forwardDependencyCandidates(
+              selected.index,
+              prose(selected.text, 'sdd-contract'),
+              new Map(
+                selectedSourcePaths.map(({ step, path }) => [step, io.read(path).toString('utf8')])
+              )
+            ),
+            ...readerCandidates(
+              selected.index,
+              prose(selected.text, 'sdd-contract'),
+              repo,
+              slices.get(root ? selected.id : 'self')?.reads ?? []
             )
-          )
+          ]
         : [],
       intent: selected?.index.intent === 'bug' ? 'bug' : 'feature',
       regression: list(selected?.index.regression).filter(nonempty),

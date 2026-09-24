@@ -4,7 +4,7 @@ import { list, pathForm, text, type Item } from './v2-meta.ts'
 import { stepRecords } from './v2-tasks.ts'
 
 /** Source files a step's calls may resolve to. */
-const SOURCE = /\.(ts|tsx|js|jsx|mjs|cjs|go|rs|py|java|kt|swift)$/
+export const SOURCE = /\.(ts|tsx|js|jsx|mjs|cjs|go|rs|py|java|kt|swift)$/
 /** A call in pseudocode: a lower-case identifier followed by `(`, not a method on another value. */
 const CALL = /(?:^|[^.\w])([a-z][A-Za-z0-9_]{3,})\s*\(/g
 /** Where a name is declared: a function, class, binding or assigned function. */
@@ -17,7 +17,7 @@ const definition = (name: string) =>
  * The prose of one step: its anchor line and everything under it (continuation lines and fences)
  * up to the next unindented list item or heading outside a fence.
  */
-function stepText(body: string, id: string): string {
+export function stepText(body: string, id: string): string {
   const lines = body.split('\n')
   const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const anchor = new RegExp(

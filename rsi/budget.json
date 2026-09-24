@@ -3,12 +3,12 @@
   "note": "A round freezes these ceilings and its measured starting size when it opens. For ordinary rounds, `prune` rejects growth beyond the higher of those two values; inherited overage remains visible in `health` and cannot be worsened. An explicit budget-change round may revise ceilings and is RECORDED after clean checks, never credited with a repair. Historical raises and ratchets remain records; close no longer ratchets automatically.",
   "set_at": "2026-09-23",
   "ceilings": {
-    "SKILL.md.characters": 9500,
-    "references.lines": 4600,
-    "validator.lines": 6700,
+    "SKILL.md.characters": 10000,
+    "references.lines": 4720,
+    "validator.lines": 7550,
     "behavior_cases": 46,
-    "scripts.lines": 13420,
-    "tests.lines": 4250
+    "scripts.lines": 14500,
+    "tests.lines": 4800
   },
   "raises": [
     {
@@ -146,6 +146,102 @@
       "at": "2026-09-24",
       "round": "budget-change",
       "reason": "One line each for the symbol candidate and behaviour proof, where a reader decides what `validate` and `--evidence` can and cannot prove."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 6700,
+      "to": 6770,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-09 and OD-10 detectors (scripts/validator/domain/v2-boundaries.ts plus its handoff wiring) measured validator.lines 6757 and scripts.lines 13466 against ceilings 6700 and 13420. They report acceptance inputs under git-ignored paths and writes that enter another active SDD's ownership, both observed in a real R2 authoring run; on the migai repository they produced 3 candidates, all genuine overlaps. Trade-off: about 140 more lines for two advisory checks the user asked for; alternatives were offsetting deletions elsewhere or dropping v1 package-name ownership, which is the exact shape of the website incident. User ruling 2026-09-24: raise."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 13420,
+      "to": 13480,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-09 and OD-10 detectors (scripts/validator/domain/v2-boundaries.ts plus its handoff wiring) measured validator.lines 6757 and scripts.lines 13466 against ceilings 6700 and 13420. They report acceptance inputs under git-ignored paths and writes that enter another active SDD's ownership, both observed in a real R2 authoring run; on the migai repository they produced 3 candidates, all genuine overlaps. Trade-off: about 140 more lines for two advisory checks the user asked for; alternatives were offsetting deletions elsewhere or dropping v1 package-name ownership, which is the exact shape of the website incident. User ruling 2026-09-24: raise."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 6770,
+      "to": 7200,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User authorization 2026-09-24 for new budget. Three pieces of work: detectors for four observed defects (OD-03 forward dependency, OD-04 error-text readers, OD-07 shape readers, OD-11 converged-but-invalid), convergence that links a PASS to the requirement (declared oracle named by the command, causal git diff over the implementing steps' files, design-to-code gap for Assets, touches and step symbols), and an observation queue that each update round settles and archives. Sized from the previous rounds' measured cost per detector plus comments; overage stays visible in health."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 13480,
+      "to": 14100,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User authorization 2026-09-24 for new budget. Three pieces of work: detectors for four observed defects (OD-03 forward dependency, OD-04 error-text readers, OD-07 shape readers, OD-11 converged-but-invalid), convergence that links a PASS to the requirement (declared oracle named by the command, causal git diff over the implementing steps' files, design-to-code gap for Assets, touches and step symbols), and an observation queue that each update round settles and archives. Sized from the previous rounds' measured cost per detector plus comments; overage stays visible in health."
+    },
+    {
+      "dimension": "tests.lines",
+      "from": 4250,
+      "to": 4550,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User authorization 2026-09-24 for new budget. Three pieces of work: detectors for four observed defects (OD-03 forward dependency, OD-04 error-text readers, OD-07 shape readers, OD-11 converged-but-invalid), convergence that links a PASS to the requirement (declared oracle named by the command, causal git diff over the implementing steps' files, design-to-code gap for Assets, touches and step symbols), and an observation queue that each update round settles and archives. Sized from the previous rounds' measured cost per detector plus comments; overage stays visible in health."
+    },
+    {
+      "dimension": "references.lines",
+      "from": 4600,
+      "to": 4680,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User authorization 2026-09-24 for new budget. Three pieces of work: detectors for four observed defects (OD-03 forward dependency, OD-04 error-text readers, OD-07 shape readers, OD-11 converged-but-invalid), convergence that links a PASS to the requirement (declared oracle named by the command, causal git diff over the implementing steps' files, design-to-code gap for Assets, touches and step symbols), and an observation queue that each update round settles and archives. Sized from the previous rounds' measured cost per detector plus comments; overage stays visible in health."
+    },
+    {
+      "dimension": "SKILL.md.characters",
+      "from": 9500,
+      "to": 9850,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User authorization 2026-09-24 for new budget. Three pieces of work: detectors for four observed defects (OD-03 forward dependency, OD-04 error-text readers, OD-07 shape readers, OD-11 converged-but-invalid), convergence that links a PASS to the requirement (declared oracle named by the command, causal git diff over the implementing steps' files, design-to-code gap for Assets, touches and step symbols), and an observation queue that each update round settles and archives. Sized from the previous rounds' measured cost per detector plus comments; overage stays visible in health."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 7200,
+      "to": 7550,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User requirement and budget authorization 2026-09-24: convergence must show that the command verifies the requirement. Adds strict closure (oracle required for must-ship, regression needs a verified causal proof), an opt-in --replay that runs only the declared oracle with a runner the validator derives, at the baseline, at the change and with the implementing files reverted (ablation), from read-only git exports, and a design gap that checks step touches and per-requirement code changes at the reported commit. Sized from measured cost of comparable closure work plus tests."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 14100,
+      "to": 14500,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User requirement and budget authorization 2026-09-24: convergence must show that the command verifies the requirement. Adds strict closure (oracle required for must-ship, regression needs a verified causal proof), an opt-in --replay that runs only the declared oracle with a runner the validator derives, at the baseline, at the change and with the implementing files reverted (ablation), from read-only git exports, and a design gap that checks step touches and per-requirement code changes at the reported commit. Sized from measured cost of comparable closure work plus tests."
+    },
+    {
+      "dimension": "tests.lines",
+      "from": 4550,
+      "to": 4800,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User requirement and budget authorization 2026-09-24: convergence must show that the command verifies the requirement. Adds strict closure (oracle required for must-ship, regression needs a verified causal proof), an opt-in --replay that runs only the declared oracle with a runner the validator derives, at the baseline, at the change and with the implementing files reverted (ablation), from read-only git exports, and a design gap that checks step touches and per-requirement code changes at the reported commit. Sized from measured cost of comparable closure work plus tests."
+    },
+    {
+      "dimension": "references.lines",
+      "from": 4680,
+      "to": 4720,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User requirement and budget authorization 2026-09-24: convergence must show that the command verifies the requirement. Adds strict closure (oracle required for must-ship, regression needs a verified causal proof), an opt-in --replay that runs only the declared oracle with a runner the validator derives, at the baseline, at the change and with the implementing files reverted (ablation), from read-only git exports, and a design gap that checks step touches and per-requirement code changes at the reported commit. Sized from measured cost of comparable closure work plus tests."
+    },
+    {
+      "dimension": "SKILL.md.characters",
+      "from": 9850,
+      "to": 10000,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User requirement and budget authorization 2026-09-24: convergence must show that the command verifies the requirement. Adds strict closure (oracle required for must-ship, regression needs a verified causal proof), an opt-in --replay that runs only the declared oracle with a runner the validator derives, at the baseline, at the change and with the implementing files reverted (ablation), from read-only git exports, and a design gap that checks step touches and per-requirement code changes at the reported commit. Sized from measured cost of comparable closure work plus tests."
     }
   ],
   "introduced": [

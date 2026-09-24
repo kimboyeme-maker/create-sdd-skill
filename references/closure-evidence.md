@@ -1,6 +1,6 @@
 # Closure Evidence
 
-Read this reference only for implementation-completeness or closure audits, or when the repository explicitly requires quantitative acceptance metrics. For an sdd/v2 leaf, first run `validate --evidence` ([converge](v2-authoring.md#6-report--analyze-hand-off-converge)): it settles the mechanical part (every acceptance reported at the current revision, evidence locations present); this page covers what it cannot judge.
+Read this reference only for implementation-completeness or closure audits, or when the repository explicitly requires quantitative acceptance metrics. For an sdd/v2 leaf, first run `validate --evidence --replay` ([converge](v2-authoring.md#6-report--analyze-hand-off-converge)): it settles the mechanical part (every acceptance reported at the current revision, evidence locations present); this page covers what it cannot judge.
 
 ## Evidence rules
 
@@ -35,4 +35,4 @@ Never claim completeness from a self-authored denominator without auditing it fo
 
 Design approval does not require implementation metrics to pass. Closure may be declared only under repository-defined closure gates with all required dimensions covered or explicitly deferred.
 
-<!-- reading-receipt: 20b7b87a -->
+<!-- reading-receipt: 9375a4b5 -->

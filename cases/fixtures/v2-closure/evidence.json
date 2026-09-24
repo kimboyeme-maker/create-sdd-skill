@@ -6,7 +6,8 @@
     {
       "acceptance": "A1",
       "status": "PASS",
-      "evidence": "packages/feature-a/index.ts"
+      "evidence": "packages/feature-a/index.ts",
+      "command": "bun test packages/feature-a/feature.test.ts"
     }
   ]
 }

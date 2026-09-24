@@ -640,7 +640,11 @@
       },
       "negative_fixture": {
         "base": "cases/fixtures/v2-leaf.md",
-        "overlay": {}
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/feature.test.ts"
+          }
+        }
       },
       "detector": {
         "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
@@ -746,7 +750,10 @@
         "base": "cases/fixtures/v2-bug.md",
         "overlay": {
           "intent": "feature",
-          "regression": []
+          "regression": [],
+          "oracles": {
+            "A1": "packages/feature-a/feature.test.ts"
+          }
         }
       },
       "detector": {
@@ -857,6 +864,380 @@
       "observed_at": "2026-09-24",
       "owning_test": "tests/rsi-debt.test.ts",
       "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-IGNORED-101",
+      "defect_class": "acceptance-input-git-ignored",
+      "statement": "An acceptance reads a file under a git-ignored path; it passes on the author's machine and cannot run in a clean checkout.",
+      "root_cause": "v2 validate checks that Bundle reads exist in the resolved repository; an ignored file exists locally, and prose acceptance inputs are not checked at all.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 850,
+        "quote": "candidates: selected"
+      },
+      "repository": "cases/fixtures/v2-ignored",
+      "fixture": "cases/fixtures/v2-ignored-input.md",
+      "negative_fixture": "cases/fixtures/v2-ignored-input.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_PATH_GIT_IGNORED",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "plugin-host R2 authoring with sdd/v2, OD-09",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-boundaries.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-OWNED-101",
+      "defect_class": "writes-owned-by-another-sdd",
+      "statement": "A leaf's writes enter a surface an active SDD in the same repository owns, and the leaf never references that document.",
+      "root_cause": "v2 validate checks one leaf's write set in isolation; ownership is compared only between children of one program root.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 850,
+        "quote": "candidates: selected"
+      },
+      "repository": "cases/fixtures/v2-owned",
+      "fixture": "cases/fixtures/v2-owned-writes.md",
+      "negative_fixture": "cases/fixtures/v2-owned-writes.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_WRITES_OWNED_ELSEWHERE",
+        "must_fire": true
+      },
+      "negative_expectation": {
+        "must_fire": false
+      },
+      "source_delivery": "plugin-host R2 authoring with sdd/v2, OD-10",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-boundaries.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-FWD-101",
+      "defect_class": "acceptance-forward-dependency",
+      "source_delivery": "plugin-host R1 delivery, OD-03",
+      "statement": "A1 is closed by batch C1 but its oracle needs `defineHost()`, first produced by S2 in the later batch C2, so A1 cannot pass when C1 finishes.",
+      "root_cause": "Nothing compares what an acceptance names with which step produces it and when.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "YS13 and YS14 (PC06) require defineHost handles"
+      },
+      "fixture": "cases/fixtures/v2-forward-dependency.md",
+      "negative_fixture": "cases/fixtures/v2-forward-dependency.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_ACCEPTANCE_FORWARD_DEPENDENCY",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-ERRTEXT-101",
+      "defect_class": "error-text-reader-undeclared",
+      "source_delivery": "plugin-host R1 delivery, OD-04",
+      "statement": "A step rewrites error messages in `packages/host/index.ts` while `packages/logger/logger.test.ts` asserts the old message text; the SDD never names that reader.",
+      "root_cause": "Reader scans follow symbols; a test asserting a message string references no symbol.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "packages/logger/logger.test.ts asserted the old message and broke"
+      },
+      "repository": "cases/fixtures/v2-readers",
+      "fixture": "cases/fixtures/v2-readers-undeclared.md",
+      "negative_fixture": "cases/fixtures/v2-readers-declared.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_ERROR_TEXT_READER_UNDECLARED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-SHAPE-101",
+      "defect_class": "shape-reader-undeclared",
+      "source_delivery": "plugin-host R1 delivery, OD-07",
+      "statement": "A step replaces the class in `packages/host/index.ts` while `packages/tray/tray.test.ts` spies on `Host.prototype`; the shape dependency is invisible to symbol scans and undeclared.",
+      "root_cause": "The reader inventory is symbol-based; prototype spies, subclassing and own-key reflection depend on shape, not a name.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "vi.spyOn(Class.prototype, ...)"
+      },
+      "repository": "cases/fixtures/v2-readers",
+      "fixture": "cases/fixtures/v2-readers-undeclared.md",
+      "negative_fixture": "cases/fixtures/v2-readers-declared.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_SHAPE_READER_UNDECLARED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V1-STALE-101",
+      "defect_class": "converged-but-invalid",
+      "source_delivery": "website-library-runtime r6, OD-11",
+      "statement": "A legacy document records design status CONVERGED yet the current validator reports a diagnostic; it reads as settled while its convergence predates the rule that now fails.",
+      "root_cause": "Convergence is a recorded status; nothing re-announces it when a later rule tightens.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "declares design status CONVERGED, yet the current legacy validate reports"
+      },
+      "fixture": {
+        "base": "references/examples/loop-ready-example.md",
+        "overlay": {
+          "delivery_plan": {
+            "batches": {
+              "merge_by_id": [
+                {
+                  "id": "PC01",
+                  "requirement_ids": [
+                    "XQ99"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "negative_fixture": {
+        "base": "references/examples/loop-ready-example.md",
+        "overlay": {}
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate-draft --draft-file <fixture>",
+        "expected_code": "DESIGN_CONVERGENCE_STALE",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-ORACLE-101",
+      "defect_class": "evidence-command-not-the-oracle",
+      "source_delivery": "closure review 2026-09-24 (converge cannot show a command verifies its requirement)",
+      "statement": "The SDD names `feature.test.ts` as A1's oracle, but the host's PASS came from running `other.test.ts`; closure accepts it, so the reported pass may not exercise the requirement.",
+      "root_cause": "Closure has no declared oracle to compare the host's command with.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-closure.ts",
+        "line": 147,
+        "quote": "not that the command tests the requirement"
+      },
+      "repository": "cases/fixtures/v2-converge",
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/feature.test.ts"
+          }
+        }
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/other.test.ts"
+          }
+        }
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-GAP-101",
+      "defect_class": "design-code-gap-at-closure",
+      "source_delivery": "closure review 2026-09-24 (spec-kit converge compares code with design)",
+      "statement": "Every acceptance reports PASS, yet the Asset the design promises (`packages/feature-a/missing.ts`) does not exist; closure still says CLOSED.",
+      "root_cause": "Closure checks evidence rows only, never whether the delivered code matches the design's Assets and step touches.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-closure.ts",
+        "line": 127,
+        "quote": "status: findings.some"
+      },
+      "repository": "cases/fixtures/v2-converge",
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/other.test.ts"
+          },
+          "metas": {
+            "merge_by_id": [
+              {
+                "id": "T1",
+                "path": "packages/feature-a/missing.ts"
+              }
+            ]
+          }
+        }
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/other.test.ts"
+          }
+        }
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-STRICT-101",
+      "defect_class": "must-ship-without-oracle",
+      "statement": "A must-ship acceptance closes on a PASS whose command is not tied to any declared test, so nothing links the reported pass to the requirement.",
+      "root_cause": "oracles is optional; without one, convergence checks only evidence presence.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-closure.ts",
+        "line": 140,
+        "quote": "if (text(oracle)) {"
+      },
+      "repository": "cases/fixtures/v2-converge",
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {}
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/other.test.ts"
+          }
+        }
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "user requirement 2026-09-24: convergence must show the command verifies the requirement"
+    },
+    {
+      "id": "CSDD-V2-CLAIMED-101",
+      "defect_class": "regression-closed-on-claimed-proof",
+      "statement": "A bug's regression case closes on a FAIL-then-PASS pair with no commits: nothing shows the pass came from the fix rather than from any change.",
+      "root_cause": "A claimed proof satisfies the regression rule; commits and the causal diff are optional.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-closure.ts",
+        "line": 33,
+        "quote": "if (!text(row.commit) || !text(base.commit)) return { level: 'claimed' }"
+      },
+      "repository": "cases/fixtures/v2-closure-claimed",
+      "fixture": {
+        "base": "cases/fixtures/v2-bug.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/feature.test.ts"
+          }
+        }
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-bug.md",
+        "overlay": {
+          "intent": "feature",
+          "regression": [],
+          "oracles": {
+            "A1": "packages/feature-a/feature.test.ts"
+          }
+        }
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "user requirement 2026-09-24: convergence must show the command verifies the requirement"
+    },
+    {
+      "id": "CSDD-V2-TOUCH-101",
+      "defect_class": "step-touch-missing-at-closure",
+      "statement": "A step promises to create `packages/feature-a/absent.ts`, every acceptance passes, and closure is CLOSED although the file was never delivered.",
+      "root_cause": "The design gap checks Assets and step calls, not the files steps declare they touch.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-closure.ts",
+        "line": 180,
+        "quote": "asset ${asset.id} missing at"
+      },
+      "repository": "cases/fixtures/v2-converge",
+      "fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/other.test.ts"
+          },
+          "steps": [
+            {
+              "id": "S1",
+              "touches": [
+                "packages/feature-a/absent.ts"
+              ],
+              "closes": [
+                "A1"
+              ]
+            }
+          ]
+        }
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-leaf.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/feature-a/other.test.ts"
+          },
+          "steps": [
+            {
+              "id": "S1",
+              "touches": [
+                "packages/feature-a/index.ts"
+              ],
+              "closes": [
+                "A1"
+              ]
+            }
+          ]
+        }
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "user requirement 2026-09-24: convergence must show the command verifies the requirement"
     }
   ],
   "held_out": [
@@ -864,22 +1245,5 @@
     "CSDD-PLAN-102"
   ],
   "held_out_note": "Moved to cases/held-out/. `rsi.ts suite` does not read them; `rsi.ts evaluate` runs them apart from the rest, so a round has one result its work was not aimed at.",
-  "open_findings": [
-    {
-      "id": "OD-01..OD-08",
-      "statement": "Eight defect classes observed while executing plugin-host-r1.sdd.md batch by batch; all eight passed every current check.",
-      "record": "rsi/observed-defects.md",
-      "found_by": "real delivery, 2026-09-23",
-      "status": "recorded, no detector yet",
-      "next": "OD-03, OD-04 and OD-07 are mechanical and cheap — cases first. OD-02 needs the type probe extended to step pseudocode. OD-06 needs B3 structure. OD-01 and OD-05 are rulings before rules."
-    },
-    {
-      "id": "OD-09..OD-14",
-      "statement": "Six defect classes observed while authoring plugin-host-r2.sdd.md with sdd/v2 and amending a legacy website SDD; all passed every current check.",
-      "record": "rsi/observed-defects.md",
-      "found_by": "real authoring, 2026-09-24",
-      "status": "OD-14 pinned by CSDD-RSI-TEL-101/102; the rest recorded, no detector yet",
-      "next": "OD-09 (git check-ignore over acceptance inputs) and OD-10 (writes intersecting another SDD's ownership) are mechanical and cheap. OD-11 needs a CONVERGED-but-invalid report for v1 documents. OD-12 and OD-13 are rulings before rules."
-    }
-  ]
+  "note_observations": "Observed defects live in rsi/observed-defects.md, a queue: each update round settles every entry (detector, ruling or rejection) and close archives it into the round record, so the file holds only what no round has settled yet."
 }

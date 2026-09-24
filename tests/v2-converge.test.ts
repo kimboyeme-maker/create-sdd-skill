@@ -1,0 +1,227 @@
+import { expect, test } from 'bun:test'
+import {
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
+import { applyOverlay, contractOf, withContract, type Json } from '../scripts/lib/example-overlay'
+import { validateDraftText } from '../scripts/validator/controllers/document.controller'
+import { drainObservations, observations } from '../scripts/rsi'
+import { checkClosure } from '../scripts/validator/domain/v2-closure'
+import { validateV2Document } from '../scripts/validator/domain/v2-document'
+
+const FIXTURES = join(import.meta.dir, '..', 'cases', 'fixtures')
+const fixture = (name: string) => readFileSync(join(FIXTURES, name), 'utf8')
+
+/** Copy a fixture workspace and give it the `.git` marker repository detection reads. */
+function workspace(name: string): string {
+  const root = mkdtempSync(join(tmpdir(), 'v2-converge-'))
+  cpSync(join(FIXTURES, name), root, { recursive: true })
+  mkdirSync(join(root, '.git'), { recursive: true })
+  return root
+}
+
+const codes = (result: { handoff: { candidates: readonly { code: string }[] } }) =>
+  result.handoff.candidates.map((item) => item.code)
+
+test('an acceptance naming what only a later batch produces is a forward dependency', () => {
+  const late = validateV2Document('/x/a.md', fixture('v2-forward-dependency.md'))!
+  expect(late.handoff.candidates.filter((c) => c.code.includes('FORWARD'))).toEqual([
+    {
+      code: 'SDD_V2_ACCEPTANCE_FORWARD_DEPENDENCY',
+      detail: 'A1 needs defineHost from S2, after its closing steps'
+    }
+  ])
+  const ok = validateV2Document('/x/a.md', fixture('v2-forward-dependency.ok.md'))!
+  expect(codes(ok)).not.toContain('SDD_V2_ACCEPTANCE_FORWARD_DEPENDENCY')
+})
+
+test('error-text and shape readers outside the writes must be named by the SDD', () => {
+  const root = workspace('v2-readers')
+  try {
+    const bare = validateV2Document(
+      join(root, 'a.sdd.md'),
+      fixture('v2-readers-undeclared.md'),
+      [],
+      root
+    )!
+    expect(bare.handoff.candidates.filter((c) => c.code.includes('READER'))).toEqual([
+      {
+        code: 'SDD_V2_ERROR_TEXT_READER_UNDECLARED',
+        detail: 'packages/logger/logger.test.ts asserts "install result must not be thenable"'
+      },
+      {
+        code: 'SDD_V2_SHAPE_READER_UNDECLARED',
+        detail: 'packages/tray/tray.test.ts uses Host.prototype'
+      }
+    ])
+    const named = validateV2Document(
+      join(root, 'a.sdd.md'),
+      fixture('v2-readers-declared.md'),
+      [],
+      root
+    )!
+    expect(codes(named).filter((code) => code.includes('READER'))).toEqual([])
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('a CONVERGED legacy document that now fails reports stale convergence', () => {
+  const example = readFileSync(
+    join(import.meta.dir, '..', 'references', 'examples', 'loop-ready-example.md'),
+    'utf8'
+  )
+  const document = /^````(?:markdown)?\n([\s\S]*?)\n````$/m.exec(example)?.[1] ?? example
+  const broken = withContract(
+    document,
+    applyOverlay(contractOf(document), {
+      delivery_plan: { batches: { merge_by_id: [{ id: 'PC01', requirement_ids: ['XQ99'] }] } }
+    })
+  )
+  const found = validateDraftText(broken).diagnostics.map((item) => item.code)
+  expect(found).toContain('DESIGN_CONVERGENCE_STALE')
+  expect(validateDraftText(document).diagnostics.map((item) => item.code)).not.toContain(
+    'DESIGN_CONVERGENCE_STALE'
+  )
+})
+
+test('closure links a PASS to its declared oracle and the design to the delivered code', () => {
+  const root = workspace('v2-converge')
+  try {
+    const evidence = JSON.parse(readFileSync(join(root, 'evidence.json'), 'utf8'))
+    const leaf = fixture('v2-leaf.md')
+    const run = (overlay: Json) => {
+      const text = withContract(leaf, applyOverlay(contractOf(leaf), overlay))
+      const result = validateV2Document(join(root, 'leaf.sdd.md'), text, [], root)!
+      return checkClosure(result, contractOf(text) as Record<string, unknown>, evidence, root)
+    }
+    const bare = run({})
+    expect(bare.status).toBe('OPEN')
+    expect(bare.findings[0]!.message).toBe('oracle-required: A1: declare its test in oracles')
+    const unlinked = run({ oracles: { A1: 'packages/feature-a/feature.test.ts' } })
+    expect(unlinked.status).toBe('OPEN')
+    expect(unlinked.findings[0]!.message).toBe(
+      'oracle-unlinked: A1: command does not run packages/feature-a/feature.test.ts'
+    )
+    expect(run({ oracles: { A1: 'packages/feature-a/other.test.ts' } }).status).toBe('CLOSED')
+    const gap = run({
+      oracles: { A1: 'packages/feature-a/other.test.ts' },
+      metas: { merge_by_id: [{ id: 'T1', path: 'packages/feature-a/missing.ts' }] }
+    })
+    expect(gap.gaps).toEqual(['asset T1 missing at packages/feature-a/missing.ts'])
+    expect(gap.status).toBe('OPEN')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('observation queue: settled entries leave, commentary goes once the queue is empty', () => {
+  const queue = [
+    '# Observed',
+    '',
+    'Intake notes.',
+    '',
+    '## OD-01 One',
+    'first',
+    '',
+    '## OD-02 Two',
+    'second',
+    '',
+    '## Common thread',
+    'about both',
+    ''
+  ].join('\n')
+  expect(observations(queue).map((entry) => entry.id)).toEqual(['OD-01', 'OD-02'])
+  const partial = drainObservations(queue, new Set(['OD-01']))
+  expect(observations(partial).map((entry) => entry.id)).toEqual(['OD-02'])
+  expect(partial).toContain('## Common thread')
+  expect(drainObservations(queue, new Set(['OD-01', 'OD-02']))).toBe(
+    '# Observed\n\nIntake notes.\n'
+  )
+})
+
+test('replay runs the declared oracle: base fails, head passes, ablation fails', () => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'v2-replay-')))
+  const git = (...args: string[]) =>
+    Bun.spawnSync(['git', '-C', root, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args])
+      .stdout.toString()
+      .trim()
+  const write = (path: string, content: string) => {
+    mkdirSync(dirname(join(root, path)), { recursive: true })
+    writeFileSync(join(root, path), content)
+  }
+  try {
+    git('init', '-q')
+    write('bun.lock', '')
+    write('src/greet.ts', "export const greet = () => 'no'\n")
+    git('add', '.')
+    git('commit', '-q', '-m', 'base')
+    const base = git('rev-parse', 'HEAD')
+    write('src/greet.ts', "export const greet = () => 'ok'\n")
+    write(
+      'src/greet.test.ts',
+      "import { expect, test } from 'bun:test'\nimport { greet } from './greet'\ntest('A1 greets', () => expect(greet()).toBe('ok'))\n"
+    )
+    write(
+      'src/weak.test.ts',
+      "import { expect, test } from 'bun:test'\ntest('A1 weak', () => expect(1).toBe(1))\n"
+    )
+    git('add', '.')
+    git('commit', '-q', '-m', 'fix')
+    const head = git('rev-parse', 'HEAD')
+    // The step's prose must name the code this repository really has, or it is a design gap.
+    const leaf = fixture('v2-leaf.md').replaceAll('`featureA()`', '`greet()`')
+    const check = (oracle: string) => {
+      const text = withContract(
+        leaf,
+        applyOverlay(contractOf(leaf), {
+          writes: ['src'],
+          steps: [{ id: 'S1', touches: ['src/greet.ts'], closes: ['A1'] }],
+          metas: { merge_by_id: [], remove: ['T1'] },
+          oracles: { A1: oracle }
+        })
+      )
+      const result = validateV2Document(join(root, 'leaf.sdd.md'), text, [], root)!
+      const row = {
+        acceptance: 'A1',
+        status: 'PASS',
+        evidence: 'ci 2',
+        command: `bun test ${oracle}`,
+        commit: head,
+        baseline: { status: 'FAIL', evidence: 'ci 1', commit: base }
+      }
+      const report = {
+        protocol: 'sdd-evidence/v1',
+        sdd: 'feature-a',
+        revision: '1',
+        results: [row]
+      }
+      return checkClosure(result, contractOf(text) as Record<string, unknown>, report, root, {
+        replay: true
+      })
+    }
+    const strong = check('src/greet.test.ts')
+    expect(strong.replays[0]).toMatchObject({
+      base: 'FAIL',
+      head: 'PASS',
+      ablation: 'FAIL',
+      verdict: 'proven'
+    })
+    expect(strong.findings).toEqual([])
+    expect(strong.status).toBe('CLOSED')
+    expect(strong.behaviour_proven).toBe(true)
+    // An oracle that passes whatever the implementation does is exposed by the ablation run.
+    const weak = check('src/weak.test.ts')
+    expect(weak.replays[0]).toMatchObject({ head: 'PASS', ablation: 'PASS', verdict: 'not-proven' })
+    expect(weak.status).toBe('OPEN')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})

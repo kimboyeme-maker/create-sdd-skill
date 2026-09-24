@@ -45,7 +45,7 @@ Create, refactor and merge work runs directly in the current task. Keep six auth
 1. **Harvest:** read the request, repository instructions, current code and interfaces. Resolve repository and output paths once; classify facts `USER_STATED | OBSERVED | INFERRED | ASSUMED` (first two normative); name principle files (`AGENTS.md`, a spec-kit constitution) in `principles`, never copy them.
 2. **Admit:** settle WHAT and WHY without technology: prioritized, independently acceptable user stories as Entries, measurable success criteria and edge cases. Mark open points `[NEEDS CLARIFICATION: D1 …]` and clarify in one batch. Keep the Entry-to-Module requirement map; choose one SDD or a shallow [multi-SDD program](references/v2-program.md) from outcome, ownership, dependency and context cost.
 3. **Design:** state HOW in [sdd/v2](references/v2-contract.md): normative behavior, implementation steps, producer/consumer interfaces, supported failures and one owner per change boundary. Preserve each Module's normative Source location. Read an existing target before editing it; never replace it with a fresh scaffold or discard its IDs without an explicit replacement request.
-4. **Verify:** give each Must-Ship requirement an observable Given/When/Then or command acceptance case that could detect its absence, and review requirement quality as a checklist. Identify evidence not yet available; a planned check is never a PASS.
+4. **Verify:** give each Must-Ship requirement an observable Given/When/Then or command acceptance case that could detect its absence, name its deciding test in `oracles`, and review requirement quality as a checklist. Identify evidence not yet available; a planned check is never a PASS.
 5. **Decompose:** keep the five-Meta graph (Entry → Module → Chunk → Bundle → Asset; one-document leaves may let `validate` derive it). Order real dependencies; parallel waves are derived, never hand-marked. The host gets only the root summary, target child and direct dependencies; no leases, fixed roles or minute budgets.
 6. **Report:** validate the Meta and requirement-to-acceptance links once, analyze what structure cannot see (ambiguity, duplication, coverage, principle conflicts), then pass resolved paths, design blockers, open decisions and evidence limits to the chosen host. The host implements and compares actual results with the SDD's acceptance. Record any defect this skill's checks missed as an `OD-##` entry in `rsi/observed-defects.md`.
 
@@ -58,7 +58,7 @@ Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's head
 | Command | Use |
 |---|---|
 | `validate.ts validate --sdd <absolute-SDD> [--repository <absolute-root>]` | Check v2 structure and return one compact host handoff; structural readiness still needs semantic review |
-| `validate.ts validate --sdd <SDD> --evidence <report.json>` | Converge: compare a host's evidence with acceptance and revision (`closure`) |
+| `validate.ts validate --sdd <SDD> --evidence <report.json> [--replay]` | Converge: oracle-linked, causal behaviour proof and design-to-code gaps; `--replay` runs each oracle at base, change and with the change removed |
 | `validate.ts validate-draft` | Check a proposed SDD before writing it |
 | `validate.ts document-check` | Check a document that does not target implementation |
 | `type-probe.ts check --sdd <SDD>` | Optional: type-check exported TypeScript fences for degenerate public types |
@@ -76,4 +76,4 @@ Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's head
 
 ## What these checks do not prove
 
-Structure and source checks do not prove semantic completeness, implementation, agent reading or permission enforcement. Symbol candidates are regex-based advice. A `verified` behaviour proof checks commits and their order, not that the command tests the requirement. A design-ready SDD grants no authority to run tests, commit, merge, publish or deploy. Report missing checks and open choices as limits, not as PASS.
+Structure and source checks do not prove semantic completeness, implementation, agent reading or permission enforcement. Symbol candidates are regex-based advice. Without `--replay`, proofs check commits, order and diff; with it, a proven ablation shows the pass depends on the implementation, not that the oracle covers all of the requirement. A design-ready SDD grants no authority to run tests, commit, merge, publish or deploy. Report missing checks and open choices as limits, not as PASS.

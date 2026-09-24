@@ -1,7 +1,9 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { V2Result } from './v2-document.ts'
 import { list, object, text, type Item, type Report } from './v2-meta.ts'
+import { replay, type Replay } from './v2-replay.ts'
+import { stepRecords } from './v2-tasks.ts'
 
 /**
  * Convergence status. `CLOSED`: every must-ship acceptance has a PASS with evidence against the
@@ -47,11 +49,53 @@ function proofOf(row: Item, repository: string | null): { level: string; reason?
     : { level: 'none', reason: 'baseline is not an earlier commit of the change' }
 }
 
+/** Files a change must touch for this acceptance to flip: its closing steps' touches and Assets. */
+function implementing(index: Item, result: V2Result, id: string): string[] {
+  const records = stepRecords(index).records
+  let steps = records.filter((record) => record.closes.includes(id))
+  if (!steps.length) {
+    const owners = new Set(
+      list(index.requirements).flatMap((r) =>
+        object(r) && list(r.acceptance).includes(id) ? list(r.implementation) : []
+      )
+    )
+    steps = records.filter((record) => owners.has(record.id))
+  }
+  const assets = (result.handoff.execution_slice?.produced_assets ?? []).map((asset) => asset.path)
+  return [...new Set([...steps.flatMap((step) => step.touches), ...assets])]
+}
+
+/** Paths changed between two commits, with `D` marking deletions. */
+function changes(repository: string, base: string, head: string): Map<string, string> {
+  const diff = Bun.spawnSync(['git', '-C', repository, 'diff', '--name-status', base, head])
+  return new Map(
+    diff.stdout
+      .toString()
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => {
+        const [kind = '', ...paths] = line.split('\t')
+        return [paths.at(-1)!, kind[0]!] as const
+      })
+  )
+}
+
+/** Whether any changed path is one of `files` or lies under one of them. */
+const touched = (changed: ReadonlyMap<string, string>, files: readonly string[]) =>
+  [...changed.keys()].some((path) => files.some((f) => path === f || path.startsWith(`${f}/`)))
+
+/** The single commit every row names, when the report is consistent about it. */
+const only = (values: readonly unknown[]) => {
+  const set = new Set(values.filter(text))
+  return set.size === 1 ? ([...set][0] as string) : null
+}
+
 export function checkClosure(
   result: V2Result,
   index: Item,
   evidence: unknown,
-  repository: string | null
+  repository: string | null,
+  options: Readonly<{ replay?: boolean }> = {}
 ) {
   const findings: { code: string; message: string }[] = []
   const report: Report = (code, detail, subtype) =>
@@ -86,6 +130,14 @@ export function checkClosure(
     rows.delete(id)
     report('SDD_V2_CLOSURE_OPEN', id, 'evidence-duplicate')
   }
+  const passRows = [...rows.values()].filter((row) => row.status === 'PASS')
+  const head = only(passRows.map((row) => row.commit))
+  const base = only(passRows.map((row) => (object(row.baseline) ? row.baseline.commit : null)))
+  const changed =
+    repository && head && base && commit(repository, head) && commit(repository, base)
+      ? changes(repository, base, head)
+      : null
+  const replays: Replay[] = []
   const status = new Map<string, string>()
   const unsupported = new Set<string>()
   const proof: { acceptance: string; level: string; reason?: string }[] = []
@@ -107,16 +159,105 @@ export function checkClosure(
       else if (repository && local && !existsSync(resolve(repository, ref)))
         report('SDD_V2_CLOSURE_OPEN', `${id}: ${ref}`, 'evidence-path-missing')
       else {
-        const found = proofOf(row!, repository)
+        let found = proofOf(row!, repository)
+        // Causality: the flip must come from a change to the files that implement this case.
+        const files = implementing(index, result, id)
+        if (found.level === 'verified' && files.length) {
+          const from = (row!.baseline as Item).commit as string
+          if (!touched(changes(repository!, from, row!.commit as string), files))
+            found = { level: 'none', reason: `change does not touch ${files.join(', ')}` }
+        }
+        // The declared oracle: every must-ship case needs one, the host's command must run it,
+        // and it must name this case.
+        const oracle = object(index.oracles) ? index.oracles[id] : undefined
+        if (!text(oracle) && required.has(id)) {
+          report('SDD_V2_CLOSURE_OPEN', `${id}: declare its test in oracles`, 'oracle-required')
+          proof.push({ acceptance: id, level: 'none', reason: 'no declared oracle' })
+          unsupported.add(id)
+          continue
+        }
+        if (text(oracle)) {
+          const named =
+            repository && existsSync(resolve(repository, oracle))
+              ? new RegExp(`\\b${id}\\b`).test(readFileSync(resolve(repository, oracle), 'utf8'))
+              : !repository
+          const why = !String(row!.command ?? '').includes(oracle)
+            ? `command does not run ${oracle}`
+            : !named
+              ? `${oracle} does not name ${id}`
+              : null
+          if (why) {
+            report('SDD_V2_CLOSURE_OPEN', `${id}: ${why}`, 'oracle-unlinked')
+            proof.push({ acceptance: id, level: 'none', reason: why })
+            unsupported.add(id)
+            continue
+          }
+        }
         proof.push({ acceptance: id, ...found })
-        // A regression case must show it could fail; otherwise the fix proves nothing.
-        if (found.level !== 'none' || !regression.has(id)) continue
-        report('SDD_V2_CLOSURE_OPEN', `${id}: ${found.reason}`, 'regression-unproven')
+        // Replay runs the declared oracle itself: base FAIL, head PASS, head without the change FAIL.
+        if (options.replay && required.has(id)) {
+          const replayed =
+            found.level === 'verified' && text(oracle)
+              ? replay(
+                  repository!,
+                  id,
+                  oracle,
+                  (row!.baseline as Item).commit as string,
+                  row!.commit as string,
+                  files
+                )
+              : null
+          if (replayed) replays.push(replayed)
+          if (replayed?.verdict !== 'proven') {
+            const why =
+              replayed?.reason ?? 'replay needs a verified proof with commits and an oracle'
+            report('SDD_V2_CLOSURE_OPEN', `${id}: ${why}`, 'replay-not-proven')
+            unsupported.add(id)
+            continue
+          }
+        }
+        // A regression case must show, with commits and the causal diff, that the fix made it pass.
+        if (found.level === 'verified' || !regression.has(id)) continue
+        report(
+          'SDD_V2_CLOSURE_OPEN',
+          `${id}: ${found.reason ?? 'a claimed proof has no commits to check'}`,
+          'regression-unproven'
+        )
       }
       unsupported.add(id)
     } else if (required.has(id))
       report('SDD_V2_CLOSURE_OPEN', id, value === 'BLOCKED' ? 'blocked' : 'evidence-missing')
   }
+  // Converge: the delivered code must still match the design, not only the reported checks.
+  // At the reported commit when the report names one, otherwise in the working tree.
+  const present = (path: string) =>
+    head && repository && commit(repository, head)
+      ? Bun.spawnSync(['git', '-C', repository, 'cat-file', '-e', `${head}:${path}`]).exitCode === 0
+      : !!repository && existsSync(resolve(repository, path))
+  const promised = stepRecords(index).records.flatMap((step) =>
+    step.touches.map((path) => ({ step: step.id, path }))
+  )
+  const gaps = [
+    ...(result.handoff.execution_slice?.produced_assets ?? [])
+      .filter((asset) => repository && !present(asset.path))
+      .map((asset) => `asset ${asset.id} missing at ${asset.path}`),
+    ...promised
+      .filter(({ path }) => repository && !present(path) && changed?.get(path) !== 'D')
+      .map(({ step, path }) => `step ${step} touches ${path}, which does not exist`),
+    ...(changed
+      ? list(index.requirements).flatMap((r) => {
+          if (!object(r) || r.kind !== 'must-ship') return []
+          const files = list(r.acceptance).flatMap((id) => implementing(index, result, String(id)))
+          return files.length && !touched(changed, files)
+            ? [`requirement ${String(r.id)}: no implementing file changed`]
+            : []
+        })
+      : []),
+    ...result.handoff.candidates
+      .filter((item) => item.code === 'PSEUDOCODE_SYMBOL_UNRESOLVED')
+      .map((item) => `step call not in code: ${item.detail}`)
+  ]
+  for (const gap of gaps) report('SDD_V2_CLOSURE_OPEN', gap, 'design-gap')
   const pass = (id: string) => status.get(id) === 'PASS' && !unsupported.has(id)
   const slice = result.handoff.execution_slice
   const entries = (slice?.entries ?? []).map((entry) => ({
@@ -139,12 +280,20 @@ export function checkClosure(
     })),
     entries,
     proof,
-    behaviour_proven: [...required].every((id) =>
-      proof.some((p) => p.acceptance === id && p.level !== 'none')
+    gaps,
+    replays,
+    // Proven means a causal, commit-checked FAIL-then-PASS of the declared oracle (and, with
+    // --replay, the oracle observed failing again when the implementation is removed).
+    behaviour_proven: [...required].every(
+      (id) =>
+        pass(id) &&
+        proof.some((p) => p.acceptance === id && p.level === 'verified') &&
+        (!options.replay || replays.some((r) => r.acceptance === id && r.verdict === 'proven'))
     ),
     mvp_closed: mvp.length ? mvp.every((id) => entries.find((e) => e.id === id)?.closed) : null,
     evidence_limits: [
-      'The report is the host’s claim. `verified` proof checks that the commits exist and are ordered, not that the command tests the requirement or that the logs are genuine.'
+      'Without --replay the rows are the host’s claim: commits, order, causal diff and oracle link are checked, not the runs themselves.',
+      'With --replay the validator runs only the declared oracle; a proven ablation shows the pass depends on the implementing files, not that the oracle covers every behaviour of the requirement.'
     ]
   }
 }

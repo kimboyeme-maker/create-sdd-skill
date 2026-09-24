@@ -1,3 +1,4 @@
+import { contractBlock } from '../../lib/contract-source.ts'
 import { admissibilityBlockers } from '../domain/policies/admissibility'
 import { readContractDocument } from '../services/contract-document'
 import { checkDocument, checkDocumentText } from '../domain/document-check'
@@ -163,6 +164,13 @@ function validateText(
         })
     }
   }
+  // OD-11: a recorded CONVERGED claim that the current rules reject is stale, not merely a draft.
+  if (diagnostics.length && contractBlock(text).value?.design_convergence?.status === 'CONVERGED')
+    diagnostics.push({
+      code: 'DESIGN_CONVERGENCE_STALE',
+      line: 1,
+      message: `status CONVERGED predates the current validator: ${diagnostics.length} diagnostic(s)`
+    })
   return {
     sdd,
     valid: diagnostics.length === 0,
