@@ -1,5 +1,13 @@
 import { expect, test } from 'bun:test'
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { init } from '../scripts/init'
@@ -67,11 +75,11 @@ test('a preset shapes init and validate: principles, sections, templates, runner
     const found = validateV2Document(made.written[0]!, stripped)!.diagnostics.map((d) => d.message)
     expect(found.some((m) => m.startsWith('preset-section-missing'))).toBe(true)
     expect(found.some((m) => m.startsWith('preset-principle-missing'))).toBe(true)
-    const templated = init({ kind: 'assessment', id: 'idea', out: join(root, 'docs/idea.md') })
-    expect(templated.validation[0]!.maturity).toBe('UNVALIDATED')
-    expect(readFileSync(join(root, 'docs/idea.md'), 'utf8')).toBe(
-      '# idea from the repository template\n'
-    )
+    // A template init cannot validate is refused before anything is written, so a retry works.
+    const out = join(root, 'docs/idea.md')
+    expect(() => init({ kind: 'assessment', id: 'idea', out })).toThrow('INIT_PREFLIGHT_FAILED')
+    expect(existsSync(out)).toBe(false)
+    expect(() => init({ kind: 'assessment', id: 'idea', out })).toThrow('INIT_PREFLIGHT_FAILED')
     expect(
       runnerFor(root, 'src/a.test.ts', { '.ts': ['pnpm', 'vitest', 'run', '{oracle}'] })
     ).toEqual(['pnpm', 'vitest', 'run', 'src/a.test.ts'])
@@ -83,10 +91,10 @@ test('a preset shapes init and validate: principles, sections, templates, runner
 test('a malformed preset is reported and ignored', () => {
   const root = workspace({ '.create-sdd/preset.json': preset({ runners: { '.ts': ['bun'] } }) })
   try {
-    const made = init({ kind: 'feature', out: join(root, 'a.sdd.md') })
-    expect(made.validation[0]!.diagnostics.map((d) => (d as { code: string }).code)).toEqual([
+    expect(() => init({ kind: 'feature', out: join(root, 'a.sdd.md') })).toThrow(
       'SDD_V2_PRESET_INVALID'
-    ])
+    )
+    expect(existsSync(join(root, 'a.sdd.md'))).toBe(false)
   } finally {
     rmSync(root, { recursive: true, force: true })
   }

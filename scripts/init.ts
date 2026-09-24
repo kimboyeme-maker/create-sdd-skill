@@ -7,7 +7,8 @@
  * A skeleton carries the open decision D1 ("replace this skeleton"), so it validates as
  * AWAITING_USER and can never be handed to a host as a finished design. The repository preset
  * (`.create-sdd/preset.json`) supplies default principles, required sections and, per kind, a
- * template of its own (`{{id}}` is substituted). Existing files are never overwritten.
+ * template of its own (`{{id}}` is substituted). Every file is validated in memory first; if any
+ * would not validate, nothing is written. Existing files are never overwritten.
  */
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { basename, dirname, isAbsolute, join, relative } from 'node:path'
@@ -226,18 +227,16 @@ export function init(options: {
   }
   for (const path of files.keys())
     if (existsSync(path)) throw new Error(`INIT_TARGET_EXISTS:${path}`)
-  for (const [path, content] of files) {
-    mkdirSync(dirname(path), { recursive: true })
-    writeFileSync(path, content)
-  }
+  // Preflight in memory, with the new files visible to each other, before anything is written:
+  // a skeleton that would not validate (or a template with no recognised block) writes nothing.
+  const drafts = [...files].map(([path, content]) => ({ path, content }))
   const validation = [...files.keys()]
     .filter((path) => path.endsWith('.md'))
     .map((path) => {
       const content = files.get(path)!
       const result =
         validateAssessment(path, content) ??
-        validateV2Document(path, content, [], repository ?? undefined)
-      // A repository template without a recognised block is written but cannot be validated.
+        validateV2Document(path, content, drafts, repository ?? undefined)
       if (!result)
         return {
           path,
@@ -251,6 +250,12 @@ export function init(options: {
         }
       return { path, maturity: result.handoff.maturity, diagnostics: [...result.diagnostics] }
     })
+  const failed = validation.filter((item) => item.diagnostics.length)
+  if (failed.length) throw new Error(`INIT_PREFLIGHT_FAILED:${JSON.stringify(failed)}`)
+  for (const [path, content] of files) {
+    mkdirSync(dirname(path), { recursive: true })
+    writeFileSync(path, content)
+  }
   return { written: [...files.keys()], validation }
 }
 
