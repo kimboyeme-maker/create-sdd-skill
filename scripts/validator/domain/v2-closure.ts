@@ -27,12 +27,18 @@ const commit = (repository: string, ref: string) =>
  * How strongly one PASS row proves behaviour. `verified`: the same `command` failed at `baseline`
  * and passed at `commit`, both commits exist and the baseline is an ancestor (checked with
  * read-only git). `claimed`: a FAIL-then-PASS pair with the command but without checkable commits.
- * `none`: a PASS alone, which may never have been able to fail.
+ * `none`: a PASS alone, which may never have been able to fail. A `preserved` case (OD-35) holds
+ * before and after by design, so its baseline must PASS instead of FAIL.
  */
-function proofOf(row: Item, repository: string | null): { level: string; reason?: string } {
+function proofOf(
+  row: Item,
+  repository: string | null,
+  preserved: boolean
+): { level: string; reason?: string } {
   const base = object(row.baseline) ? row.baseline : null
-  if (!text(row.command) || !base || base.status !== 'FAIL' || !text(base.evidence))
-    return { level: 'none', reason: 'no failing baseline run of the same command' }
+  const expected = preserved ? 'PASS' : 'FAIL'
+  if (!text(row.command) || !base || base.status !== expected || !text(base.evidence))
+    return { level: 'none', reason: `no ${expected} baseline run of the same command` }
   if (!text(row.commit) || !text(base.commit)) return { level: 'claimed' }
   if (!repository || !commit(repository, row.commit) || !commit(repository, base.commit))
     return { level: 'none', reason: 'baseline or change commit not found' }
@@ -175,6 +181,7 @@ export function checkClosure(
   const unsupported = new Set<string>()
   const proof: { acceptance: string; level: string; reason?: string }[] = []
   const regression = new Set(list(index.regression).filter(text))
+  const preserved = new Set(list(index.preserve).filter(text))
   for (const id of known) {
     const row = rows.get(id)
     const value =
@@ -192,10 +199,21 @@ export function checkClosure(
       else if (repository && local && !existsSync(resolve(repository, ref)))
         report('SDD_V2_CLOSURE_OPEN', `${id}: ${ref}`, 'evidence-path-missing')
       else {
-        let found = proofOf(row!, repository)
+        const keep = preserved.has(id)
+        const baseStatus = object(row!.baseline) ? row!.baseline.status : undefined
+        // An honest PASS baseline is a classification question for the author, never a quiet pass.
+        if (baseStatus === (keep ? 'FAIL' : 'PASS'))
+          report(
+            'SDD_V2_CLOSURE_OPEN',
+            keep
+              ? `${id}: listed in preserve, but its baseline failed`
+              : `${id}: its baseline passed; list it in preserve or show a failing baseline`,
+            'baseline-class-mismatch'
+          )
+        let found = proofOf(row!, repository, keep)
         // Causality: the flip must come from a change to the files that implement this case.
         const files = implementing(index, result, id)
-        if (found.level === 'verified' && files.length) {
+        if (found.level === 'verified' && files.length && !keep) {
           const from = (row!.baseline as Item).commit as string
           if (!touched(changes(repository!, from, row!.commit as string), files))
             found = { level: 'none', reason: `change does not touch ${files.join(', ')}` }
@@ -218,7 +236,8 @@ export function checkClosure(
         }
         proof.push({ acceptance: id, ...found })
         // Replay runs the declared oracle itself: base FAIL, head PASS, head without the change FAIL.
-        if (options.replay && required.has(id)) {
+        // A preserved case has no flip to ablate.
+        if (options.replay && required.has(id) && !keep) {
           const mine = closingSteps(index, id)
           const replayed =
             found.level === 'verified' && oracle
@@ -312,12 +331,15 @@ export function checkClosure(
     gaps,
     replays,
     // Proven means a causal, commit-checked FAIL-then-PASS of the declared oracle (and, with
-    // --replay, the oracle observed failing again when the implementation is removed).
+    // --replay, the oracle observed failing again when the implementation is removed); for a
+    // preserved case, a commit-checked PASS-then-PASS of the same command.
     behaviour_proven: [...required].every(
       (id) =>
         pass(id) &&
         proof.some((p) => p.acceptance === id && p.level === 'verified') &&
-        (!options.replay || replays.some((r) => r.acceptance === id && r.verdict === 'proven'))
+        (!options.replay ||
+          preserved.has(id) ||
+          replays.some((r) => r.acceptance === id && r.verdict === 'proven'))
     ),
     mvp_closed: mvp.length ? mvp.every((id) => entries.find((e) => e.id === id)?.closed) : null,
     evidence_limits: [

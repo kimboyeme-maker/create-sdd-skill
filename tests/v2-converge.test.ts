@@ -74,6 +74,29 @@ test('error-text and shape readers outside the writes must be named by the SDD',
   }
 })
 
+test('OD-30: sample errors in touched tests are not error text the leaf owns', () => {
+  const root = workspace('v2-readers-test-source')
+  try {
+    const readers = (name: string) =>
+      validateV2Document(
+        join(root, 'a.sdd.md'),
+        fixture(name),
+        [],
+        root
+      )!.handoff.candidates.filter((c) => c.code === 'SDD_V2_ERROR_TEXT_READER_UNDECLARED')
+    // host.test.ts throws 'downstream failed' as a fixture; store.test.ts repeating it is no reader.
+    expect(readers('v2-readers-test-source-undeclared.md')).toEqual([
+      {
+        code: 'SDD_V2_ERROR_TEXT_READER_UNDECLARED',
+        detail: 'packages/logger/logger.test.ts asserts "install result must not be thenable"'
+      }
+    ])
+    expect(readers('v2-readers-test-source-declared.md')).toEqual([])
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
 test('a CONVERGED legacy document that now fails reports stale convergence', () => {
   const example = readFileSync(
     join(import.meta.dir, '..', 'references', 'examples', 'loop-ready-example.md'),
@@ -118,6 +141,36 @@ test('closure links a PASS to its declared oracle and the design to the delivere
     })
     expect(gap.gaps).toEqual(['asset T1 missing at packages/feature-a/missing.ts'])
     expect(gap.status).toBe('OPEN')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('OD-35: a preserved case closes on PASS then PASS; an unmarked one must be classified', () => {
+  const root = workspace('v2-closure-preserve')
+  try {
+    const evidence = JSON.parse(readFileSync(join(root, 'evidence.json'), 'utf8'))
+    const leaf = fixture('v2-leaf.md')
+    const run = (overlay: Json, report: unknown = evidence) => {
+      const text = withContract(leaf, applyOverlay(contractOf(leaf), overlay))
+      const result = validateV2Document(join(root, 'leaf.sdd.md'), text, [], root)!
+      return checkClosure(result, contractOf(text) as Record<string, unknown>, report, root)
+    }
+    const oracles = { A1: 'packages/feature-a/other.test.ts' }
+    const unmarked = run({ oracles })
+    expect(unmarked.status).toBe('OPEN')
+    expect(unmarked.findings[0]!.message).toBe(
+      'baseline-class-mismatch: A1: its baseline passed; list it in preserve or show a failing baseline'
+    )
+    const kept = run({ oracles, preserve: ['A1'] })
+    expect(kept.status).toBe('CLOSED')
+    expect(kept.proof).toEqual([{ acceptance: 'A1', level: 'claimed' }])
+    // A preserved case whose baseline failed was a change after all.
+    const failed = structuredClone(evidence)
+    failed.results[0].baseline.status = 'FAIL'
+    expect(run({ oracles, preserve: ['A1'] }, failed).findings[0]!.message).toBe(
+      'baseline-class-mismatch: A1: listed in preserve, but its baseline failed'
+    )
   } finally {
     rmSync(root, { recursive: true, force: true })
   }

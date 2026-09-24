@@ -17,9 +17,9 @@ type Candidate = { code: string; detail: string }
 const LITERAL = /`([A-Z][A-Z0-9_]{3,}|'[^'`]+')`/g
 /** Words whose weaker reading (direct only, single element) a fixture must be able to reject. */
 const QUANTIFIER = /\b(?:all|every|transitive(?:ly)?)\b|全部|所有|每个|传递/i
-/** Fixture shapes that can separate a quantifier from its weaker reading. */
+/** Fixtures that separate a quantifier from its weaker reading: lists, chains, counts (OD-31). */
 const DISCRIMINATING =
-  /\[[^\]\n]*,[^\]\n]*\]|\w\s*(?:←|→|->|<-)\s*\w\s*(?:←|→|->|<-)\s*\w|\b(?:two|three|several|multiple)\b|两个|多个|至少\s*2|≥\s*2/i
+  /\[[^\]\n]*,[^\]\n]*\]|(?:←|→|->|<-)[^←→\n]{1,40}(?:←|→|->|<-)|`[^`\n]+`\s*、\s*`[^`\n]+`|\b(?:two|three|four|five|several|multiple)\b|(?:[2-9]|\d{2,}|[两二三四五六七八九十])\s*(?:个|种|项|条|级)|多个|至少\s*2|≥\s*2/i
 /** A code-span call: the clause names an operation other entry points could bypass. */
 const OPERATION = /`[A-Za-z_][\w.]*\(/
 /** A state guard on that operation: it rejects, refuses or throws a code. Bare prohibitions are not guards. */
@@ -55,6 +55,18 @@ const RENAME_MAP = /rename map|重命名映射|case IDs?|用例\s*ID|stable IDs?
 const TEMP = /temporary checkout|临时检出|scratch (?:checkout|clone)|fresh clone|临时目录/i
 const SCRIPTED = /`[^`]*\b(?:node|bun|pnpm|npm|deno|bash|sh)\b[^`]*\/[^`]*`/
 const TEST = /(?:^|\/)(?:tests?|__tests__)\/|\.(?:test|spec)\.[cm]?[jt]sx?$/
+/** A removal clause; its code spans name what the requirement takes away. */
+const REMOVES = /(?:\bremov\w*|\bdelet\w*|\bdrop\w*|删除|移除)([^;；。\n]*)/gi
+const EXPORT = /\bexports?\b|导出|入口|\bentry\b|\broot\b|公开/i
+/** A promise that a file's assertions survive, unless the line also rules on export assertions. */
+const UNCHANGED = /assertions?\s+(?:stay\s+|remain\s+)?unchanged|断言(?:保持)?不变|不改一行/i
+const EXPORT_RULE = /export assertions?|导出断言/i
+/**
+ * A whole case that holds before the change as well: golden output or a before/after equivalence.
+ * Bare "still"/"仍"/"不变" are left out; they usually qualify one assertion inside a change case.
+ */
+const PRESERVED =
+  /\bgolden\b|same as (?:before|the base)|before and after the change|与改动前(?:相同|一致)|改动前后|迁移前后/i
 
 /** Body lines under the first heading matching `pattern`, up to the next heading of equal or higher level. */
 function headingLines(body: string, pattern: RegExp): string[] {
@@ -257,6 +269,68 @@ export function qualityCandidates(
           })
       }
   }
+
+  // OD-33: an acceptance asserts a member the document's interface fences keep private.
+  const fenced = [...body.matchAll(/```(\w*)\n([\s\S]*?)```/g)]
+    .filter(([, lang]) => /^(?:ts|tsx|typescript|js|javascript|)$/.test(lang!))
+    .map(([, , code]) => code)
+    .join('\n')
+  const hidden = new Set(
+    [...fenced.matchAll(/(?:#|\bprivate\s+(?:readonly\s+)?)([A-Za-z_]\w*)/g)].map((m) => m[1]!)
+  )
+  for (const acceptanceId of acceptanceIds) {
+    const clause = stepText(body, acceptanceId)
+    for (const name of hidden) {
+      // `#nextOrdinal` or `nextOrdinal` by name, or a multi-word name as its phrase ("next ordinal").
+      const phrase = name.replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase()
+      if (
+        clause.includes(`#${name}`) ||
+        clause.includes(`\`${name}\``) ||
+        (phrase.includes(' ') && clause.toLowerCase().includes(phrase))
+      )
+        found.push({
+          code: 'SDD_V2_ACCEPTANCE_SUBJECT_UNOBSERVABLE',
+          detail: `${acceptanceId}: ${name} is private to the declared interface`
+        })
+    }
+  }
+  // OD-34: a test file promised unchanged still asserts an export this leaf removes.
+  const removed = requirements.flatMap((r) => {
+    const clause = stepText(body, String(r.id))
+    if (!EXPORT.test(clause)) return []
+    // Removing private helpers changes no export a test could assert.
+    return [...clause.matchAll(REMOVES)].flatMap(([, span]) =>
+      /private|internal|私有|内部/i.test(span!)
+        ? []
+        : [...span!.matchAll(/`([A-Za-z_]\w*)`/g)].map((m) => m[1]!)
+    )
+  })
+  const kept = body
+    .split('\n')
+    .filter((line) => UNCHANGED.test(line) && !EXPORT_RULE.test(line))
+    .flatMap((line) =>
+      [...line.matchAll(/([\w./-]+\.(?:test|spec)\.[cm]?[jt]sx?)/g)].map((m) => m[1]!)
+    )
+  for (const file of new Set(
+    owned().filter((f) => kept.some((named) => f === named || f.endsWith(`/${named}`)))
+  ))
+    for (const name of new Set(removed))
+      if (new RegExp(`\\b${name}\\b`).test(read(join(repository!, file))))
+        found.push({
+          code: 'SDD_V2_REMOVED_EXPORT_ASSERTED_UNCHANGED',
+          detail: `${file} asserts removed ${name} but is promised unchanged`
+        })
+
+  // OD-35: a must-ship case that holds before the change too needs `preserve`, not a fake failure.
+  const preserve = new Set(list(index.preserve))
+  for (const id of new Set(
+    requirements.flatMap((r) => (r.kind === 'must-ship' ? list(r.acceptance).filter(text) : []))
+  ))
+    if (!preserve.has(id) && PRESERVED.test(stepText(body, id)))
+      found.push({
+        code: 'SDD_V2_ACCEPTANCE_BASELINE_UNFALSIFIABLE',
+        detail: `${id}: holds before the change as well; list it in \`preserve\` or restate it as a change`
+      })
 
   // OD-23: failure and concurrency clauses bind to acceptance, or say why they cannot.
   const failure = headingLines(

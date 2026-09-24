@@ -7,6 +7,8 @@ import {
   ignoredInputCandidates,
   ownershipCandidates
 } from '../scripts/validator/domain/v2-boundaries'
+import { validateDocument } from '../scripts/validator/controllers/document.controller'
+import { deriveLeafMetas } from '../scripts/validator/domain/v2-meta'
 
 /** A throwaway workspace whose `.git` is an empty directory, like the materialised case fixtures. */
 const workspace = (files: Record<string, string>) => {
@@ -61,4 +63,56 @@ test('OD-10: an active unreferenced owner is reported; shipped and linked owners
   } finally {
     rmSync(root, { recursive: true, force: true })
   }
+})
+
+test('OD-29: program children may sit beside the root inside the repository, not outside it', () => {
+  const contract = (json: object) =>
+    `<!-- sdd-contract:start -->\n\`\`\`json\n${JSON.stringify(json)}\n\`\`\`\n<!-- sdd-contract:end -->\n`
+  const program = (child: string) =>
+    `# P\n\n## Shared Constraints\n\nNone\n\n<!-- sdd-program:start -->\n\`\`\`json\n${JSON.stringify(
+      {
+        protocol: 'sdd-program/v2',
+        id: 'p',
+        revision: '1',
+        children: [{ id: 'b', sdd: child, depends_on: [] }],
+        metas: [],
+        unresolved_user_decisions: []
+      }
+    )}\n\`\`\`\n<!-- sdd-program:end -->\n`
+  const root = workspace({
+    'docs/a/root.sdd.md': program('../b/child.sdd.md'),
+    'docs/a/escape.sdd.md': program('../../../outside/child.sdd.md'),
+    'docs/b/child.sdd.md': `# B\n\n${contract({ protocol: 'sdd/v2', id: 'b', revision: '1', root: '../a/root.sdd.md' })}`
+  })
+  try {
+    const codes = (sdd: string) =>
+      validateDocument(join(root, sdd), 'legacy').diagnostics.map((d) => d.message)
+    expect(codes('docs/a/root.sdd.md').filter((m) => m.startsWith('child-path-escape'))).toEqual([])
+    expect(codes('docs/a/escape.sdd.md').some((m) => m.startsWith('child-path-escape'))).toBe(true)
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('OD-32: a program root may leave child Modules, Chunks and Bundles to derivation', () => {
+  const fixture = (name: string) =>
+    validateDocument(
+      join(import.meta.dir, '..', 'cases', 'fixtures', 'v2-program-derived', name),
+      'legacy'
+    )
+  const root = fixture('root.sdd.md')
+  expect(root.diagnostics).toEqual([])
+  // An Entry naming a requirement the child does not have still fails.
+  expect(fixture('stale-root.sdd.md').diagnostics.map((d) => d.message)).toContain(
+    'entry-module-missing: E1 -> M:beta:R9'
+  )
+  // Declared Chunks win for their kind, and the derived Bundle groups those, not derived IDs.
+  const child = { requirements: [{ id: 'R1' }], batches: [{ id: 'C1', requirements: ['R1'] }] }
+  const declared = {
+    metas: [{ id: 'K-b', kind: 'Chunk', owner: 'b', source_id: 'C1', members: ['M:b:R1'] }]
+  }
+  const metas = deriveLeafMetas(declared, [{ owner: 'b', document: 'b.md', index: child }]).index
+    .metas as { kind: string; members?: string[] }[]
+  expect(metas.find((meta) => meta.kind === 'Bundle')?.members).toEqual(['K-b'])
+  expect(metas.some((meta) => meta.kind === 'Entry')).toBe(false)
 })

@@ -120,8 +120,16 @@ export const rank = (priority: unknown): number =>
  * the Modules of its requirements, the document Bundle `B:self`, and a missing Entry `E:self`
  * groups every Module. Declared Metas win for their kind, and may reference the derived IDs.
  * Derived IDs have no prose anchor to check: the requirement and batch anchors are their source.
+ *
+ * A program root passes its children as `sources` (OD-32): `M:<child>:<R>`, `K:<child>:<C>` and
+ * `B:<child>` requiring the sibling Assets its `consumes` name; the root still declares Entries.
  */
-export function deriveLeafMetas(index: Item): {
+export function deriveLeafMetas(
+  index: Item,
+  sources: readonly Readonly<{ owner: string; document: string; index: Item }>[] = [
+    { owner: 'self', document: 'self', index }
+  ]
+): {
   index: Item
   source: 'declared' | 'derived' | 'mixed'
   derived: ReadonlySet<string>
@@ -136,29 +144,49 @@ export function deriveLeafMetas(index: Item): {
     added.push(...make())
     return added.filter((meta) => meta.kind === kind)
   }
-  const own = (kind: Kind, id: string, rest: Item) => ({ id, kind, owner: 'self', ...rest }) as Meta
+  /** A derived Meta; `self` keeps leaf IDs (`M:R1`), a child's carry its name (`M:beta:R1`). */
+  const scopedMeta = (kind: Kind, owner: string, id: string, rest: Item) =>
+    ({ id: owner === 'self' ? id : id.replace(':', `:${owner}:`), kind, owner, ...rest }) as Meta
+  /** Every identified item of `field` across the sources, with the source it came from. */
+  const all = (field: string) =>
+    sources.flatMap((s) =>
+      list(s.index[field]).flatMap((v) => (object(v) && text(v.id) ? [[s, v] as const] : []))
+    )
   const modules = derive('Module', () =>
-    list(index.requirements)
-      .filter((r): r is Item => object(r) && text(r.id) && r.kind !== 'non-goal')
-      .map((r) =>
-        own('Module', `M:${r.id}`, {
+    all('requirements')
+      .filter(([, r]) => r.kind !== 'non-goal')
+      .map(([{ owner, document }, r]) =>
+        scopedMeta('Module', owner, `M:${r.id}`, {
           source_id: r.id,
-          origin: { document: 'self', requirement_id: r.id }
+          origin: { document, requirement_id: r.id }
         })
       )
   )
   const chunks = derive('Chunk', () =>
-    list(index.batches)
-      .filter((b): b is Item => object(b) && text(b.id))
-      .map((b) => {
-        const members = modules.filter((m) => list(b.requirements).includes(m.source_id))
-        return own('Chunk', `K:${b.id}`, { source_id: b.id, members: members.map((m) => m.id) })
+    all('batches').map(([{ owner }, b]) =>
+      scopedMeta('Chunk', owner, `K:${b.id}`, {
+        source_id: b.id,
+        members: modules
+          .filter((m) => m.owner === owner && list(b.requirements).includes(m.source_id))
+          .map((m) => m.id)
       })
+    )
   )
-  derive('Bundle', () => [
-    own('Bundle', 'B:self', { members: chunks.map((c) => c.id), requires: [] })
-  ])
-  derive('Entry', () => [{ id: 'E:self', kind: 'Entry', members: modules.map((m) => m.id) }])
+  const assets = new Map(all('exports').map(([s, x]) => [`${s.owner}/${String(x.id)}`, x.asset]))
+  derive('Bundle', () =>
+    sources.map(({ owner, index: own }) => ({
+      id: `B:${owner}`,
+      kind: 'Bundle' as const,
+      owner,
+      members: chunks.filter((c) => c.owner === owner).map((c) => c.id),
+      requires: list(own.consumes).flatMap((c) => {
+        const asset = object(c) ? assets.get(`${String(c.document)}/${String(c.export)}`) : null
+        return text(asset) ? [asset] : []
+      })
+    }))
+  )
+  if (sources[0]?.owner === 'self')
+    derive('Entry', () => [{ id: 'E:self', kind: 'Entry', members: modules.map((m) => m.id) }])
   if (!added.length) return { index, source: 'declared', derived: new Set() }
   return {
     index: { ...index, metas: [...list(index.metas), ...added] },

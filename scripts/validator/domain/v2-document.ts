@@ -146,12 +146,18 @@ function rootPresentation(text: string): {
   return { summary, shared_constraints, integration_acceptance }
 }
 
-/** A relative SDD path must name a Markdown file under the program directory. */
+/**
+ * A relative SDD path must name a Markdown file under the program directory or, when a repository
+ * is resolved, anywhere inside it — the same bound the link and step-source checks use. Repositories
+ * that keep each package's design in its own directory (`docs/<package>/`) put a program's children
+ * beside the root rather than below it (OD-29).
+ */
 function childPath(
   root: string,
   raw: unknown,
   canonical: (path: string) => string,
-  report: Report
+  report: Report,
+  repo: string | null
 ): string | null {
   if (!nonempty(raw) || isAbsolute(raw) || extname(raw).toLowerCase() !== '.md') {
     report('SDD_V2_PATH_INVALID', String(raw), 'child-path-invalid')
@@ -159,7 +165,7 @@ function childPath(
   }
   const base = canonical(dirname(root))
   const path = canonical(resolve(base, raw))
-  if (!within(base, path)) {
+  if (!within(base, path) && !(repo && within(repo, path))) {
     report('SDD_V2_PATH_ESCAPE', raw, 'child-path-escape')
     return null
   }
@@ -440,6 +446,13 @@ function checkLeaf(
     report('SDD_V2_INDEX_SHAPE_INVALID', path, 'regression-invalid')
   for (const id of list(index.regression))
     if (!nonempty(id) || !acceptanceIds.has(id)) missing('regression', id, 'regression-missing')
+  // A preserved case passes before and after by design (OD-35); a regression case must fail first.
+  if (index.preserve !== undefined && !Array.isArray(index.preserve))
+    report('SDD_V2_INDEX_SHAPE_INVALID', path, 'preserve-invalid')
+  for (const id of list(index.preserve))
+    if (!nonempty(id) || !acceptanceIds.has(id)) missing('preserve', id, 'preserve-missing')
+    else if (list(index.regression).includes(id))
+      report('SDD_V2_INDEX_SHAPE_INVALID', `${path}: ${id}`, 'preserve-regression-conflict')
   for (const field of ['exports', 'consumes'] as const)
     if (index[field] !== undefined && !Array.isArray(index[field]))
       report('SDD_V2_INDEX_SHAPE_INVALID', `${path}: ${field}`, 'interface-index-invalid')
@@ -560,7 +573,7 @@ export function validateV2Document(
       }
       if (ids.has(value.id)) report('SDD_V2_ID_DUPLICATE', value.id, 'child-id-duplicate')
       ids.add(value.id)
-      const path = childPath(root.path, value.sdd, io.canonical, report)
+      const path = childPath(root.path, value.sdd, io.canonical, report, repo)
       if (!path) continue
       if (paths.has(path)) report('SDD_V2_ID_DUPLICATE', path, 'child-path-duplicate')
       paths.add(path)
@@ -710,9 +723,16 @@ export function validateV2Document(
         )
     }
 
-  // A one-document leaf may omit the Meta kinds its index already implies; a program root may not.
+  // A leaf may omit the Meta kinds its index already implies; a root may omit its children's (OD-32).
   const meta = root
-    ? { index: root.index, source: 'declared' as const, derived: new Set<string>() }
+    ? deriveLeafMetas(
+        root.index,
+        list(root.index.children).flatMap((child) => {
+          if (!object(child) || !nonempty(child.sdd)) return []
+          const leaf = leaves.get(String(child.id))
+          return leaf ? [{ owner: leaf.id, document: child.sdd, index: leaf.index }] : []
+        })
+      )
     : deriveLeafMetas(selected?.index ?? {})
   const metaIndex = meta.index
   const metaBody = root ? prose(root.text, 'sdd-program') : prose(text, 'sdd-contract')

@@ -82,7 +82,9 @@ export function readerCandidates(
   const classes = new Set<string>()
   for (const path of touched) {
     const source = read(join(repository, path))
-    for (const [, , message] of source.matchAll(THROWN)) messages.add(message!)
+    // Sample errors in tests and docs are fixtures, not messages the leaf owns (OD-30).
+    if (SOURCE.test(path) && !TEST.test(path))
+      for (const [, , message] of source.matchAll(THROWN)) messages.add(message!)
     for (const [, name] of source.matchAll(/\bclass\s+([A-Z]\w*)/g)) classes.add(name!)
   }
   const declared = (path: string) => body.includes(path) || reads.some((root) => under(root, path))

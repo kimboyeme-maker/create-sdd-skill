@@ -181,7 +181,12 @@ function evidence(sdd: string, repository: string | null, preset: Preset | null)
         command: runner ? runner.join(' ') : '',
         evidence: '',
         commit: '',
-        baseline: { status: 'FAIL', evidence: '', commit: '' }
+        // A preserved case (OD-35) passes at base too; every other case must fail there first.
+        baseline: {
+          status: list(index.preserve).includes(id) ? 'PASS' : 'FAIL',
+          evidence: '',
+          commit: ''
+        }
       }
     })
   return `${JSON.stringify({ protocol: 'sdd-evidence/v1', sdd: index.id, revision: index.revision, results }, null, 2)}\n`
