@@ -1974,6 +1974,456 @@
       "source_delivery": "create-pipeline A7 host stop in migai, OD-35",
       "observed_at": "2026-09-24",
       "owning_test": "tests/v2-converge.test.ts"
+    },
+    {
+      "id": "CSDD-V2-REPLAY-201",
+      "defect_class": "replay-sibling-step-collision",
+      "statement": "A sibling SDD's commit `feat(capability): S1 S2 add index`, outside this leaf's writes, is taken as this leaf's S1 and blocks the replay, although the leaf's own S1 commit proves A1.",
+      "root_cause": "Step-to-commit matching reads the bare step ID and does not scope it to the leaf's writes.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-replay.ts",
+        "line": 164,
+        "quote": "const owned = mine ? commits.filter((c) => mine.test(c.message)) : []"
+      },
+      "repository": "cases/fixtures/v2-replay-sibling",
+      "fixture": {
+        "base": "cases/fixtures/v2-replay-sibling.md",
+        "overlay": {}
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-replay-sibling.md",
+        "overlay": {
+          "writes": [
+            "packages"
+          ]
+        }
+      },
+      "negative_expectation": {
+        "must_fire": true
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json --replay",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": false
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "migai plugin-host R3 delivery review, OD-36"
+    },
+    {
+      "id": "CSDD-V2-REPLAY-202",
+      "defect_class": "replay-environment-missing-dependencies",
+      "statement": "The oracle imports code that imports a workspace package installed only in the package's node_modules; the exported tree lacks it, every revision fails to load, and a sound oracle reads as not-proven.",
+      "root_cause": "Replay links only the repository root node_modules and treats a load failure at head as an ordinary FAIL.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-replay.ts",
+        "line": 200,
+        "quote": "const modules = join(repository, 'node_modules')"
+      },
+      "repository": "cases/fixtures/v2-replay-workspace",
+      "fixture": {
+        "base": "cases/fixtures/v2-replay-workspace.md",
+        "overlay": {}
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-replay-workspace.md",
+        "overlay": {
+          "oracles": {
+            "A1": "packages/pipeline/weak.test.ts"
+          }
+        }
+      },
+      "negative_expectation": {
+        "must_fire": true
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json --replay",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": false
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-converge.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "migai plugin-host R3 delivery review, OD-36"
+    },
+    {
+      "id": "CSDD-V2-CONSUME-101",
+      "defect_class": "consumer-restates-producer-semantics",
+      "statement": "Consumer A6 restates the producer's planResume outcome in its own prose, with no citation of the producer clause, and gets it wrong; validate reports STRUCTURALLY_READY.",
+      "root_cause": "consumes checks document, export and version only; nothing ties a consumer acceptance to the producer clause it exercises.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 1,
+        "quote": "consumes"
+      },
+      "fixture": "cases/fixtures/v2-consume/restate/host.sdd.md",
+      "negative_fixture": "cases/fixtures/v2-consume/ok/host.sdd.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_PRODUCER_SEMANTICS_RESTATED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-consume.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "migai plugin-host R3 delivery, OD-37",
+      "repository": "cases/fixtures/v2-consume/repo"
+    },
+    {
+      "id": "CSDD-V2-FINGERPRINT-101",
+      "defect_class": "producer-semantics-edited-without-version",
+      "statement": "The producer's exported semantics (R9) no longer match the fingerprint recorded with export version 1, so a consumer pinned to v1 cannot tell which text it agreed to.",
+      "root_cause": "Export versions are free text; nothing binds them to the clauses a consumer relies on.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 1,
+        "quote": "exports"
+      },
+      "fixture": "cases/fixtures/v2-consume/producer-stale/capability.sdd.md",
+      "negative_fixture": "cases/fixtures/v2-consume/ok/capability.sdd.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_EXPORT_FINGERPRINT_STALE",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-consume.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "migai plugin-host R3 delivery, OD-37",
+      "repository": "cases/fixtures/v2-consume/repo"
+    },
+    {
+      "id": "CSDD-V2-PIN-101",
+      "defect_class": "consumer-pin-stale",
+      "statement": "The consumer pins dependency-planner v1 with a fingerprint that predates the producer's current semantics.",
+      "root_cause": "A consumer pin carries no fingerprint check.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 1,
+        "quote": "consumes"
+      },
+      "fixture": "cases/fixtures/v2-consume/pin-stale/host.sdd.md",
+      "negative_fixture": "cases/fixtures/v2-consume/ok/host.sdd.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_INTERFACE_MISMATCH",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-consume.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "migai plugin-host R3 delivery, OD-37",
+      "repository": "cases/fixtures/v2-consume/repo"
+    },
+    {
+      "id": "CSDD-V2-ROOTCOPY-101",
+      "defect_class": "root-restates-child-semantics",
+      "statement": "The program root's integration acceptance restates planResume's outcome instead of citing the child acceptance, copying the consumer's wrong version.",
+      "root_cause": "The rule that a root does not copy a child's normative behaviour (v2-program.md) is prose only.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 1,
+        "quote": "integration"
+      },
+      "fixture": "cases/fixtures/v2-consume/root/root.sdd.md",
+      "negative_fixture": "cases/fixtures/v2-consume/ok/root.sdd.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_ROOT_RESTATES_CHILD",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-consume.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "migai plugin-host R3 delivery, OD-37",
+      "repository": "cases/fixtures/v2-consume/repo"
+    },
+    {
+      "id": "CSDD-V2-DELEGATE-101",
+      "defect_class": "delegation-undeclared",
+      "statement": "Step S7 hands stage lifting to the consumed export's `lift` but the SDD never says which producer rules now decide the consumer's behaviour.",
+      "root_cause": "Nothing notices that a consumer surface is now delegated to an imported export.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "A consumer's \"behavior unchanged\" claim is never checked"
+      },
+      "fixture": "cases/fixtures/v2-delegate/undeclared/host.sdd.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_DELEGATION_UNDECLARED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-consume.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "migai plugin-host R3 delivery, OD-38",
+      "repository": "cases/fixtures/v2-delegate/repo",
+      "negative_fixture": "cases/fixtures/v2-delegate/ok/host.sdd.md"
+    },
+    {
+      "id": "CSDD-V2-DELEGATE-102",
+      "defect_class": "delegation-delta-incomplete",
+      "statement": "The delegation of S7 lists no delta for the producer's R4 and no disposition for its INVALID_OPTION error, so the widened lift table and the new error type become silent behaviour changes.",
+      "root_cause": "A delegation has no required per-rule delta or per-error disposition.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "A consumer's \"behavior unchanged\" claim is never checked"
+      },
+      "fixture": "cases/fixtures/v2-delegate/incomplete/host.sdd.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_DELEGATION_INCOMPLETE",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-consume.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "migai plugin-host R3 delivery, OD-38",
+      "repository": "cases/fixtures/v2-delegate/repo",
+      "negative_fixture": "cases/fixtures/v2-delegate/ok/host.sdd.md"
+    },
+    {
+      "id": "CSDD-V2-DELEGATE-103",
+      "defect_class": "preservation-claim-unchecked",
+      "statement": "R7 claims behaviour is the same as R2 except BC3, while the delegation records BC4 for the producer's R4.",
+      "root_cause": "Preservation claims are prose; nobody compares them with the delegation delta.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "A consumer's \"behavior unchanged\" claim is never checked"
+      },
+      "fixture": "cases/fixtures/v2-delegate/claim/host.sdd.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_PRESERVATION_CLAIM_UNCHECKED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-consume.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "migai plugin-host R3 delivery, OD-38",
+      "repository": "cases/fixtures/v2-delegate/repo",
+      "negative_fixture": "cases/fixtures/v2-delegate/ok/host.sdd.md"
+    },
+    {
+      "id": "CSDD-V2-DELEGATE-104",
+      "defect_class": "registered-error-unreachable",
+      "statement": "STAGE_KIND_MISMATCH is still registered in the host's error registry but nothing throws it and no BC removes it.",
+      "root_cause": "No check compares registered error codes with throw sites after delegation moves error ownership.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "A consumer's \"behavior unchanged\" claim is never checked"
+      },
+      "fixture": "cases/fixtures/v2-delegate/unreachable/host.sdd.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_ERROR_CODE_UNREACHABLE",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-consume.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "migai plugin-host R3 delivery, OD-38",
+      "repository": "cases/fixtures/v2-delegate/repo",
+      "negative_fixture": "cases/fixtures/v2-delegate/ok/host.sdd.md"
+    },
+    {
+      "id": "CSDD-V2-PRESETPACK-101",
+      "defect_class": "preset-pack-ignored",
+      "statement": "A repository preset that extends a shared pack requiring a Security Review section still accepts a feature SDD without one: rules cannot be packaged and shared between repositories.",
+      "root_cause": "Presets are single files; `extends` is not read, so a pack's rules never apply.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-preset.ts",
+        "line": 31,
+        "quote": "export function loadPreset(repository: string | null, report?: Report): Preset | null"
+      },
+      "repository": "cases/fixtures/v2-preset-pack",
+      "fixture": "cases/fixtures/v2-leaf.md",
+      "negative_fixture": "cases/fixtures/v2-leaf-security.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_SECTION_MISSING",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-preset.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "user goal 2026-09-24: presets can be packaged and shared"
+    },
+    {
+      "id": "CSDD-V2-TITLES-101",
+      "defect_class": "test-titles-removed-without-disposition",
+      "statement": "The change deletes the test title 'keeps legacy order' from test/api.test.ts and the SDD says nothing about it; closure is CLOSED.",
+      "root_cause": "Only author-chosen files carried a title-preservation acceptance; removed titles needed no disposition.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "OD-39"
+      },
+      "fixture": {
+        "base": "cases/fixtures/v2-titles.md",
+        "overlay": {}
+      },
+      "negative_fixture": {
+        "base": "cases/fixtures/v2-titles.md",
+        "overlay": {
+          "title_dispositions": {
+            "test/api.test.ts": {
+              "keeps legacy order": "obsolete-with:legacy ordering",
+              "A1 old run": "replaced-by:A1 run returns ok"
+            }
+          }
+        }
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "source_delivery": "migai plugin-host R3 delivery audit, OD-39",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-scope.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "repository": "cases/fixtures/v2-titles"
+    },
+    {
+      "id": "CSDD-V2-ENUM-101",
+      "defect_class": "enumerated-operations-uncovered",
+      "statement": "R1 bounds every use/unUse/dryRun call but A1 measures only use.",
+      "root_cause": "Acceptance maps to requirements by ID only; enumerated operations are never checked one by one.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "OD-40"
+      },
+      "fixture": "cases/fixtures/v2-scope/enum.md",
+      "negative_fixture": "cases/fixtures/v2-scope/enum.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_ENUMERATED_OPERATION_UNCOVERED",
+        "must_fire": true
+      },
+      "source_delivery": "migai plugin-host R3 delivery audit, OD-40",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-scope.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-STATE-101",
+      "defect_class": "state-space-unstated",
+      "statement": "The design adds 'suspended' to a single NodeStatus enum with no table of how it combines with existing state axes.",
+      "root_cause": "Nothing asks for the state-combination space when a status vocabulary changes.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "OD-41"
+      },
+      "fixture": "cases/fixtures/v2-scope/state.md",
+      "negative_fixture": "cases/fixtures/v2-scope/state.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_STATE_SPACE_UNSTATED",
+        "must_fire": true
+      },
+      "source_delivery": "migai plugin-host R3 delivery audit, OD-41",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-scope.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-PRESERVE-201",
+      "defect_class": "preservation-unpinned",
+      "statement": "The SDD claims replace behaviour is the same as R2 without listing the replaced code's branches and what pins each.",
+      "root_cause": "Preservation is asserted in prose and 'proved' by whatever baselines happen to exist.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "OD-42"
+      },
+      "fixture": "cases/fixtures/v2-scope/preserve.md",
+      "negative_fixture": "cases/fixtures/v2-scope/preserve.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_PRESERVATION_UNPINNED",
+        "must_fire": true
+      },
+      "source_delivery": "migai plugin-host R3 delivery audit, OD-42",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-scope.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-VARIANT-201",
+      "defect_class": "variant-capability-matrix-missing",
+      "statement": "R1 unifies cancellation across four modes without a capability matrix saying which modes support it and on whose word.",
+      "root_cause": "Unifying behaviour across a variant set silently decides every cell.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "OD-43"
+      },
+      "fixture": "cases/fixtures/v2-scope/variant.md",
+      "negative_fixture": "cases/fixtures/v2-scope/variant.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_VARIANT_MATRIX_MISSING",
+        "must_fire": true
+      },
+      "source_delivery": "migai plugin-host R3 delivery audit, OD-43",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-scope.test.ts",
+      "introduced_detector_at": "2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-SHARED-101",
+      "defect_class": "shared-baseline-cause",
+      "statement": "Three acceptances share one baseline failure ('base failed to build'), so each FAIL→PASS proves nothing about its own behaviour, yet every proof is verified and the closure is CLOSED.",
+      "root_cause": "Proof checks commits, ancestry and diff, not that the baseline failure is specific to the acceptance.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "OD-44"
+      },
+      "fixture": {
+        "base": "cases/fixtures/v2-shared-baseline.md",
+        "overlay": {}
+      },
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --evidence <repository>/evidence.json",
+        "expected_code": "SDD_V2_CLOSURE_OPEN",
+        "must_fire": true
+      },
+      "source_delivery": "migai plugin-host R3 delivery audit, OD-44",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-scope.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "repository": "cases/fixtures/v2-shared-baseline"
+    },
+    {
+      "id": "CSDD-V2-COST-101",
+      "defect_class": "scaling-outcome-measured-by-subsystem-counter",
+      "statement": "R1 promises install cost proportional to the affected region; A1 reads only an internal visit counter, so whole-collection copies on the use path go unmeasured.",
+      "root_cause": "Nothing distinguishes the cost of one subsystem from the cost of the public operation a scaling outcome names.",
+      "evidence": {
+        "file": "rsi/observed-defects.md",
+        "line": 1,
+        "quote": "OD-45"
+      },
+      "fixture": "cases/fixtures/v2-scope/cost.md",
+      "negative_fixture": "cases/fixtures/v2-scope/cost.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_SCALING_ORACLE_UNSCOPED",
+        "must_fire": true
+      },
+      "source_delivery": "migai plugin-host R3 delivery audit, OD-45",
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-scope.test.ts",
+      "introduced_detector_at": "2026-09-24"
     }
   ],
   "held_out": [

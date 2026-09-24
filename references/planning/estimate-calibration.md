@@ -41,10 +41,9 @@ by one delivery of five batches, which is one observation of one estimator on on
 independent ones. What it does support is a named suspicion — that batches whose work is reading and
 evidence get padded like batches whose work is code — which the next delivery can confirm or kill.
 
-These rows were not transcribed by hand. `bun <create-sdd-root>/scripts/rsi.ts ingest --files <a,b>`
-reads them out of the retrospectives and reports any row the ledger is missing; the five rows above
-were exactly that report. The first sample sat here alone for five days while a second delivery had
-already produced five more, which is the whole reason the command exists.
+These rows were read out of `sdd-loop-delivery` retrospectives by an `rsi.ts ingest` command that
+has since been retired with the loop: new sdd/v2 work reports through `validate --evidence`, and
+defects reach the skill through `rsi/observed-defects.md`. The rows stay as history for v1 plans.
 
 ## Anti-patterns
 
@@ -52,4 +51,4 @@ already produced five more, which is the whole reason the command exists.
 - Calibrating from one delivery or from batches shorter than five minutes.
 - Inflating every estimate to the cap to avoid overruns; it destroys wave planning and credit budgets.
 
-<!-- reading-receipt: ca1beb2e -->
+<!-- reading-receipt: 9acc66fe -->

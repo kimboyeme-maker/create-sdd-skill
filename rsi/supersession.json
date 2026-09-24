@@ -609,7 +609,7 @@
       "round": "R-20260924035720",
       "supersedes": [],
       "supersedes_nothing_because": "OD-23: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
-      "counterexample": "Replacement failure semantics lived in \u00a75 prose with no acceptance and shipped broken.",
+      "counterexample": "Replacement failure semantics lived in §5 prose with no acceptance and shipped broken.",
       "scope": "List items and table rows under lifecycle, failure or concurrency headings.",
       "tradeoff": "Cite an acceptance or requirement ID, or mark deferred/non-testable."
     },
@@ -669,7 +669,7 @@
       "round": "R-20260924035720",
       "supersedes": [],
       "supersedes_nothing_because": "OD-28: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
-      "counterexample": "A self-attested \"\u9075\u5b88\" hid R15 and S12 principle violations.",
+      "counterexample": "A self-attested \"遵守\" hid R15 and S12 principle violations.",
       "scope": "Compliance bullets in the principle-check section.",
       "tradeoff": "Each claim cites the clauses it constrains."
     },
@@ -712,6 +712,156 @@
       "counterexample": "create-pipeline A7 held at base 6da16be, so the host could not produce the FAIL baseline the behaviour proof demanded and stopped; capability A6 (golden equivalence) had the same shape.",
       "scope": "A must-ship acceptance not in `preserve` whose text names golden output or a before/after equivalence (same as before, 改动前后, 迁移前后, 与改动前相同).",
       "tradeoff": "Bare still/仍/不变 are not markers because they usually qualify one assertion inside a change case, so a preservation case phrased only that way (plugin-host-r3 A10) is not flagged."
+    },
+    {
+      "asset": "code:SDD_V2_EXPORT_FINGERPRINT_STALE",
+      "added_at": "2026-09-24",
+      "round": "R-20260924085420",
+      "supersedes": [],
+      "supersedes_nothing_because": "Nothing bound an export version to the clauses consumers rely on.",
+      "counterexample": "CSDD-V2-FINGERPRINT-101; OD-37: dependency-planner stayed at v1 across producer revisions 3 to 4, so a pin could not tell which semantics it agreed to.",
+      "scope": "sdd/v2 programs whose children exchange an export with declared semantics.",
+      "tradeoff": "Producers must update the fingerprint (and version) whenever a listed clause's text changes, including rewording."
+    },
+    {
+      "asset": "code:SDD_V2_PRODUCER_SEMANTICS_RESTATED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924085420",
+      "supersedes": [],
+      "supersedes_nothing_because": "No check tied a consumer acceptance to the producer clause it exercises.",
+      "counterexample": "CSDD-V2-CONSUME-101; OD-37: consumer A6 restated planResume's outcome as 'b restarts' against the producer's pinned 'b: resume'.",
+      "scope": "sdd/v2 programs whose children exchange an export with declared semantics. Advisory candidate; needs the producer Asset in a resolved repository.",
+      "tradeoff": "Regex over exported names: an acceptance may name a symbol legitimately and dismiss the candidate by citing."
+    },
+    {
+      "asset": "code:SDD_V2_ROOT_RESTATES_CHILD",
+      "added_at": "2026-09-24",
+      "round": "R-20260924085420",
+      "supersedes": [],
+      "supersedes_nothing_because": "The rule that a root does not copy child behaviour was prose only.",
+      "counterexample": "CSDD-V2-ROOTCOPY-101; OD-37: the program root copied the consumer's wrong restatement into its integration scenario.",
+      "scope": "sdd-program/v2 roots with integration acceptance. Advisory candidate.",
+      "tradeoff": "Same heuristic as the consumer candidate; citing the child acceptance clears it."
+    },
+    {
+      "asset": "code:SDD_V2_DELEGATION_INCOMPLETE",
+      "added_at": "2026-09-24",
+      "round": "R-20260924090436",
+      "supersedes": [],
+      "supersedes_nothing_because": "No check derived a consumer's delta against the semantics it imports.",
+      "counterexample": "CSDD-V2-DELEGATE-102; OD-38: the lift table's generator widening and its TypeError INVALID_OPTION reached the host with no delta or error disposition.",
+      "scope": "sdd/v2 consumers of an export with declared semantics or errors.",
+      "tradeoff": "Every delegated clause needs a row per producer rule and error, even when identical."
+    },
+    {
+      "asset": "code:SDD_V2_DELEGATION_UNDECLARED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924090436",
+      "supersedes": [],
+      "supersedes_nothing_because": "Delegation was invisible to the index.",
+      "counterexample": "CSDD-V2-DELEGATE-101; OD-38: step S7 wired the consumed lift for every stage without declaring the delegation.",
+      "scope": "sdd/v2 consumers of an export with declared semantics or errors. Advisory candidate; needs the producer Asset in a resolved repository.",
+      "tradeoff": "Regex over exported names; declaring the delegation clears it."
+    },
+    {
+      "asset": "code:SDD_V2_PRESERVATION_CLAIM_UNCHECKED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924090436",
+      "supersedes": [],
+      "supersedes_nothing_because": "Preservation claims were never compared with a delta.",
+      "counterexample": "CSDD-V2-DELEGATE-103; OD-38: R7 claimed 'same as R2 except BC3' while the delegation changed behaviour under BC4.",
+      "scope": "sdd/v2 consumers of an export with declared semantics or errors. Advisory candidate on lines naming an earlier revision.",
+      "tradeoff": "Matches English and Chinese forms naming R<n>; other phrasings are not seen."
+    },
+    {
+      "asset": "code:SDD_V2_ERROR_CODE_UNREACHABLE",
+      "added_at": "2026-09-24",
+      "round": "R-20260924090436",
+      "supersedes": [],
+      "supersedes_nothing_because": "Nothing compared registered codes with throw sites.",
+      "counterexample": "CSDD-V2-DELEGATE-104; OD-38: PIPELINE_MODE_MISMATCH lost its only throw site while README and the registry still promised it.",
+      "scope": "sdd/v2 leaves that name an error_registry in a resolved repository. Advisory candidate.",
+      "tradeoff": "Text search under the leaf's writes; a code thrown only from generated or external code reads as unreachable."
+    },
+    {
+      "asset": "code:INIT_BRANCH_REQUIRES_GIT",
+      "added_at": "2026-09-24",
+      "round": "R-20260924091957",
+      "supersedes": [],
+      "supersedes_nothing_because": "Usage guard for the new --branch option.",
+      "counterexample": "init --branch in a directory without a Git repository would silently write the skeleton on no branch at all.",
+      "scope": "scripts/init.ts --branch.",
+      "tradeoff": "Branching needs a real repository; the skeleton itself does not."
+    },
+    {
+      "asset": "code:INIT_STUBS_REQUIRE_REPOSITORY",
+      "added_at": "2026-09-24",
+      "round": "R-20260924091957",
+      "supersedes": [],
+      "supersedes_nothing_because": "Usage guard for --oracle-stubs and --kind oracles: oracle paths are repository-relative.",
+      "counterexample": "Without a resolved repository the stub would be written relative to the caller's directory, not where the oracle path points.",
+      "scope": "scripts/init.ts stubs.",
+      "tradeoff": "Pass --repository or run inside a Git checkout."
+    },
+    {
+      "asset": "code:PRESET_PATH_ABSOLUTE_REQUIRED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924091957",
+      "supersedes": [],
+      "supersedes_nothing_because": "Usage guard for preset.ts pack, like init's absolute-path guards.",
+      "counterexample": "A relative --out would write the pack inside whatever directory the caller stood in, possibly the skill itself.",
+      "scope": "scripts/preset.ts pack.",
+      "tradeoff": "Callers resolve paths first."
+    },
+    {
+      "asset": "code:SDD_V2_ENUMERATED_OPERATION_UNCOVERED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924153141",
+      "supersedes": [],
+      "supersedes_nothing_because": "No existing check looks past ID resolution at the scope a requirement spans; the gap was observed in a real delivery audit (migai plugin-host R3) where every ID resolved and the delivered behaviour was still wrong.",
+      "counterexample": "CSDD-V2-ENUM-101: R1 bounds every use/unUse/dryRun call but A1 measures only use; unUse and dryRun ship unmeasured.",
+      "scope": "Candidate on a must-ship requirement line with every/each/all/每次/所有 and two or more backticked operations; each must appear in a linked acceptance or an inventory entry point of that requirement.",
+      "tradeoff": "Only backticked names count, so an operation written as plain prose is missed; the author can always cover it by naming it once."
+    },
+    {
+      "asset": "code:SDD_V2_STATE_SPACE_UNSTATED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924153141",
+      "supersedes": [],
+      "supersedes_nothing_because": "No existing check looks past ID resolution at the scope a requirement spans; the gap was observed in a real delivery audit (migai plugin-host R3) where every ID resolved and the delivered behaviour was still wrong.",
+      "counterexample": "CSDD-V2-STATE-101: 'suspended' is added to a single NodeStatus enum; how it combines with existing axes is never stated, and the delivery overwrote the existing state.",
+      "scope": "Candidate when a design fence declares a *Status/*State/*Phase type or enum of three or more values and the body has no State Combinations section.",
+      "tradeoff": "A fence that merely restates an unchanged vocabulary also asks for the table; the cost is one short section."
+    },
+    {
+      "asset": "code:SDD_V2_PRESERVATION_UNPINNED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924153141",
+      "supersedes": [],
+      "supersedes_nothing_because": "No existing check looks past ID resolution at the scope a requirement spans; the gap was observed in a real delivery audit (migai plugin-host R3) where every ID resolved and the delivered behaviour was still wrong.",
+      "counterexample": "CSDD-V2-PRESERVE-201: 'same as R2' is claimed while the rewrite drops the !dependent.activated branch; nothing lists the old branches.",
+      "scope": "Candidate for any 'same as / unchanged from / 与 R<n> 相同' claim without a preserved-branch inventory whose entry points carry file:line and acceptance.",
+      "tradeoff": "The inventory is hand-listed, so a branch the author misses is still missed; the check only forces the enumeration to exist."
+    },
+    {
+      "asset": "code:SDD_V2_VARIANT_MATRIX_MISSING",
+      "added_at": "2026-09-24",
+      "round": "R-20260924153141",
+      "supersedes": [],
+      "supersedes_nothing_because": "No existing check looks past ID resolution at the scope a requirement spans; the gap was observed in a real delivery audit (migai plugin-host R3) where every ID resolved and the delivered behaviour was still wrong.",
+      "counterexample": "CSDD-V2-VARIANT-201: a requirement spans four modes; the design infers each mode's capabilities silently and one inferred cell is wrong.",
+      "scope": "Candidate on a requirement line naming modes/platforms/variants (or 模式/平台/变体) with three or more backticked tokens and no Capability Matrix section.",
+      "tradeoff": "Any three backticked tokens on such a line count as variants, so an occasional false positive costs one small table."
+    },
+    {
+      "asset": "code:SDD_V2_SCALING_ORACLE_UNSCOPED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924154308",
+      "supersedes": [],
+      "supersedes_nothing_because": "No check distinguished the cost of one subsystem from the cost of the operation a scaling outcome names; the gap survived two SDD rounds and a CLOSED closure in migai plugin-host (OD-45).",
+      "counterexample": "CSDD-V2-COST-101: R1 promises install cost proportional to the affected region; A1 reads only metrics().visits, so N sequential use calls ran in O(N^2) wall time while A1 reported 2N.",
+      "scope": "Candidate on a must-ship requirement line stating proportional/linear/scaling/O(...)/成正比/线性/复杂度 whose linked acceptance has no end-to-end timing at two or more sizes, or which has no cost-path inventory.",
+      "tradeoff": "Keyword-based: a scaling outcome worded otherwise is missed, and the end-to-end check reads wording, not the oracle's code."
     }
   ]
 }

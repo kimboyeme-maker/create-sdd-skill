@@ -36,7 +36,8 @@ test('every mechanical case fires on its fixture and stays silent on the repaire
   // Silence on one side is what makes a pass mean anything: a detector that fired on both fixtures
   // would satisfy a must-fire case alone. A false-positive case is silent on its positive side.
   expect(results.every((result) => !(result.fired && result.negative_fired === true))).toBe(true)
-})
+  // Replay cases build real Git histories and run oracles three times; the default 5 s is too short.
+}, 60_000)
 
 test('a held-out case edited after the round opened is reported', () => {
   const root = mkdtempSync(join(tmpdir(), 'rsi-heldout-'))

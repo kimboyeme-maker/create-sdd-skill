@@ -53,8 +53,7 @@ const USAGE = [
   '  rsi.ts prune                         check supersession and the budget ceilings',
   '  rsi.ts settle --id <OD-n> --as detector|ruling|rejected --evidence <text>',
   '                                       settle a queued observation in the open round',
-  '  rsi.ts close --confirm <token>       record the verdict and end the round',
-  '  rsi.ts ingest --files a.json,b.json  read optional retrospectives into candidates'
+  '  rsi.ts close --confirm <token>       record the verdict and end the round'
 ].join('\n')
 
 /**
@@ -578,7 +577,7 @@ export function updateAgenda(
     step: 'consider-enhancement',
     command: 'bun scripts/rsi.ts open --kind improvement --goal <defect it catches>',
     detail:
-      'only for a defect observed in a real run (rsi/observed-defects.md, a retrospective via ingest); the baseline must show a failing case before the candidate may claim its repair'
+      'only for a defect observed in a real run (rsi/observed-defects.md); the baseline must show a failing case before the candidate may claim its repair'
   })
   if (h.over_budget.length)
     steps.push({
@@ -664,7 +663,42 @@ function materialise(fixture: Fixture, scratch: string, name: string, repository
 function materialiseRepository(source: string, scratch: string, name: string): string {
   const target = join(scratch, `repo-${name}`)
   cpSync(join(ROOT, source), target, { recursive: true })
-  mkdirSync(join(target, '.git'), { recursive: true })
+  const history = join(target, 'history.json')
+  if (!existsSync(history)) {
+    mkdirSync(join(target, '.git'), { recursive: true })
+    return target
+  }
+  // A workspace that ships `history.json` becomes a real repository: the copied files are the
+  // first commit, then each entry writes (or, with null, deletes) files and commits with its
+  // message. Fixed identity and dates keep the hashes, and so every rerun, identical.
+  const commits = (
+    JSON.parse(readFileSync(history, 'utf8')) as {
+      commits: { message: string; files: Record<string, string | null> }[]
+    }
+  ).commits
+  unlinkSync(history)
+  const env = {
+    ...process.env,
+    GIT_AUTHOR_NAME: 'rsi',
+    GIT_AUTHOR_EMAIL: 'rsi@example.invalid',
+    GIT_COMMITTER_NAME: 'rsi',
+    GIT_COMMITTER_EMAIL: 'rsi@example.invalid',
+    GIT_AUTHOR_DATE: '2026-01-01T00:00:00Z',
+    GIT_COMMITTER_DATE: '2026-01-01T00:00:00Z'
+  }
+  const git = (...args: string[]) => Bun.spawnSync(['git', '-C', target, ...args], { env })
+  git('init', '-q')
+  for (const [at, commit] of commits.entries()) {
+    for (const [path, content] of Object.entries(commit.files)) {
+      if (content === null) rmSync(join(target, path), { force: true })
+      else {
+        mkdirSync(join(target, path, '..'), { recursive: true })
+        writeFileSync(join(target, path), content)
+      }
+    }
+    git('add', '-A')
+    git('commit', '-q', '--allow-empty', '-m', commit.message || `commit ${at}`)
+  }
   return target
 }
 
@@ -983,98 +1017,6 @@ export function weakenings(changed: readonly string[], diff: string): string[] {
     )
       findings.push(`${label} was removed or rewritten inside an improvement round`)
   return findings
-}
-
-/* ------------------------------------------------------------------ retrospective ingest */
-
-export type CalibrationRow = Readonly<{
-  date: string
-  lane: string
-  batch: string
-  estimated_minutes: number
-  actual_minutes: number
-  ratio: number
-  source: string
-}>
-
-type Retrospective = {
-  sdd?: string
-  metrics?: { estimates?: CalibrationRow[] & Record<string, unknown>[] }
-  issues?: { kind?: string; severity?: string; count?: number; details?: string[] }[]
-}
-
-/**
- * Read an optional retrospective into the two things it can actually settle.
- *
- * The calibration rows are arithmetic the report already did; copying them by hand is how a ledger
- * gains a row that no delivery produced. The candidates are not findings: an issue the loop recorded
- * says something went differently than planned, not that a rule is missing. Promoting one is a human
- * decision, and this command deliberately stops one step short of it — one incident becoming a
- * universal rule without a minimal contrast is the failure this skill's own invariants name first.
- */
-export function ingest(files: readonly string[]): {
-  rows: CalibrationRow[]
-  candidates: { kind: string; severity: string; count: number; sources: string[] }[]
-} {
-  const rows: CalibrationRow[] = []
-  const byKind = new Map<
-    string,
-    { kind: string; severity: string; count: number; sources: Set<string> }
-  >()
-  for (const file of files) {
-    const data = JSON.parse(readFileSync(file, 'utf8')) as Retrospective
-    const name = file.split('/').pop() ?? file
-    const date = statSync(file).mtime.toISOString().split('T')[0] ?? ''
-    for (const estimate of data.metrics?.estimates ?? []) {
-      const estimated = Number(estimate.estimated_minutes)
-      const actual = Number(estimate.actual_minutes)
-      if (!Number.isFinite(estimated) || !Number.isFinite(actual)) continue
-      rows.push({
-        date,
-        lane: String(estimate.lane ?? ''),
-        batch: String(estimate.batch_id ?? ''),
-        estimated_minutes: estimated,
-        actual_minutes: actual,
-        ratio: Number(estimate.ratio ?? Number((actual / estimated).toFixed(2))),
-        source: name
-      })
-    }
-    for (const issue of data.issues ?? []) {
-      const kind = String(issue.kind ?? 'UNKNOWN')
-      const entry = byKind.get(kind) ?? {
-        kind,
-        severity: String(issue.severity ?? ''),
-        count: 0,
-        sources: new Set<string>()
-      }
-      entry.count += Number(issue.count ?? 1)
-      entry.sources.add(name)
-      byKind.set(kind, entry)
-    }
-  }
-  return {
-    rows,
-    candidates: [...byKind.values()]
-      .map((entry) => ({ ...entry, sources: [...entry.sources].sort() }))
-      .sort((a, b) => b.count - a.count)
-  }
-}
-
-/** The calibration rows already written into the ledger, parsed back out of its table. */
-export function ledgerRows(file = join(ROOT, 'references', 'planning', 'estimate-calibration.md')) {
-  const text = existsSync(file) ? readFileSync(file, 'utf8') : ''
-  return text
-    .split('\n')
-    .filter((line) => /^\|\s*\d{4}-\d{2}-\d{2}\s*\|/.test(line))
-    .map((line) => line.split('|').map((cell) => cell.trim()))
-    .map((cells) => ({
-      date: cells[1]!,
-      lane: cells[2]!,
-      batch: cells[3]!,
-      estimated_minutes: Number.parseFloat(cells[4]!),
-      actual_minutes: Number.parseFloat(cells[5]!),
-      ratio: Number.parseFloat(cells[6]!)
-    }))
 }
 
 function main(argv: readonly string[]): number {
@@ -1596,45 +1538,6 @@ function main(argv: readonly string[]): number {
     return closed.verdict === 'REJECTED' ? 1 : 0
   }
 
-  if (command === 'ingest') {
-    const filesIndex = rest.indexOf('--files')
-    if (filesIndex < 0) {
-      console.error(USAGE)
-      return 2
-    }
-    const files = rest[filesIndex + 1]!.split(',').filter(Boolean)
-    const { rows, candidates } = ingest(files)
-    const ledger = ledgerRows()
-    const missing = rows.filter(
-      (row) =>
-        !ledger.some(
-          (entry) =>
-            entry.batch === row.batch &&
-            entry.estimated_minutes === row.estimated_minutes &&
-            Math.abs(entry.actual_minutes - row.actual_minutes) < 0.05
-        )
-    )
-    console.log(
-      JSON.stringify(
-        {
-          protocol: 'skill-retrospect-ingest/v1',
-          files: files.length,
-          rows,
-          ledger_rows: ledger.length,
-          rows_not_in_ledger: missing,
-          candidates,
-          limits: [
-            'a candidate is an incident, not a rule: promoting one needs a minimal contrast and a human decision',
-            'ratios come from the loop, which counts lease time including reading and waiting',
-            'fewer than three samples in a lane, or five overall, is not calibration'
-          ]
-        },
-        null,
-        2
-      )
-    )
-    return 0
-  }
   console.error(USAGE)
   return 2
 }

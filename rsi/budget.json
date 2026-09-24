@@ -4,11 +4,11 @@
   "set_at": "2026-09-23",
   "ceilings": {
     "SKILL.md.characters": 10450,
-    "references.lines": 4820,
-    "validator.lines": 7868,
+    "references.lines": 5050,
+    "validator.lines": 8750,
     "behavior_cases": 46,
-    "scripts.lines": 15000,
-    "tests.lines": 5150
+    "scripts.lines": 16000,
+    "tests.lines": 5750
   },
   "raises": [
     {
@@ -338,6 +338,126 @@
       "at": "2026-09-24",
       "round": "budget-change",
       "reason": "OD-35 update: the preserve acceptance class — index validation of `preserve` (v2-document.ts), PASS-then-PASS proof, replay and causality exemptions and the baseline-class-mismatch finding (v2-closure.ts), and the ACCEPTANCE_BASELINE_UNFALSIFIABLE candidate (v2-quality.ts). The candidate measured validator.lines 7866 (7820 without it); the raise covers that plus two lines of formatter slack."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 7868,
+      "to": 8000,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-36 (migai plugin-host R3 delivery review): replay misread missing workspace dependencies as failing oracles and took a sibling SDD's step commits as the leaf's own. The repair needs rsi.ts to build fixture workspaces with a real git history (history.json), so replay defects can be frozen as mechanical cases at all, and the replay to link package node_modules, run from the oracle's package, classify a head that does not pass as environment-failed, and scope step commits to the leaf's writes. The case-amendment round R-20260924084127 was rejected at 15012/15000 scripts lines; this raise is the decision that round lacked."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 15000,
+      "to": 15250,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-36 (migai plugin-host R3 delivery review): replay misread missing workspace dependencies as failing oracles and took a sibling SDD's step commits as the leaf's own. The repair needs rsi.ts to build fixture workspaces with a real git history (history.json), so replay defects can be frozen as mechanical cases at all, and the replay to link package node_modules, run from the oracle's package, classify a head that does not pass as environment-failed, and scope step commits to the leaf's writes. The case-amendment round R-20260924084127 was rejected at 15012/15000 scripts lines; this raise is the decision that round lacked."
+    },
+    {
+      "dimension": "tests.lines",
+      "from": 5150,
+      "to": 5250,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-36 (migai plugin-host R3 delivery review): replay misread missing workspace dependencies as failing oracles and took a sibling SDD's step commits as the leaf's own. The repair needs rsi.ts to build fixture workspaces with a real git history (history.json), so replay defects can be frozen as mechanical cases at all, and the replay to link package node_modules, run from the oracle's package, classify a head that does not pass as environment-failed, and scope step commits to the leaf's writes. The case-amendment round R-20260924084127 was rejected at 15012/15000 scripts lines; this raise is the decision that round lacked."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 8000,
+      "to": 8250,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-37 (migai plugin-host R3 delivery): a consumer SDD and the program root restated the producer's semantics in prose and contradicted it; the defect surfaced only after eight committed steps. The repair makes the producer the single source by construction: exports declare `semantics` and a fingerprint of those clauses, consumers pin the fingerprint and cite clauses through `relies_on`, and candidates flag consumer or root text that names producer symbols without a citation."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 15250,
+      "to": 15500,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-37 (migai plugin-host R3 delivery): a consumer SDD and the program root restated the producer's semantics in prose and contradicted it; the defect surfaced only after eight committed steps. The repair makes the producer the single source by construction: exports declare `semantics` and a fingerprint of those clauses, consumers pin the fingerprint and cite clauses through `relies_on`, and candidates flag consumer or root text that names producer symbols without a citation."
+    },
+    {
+      "dimension": "tests.lines",
+      "from": 5250,
+      "to": 5450,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-37 (migai plugin-host R3 delivery): a consumer SDD and the program root restated the producer's semantics in prose and contradicted it; the defect surfaced only after eight committed steps. The repair makes the producer the single source by construction: exports declare `semantics` and a fingerprint of those clauses, consumers pin the fingerprint and cite clauses through `relies_on`, and candidates flag consumer or root text that names producer symbols without a citation."
+    },
+    {
+      "dimension": "references.lines",
+      "from": 4820,
+      "to": 4900,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-37 (migai plugin-host R3 delivery): a consumer SDD and the program root restated the producer's semantics in prose and contradicted it; the defect surfaced only after eight committed steps. The repair makes the producer the single source by construction: exports declare `semantics` and a fingerprint of those clauses, consumers pin the fingerprint and cite clauses through `relies_on`, and candidates flag consumer or root text that names producer symbols without a citation."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 8250,
+      "to": 8450,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-38 (migai plugin-host R3 delivery, step S10): a consumer delegated a surface to a consumed export and kept claiming 'same as R2 except BC3'; the producer's wider lift table and different error type became silent behaviour changes and a registered code lost its only throw site. The repair adds declared delegations with a per-rule delta and per-error disposition (blocking when incomplete), and candidates for undeclared delegation, unchecked preservation claims and unreachable registered codes."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 15500,
+      "to": 15700,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-38 (migai plugin-host R3 delivery, step S10): a consumer delegated a surface to a consumed export and kept claiming 'same as R2 except BC3'; the producer's wider lift table and different error type became silent behaviour changes and a registered code lost its only throw site. The repair adds declared delegations with a per-rule delta and per-error disposition (blocking when incomplete), and candidates for undeclared delegation, unchecked preservation claims and unreachable registered codes."
+    },
+    {
+      "dimension": "tests.lines",
+      "from": 5450,
+      "to": 5550,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-38 (migai plugin-host R3 delivery, step S10): a consumer delegated a surface to a consumed export and kept claiming 'same as R2 except BC3'; the producer's wider lift table and different error type became silent behaviour changes and a registered code lost its only throw site. The repair adds declared delegations with a per-rule delta and per-error disposition (blocking when incomplete), and candidates for undeclared delegation, unchecked preservation claims and unreachable registered codes."
+    },
+    {
+      "dimension": "references.lines",
+      "from": 4900,
+      "to": 4950,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-38 (migai plugin-host R3 delivery, step S10): a consumer delegated a surface to a consumed export and kept claiming 'same as R2 except BC3'; the producer's wider lift table and different error type became silent behaviour changes and a registered code lost its only throw site. The repair adds declared delegations with a per-rule delta and per-error disposition (blocking when incomplete), and candidates for undeclared delegation, unchecked preservation claims and unreachable registered codes."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 8450,
+      "to": 8750,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-39..OD-44 (migai plugin-host R3 delivery audit): deleted test titles without disposition, acceptances covering one of several enumerated operations, a new state squeezed into a single-valued enum, preservation claims not tied to the replaced branches, cross-variant capabilities never asked about, and a planned-broken base that made every FAIL→PASS vacuous. Two closure checks (title dispositions, shared baseline causes) and four authoring candidates."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 15700,
+      "to": 16000,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-39..OD-44 (migai plugin-host R3 delivery audit): deleted test titles without disposition, acceptances covering one of several enumerated operations, a new state squeezed into a single-valued enum, preservation claims not tied to the replaced branches, cross-variant capabilities never asked about, and a planned-broken base that made every FAIL→PASS vacuous. Two closure checks (title dispositions, shared baseline causes) and four authoring candidates."
+    },
+    {
+      "dimension": "tests.lines",
+      "from": 5550,
+      "to": 5750,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-39..OD-44 (migai plugin-host R3 delivery audit): deleted test titles without disposition, acceptances covering one of several enumerated operations, a new state squeezed into a single-valued enum, preservation claims not tied to the replaced branches, cross-variant capabilities never asked about, and a planned-broken base that made every FAIL→PASS vacuous. Two closure checks (title dispositions, shared baseline causes) and four authoring candidates."
+    },
+    {
+      "dimension": "references.lines",
+      "from": 4950,
+      "to": 5050,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "OD-39..OD-44 (migai plugin-host R3 delivery audit): deleted test titles without disposition, acceptances covering one of several enumerated operations, a new state squeezed into a single-valued enum, preservation claims not tied to the replaced branches, cross-variant capabilities never asked about, and a planned-broken base that made every FAIL→PASS vacuous. Two closure checks (title dispositions, shared baseline causes) and four authoring candidates."
     }
   ],
   "introduced": [
