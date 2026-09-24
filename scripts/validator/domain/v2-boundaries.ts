@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path'
 import { contractBlock } from '../../lib/contract-source.ts'
 import { read, walk } from '../../facts/repository.ts'
 import { list, pathForm, text, type Item } from './v2-meta.ts'
+import { stepText } from './v2-symbols.ts'
 
 type Candidate = { code: string; detail: string }
 /** A repository-relative path in prose: two or more segments, not inside a URL or absolute path. */
@@ -47,13 +48,8 @@ export function ignoredInputCandidates(
   for (const path of reads) if (text(path) && pathForm(path)) found.set(path, 'reads')
   for (const meta of list(index.metas) as Item[])
     if (meta?.kind === 'Asset' && text(meta.path)) found.set(meta.path, String(meta.id))
-  const lines = body.split('\n')
   for (const id of list(index.acceptance).filter(text)) {
-    const at = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const anchor = new RegExp(
-      `^(?:#{1,6}\\s+|[-*]\\s+|\\|\\s*)(?:\\*\\*)?${at}(?:\\*\\*)?(?=\\s|[:：|]|$)`
-    )
-    for (const [, path] of (lines.find((line) => anchor.test(line)) ?? '').matchAll(PATH))
+    for (const [, path] of (stepText(body, id).split('\n')[0] ?? '').matchAll(PATH))
       if (pathForm(path!)) found.set(path!, id)
   }
   const hits = ignored(repository, [...found.keys()])

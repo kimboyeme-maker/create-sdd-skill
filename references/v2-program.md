@@ -2,7 +2,7 @@
 
 Split a task when independent outcomes have stable ownership and a child SDD materially narrows the context an implementing agent must read. Keep tightly coupled behavior in one child; do not split by file, layer, requirement count or desired agent count. A user-requested split is already a decision. Otherwise state the proposed cut and ask only when alternative cuts materially change the promised outcome or authority.
 
-The root is a shallow roadmap: total goal, shared constraints, child IDs and paths, dependencies, the five-Meta relation graph, and overall integration acceptance. Put shared constraints under `## Shared Constraints` or `## 共享约束` (write `None` or `无` when there are none) so the child handoff can carry them without loading the full root. When the root declares integration, define its acceptance IDs under `## Integration Acceptance` or `## 整体验收`; this section reaches the integration owner. The root does not copy a child's normative requirement, behavior, batch design or runtime progress. Each child owns those clauses, its steps, write boundary, interfaces and acceptance through [sdd/v2](v2-contract.md). Every shared write and cross-child integration has one execution child as owner. A consumer waits for the producer's real output and exact version; interface agreement is not implementation evidence.
+The root is a shallow roadmap: total goal, shared constraints, child IDs and paths, dependencies, the five-Meta relation graph, and overall integration acceptance. Put shared constraints under `## Shared Constraints` or `## 共享约束` (write `None` or `无` when there are none) so the child handoff can carry them without loading the full root. When the root declares integration, define its acceptance IDs under `## Integration Acceptance` or `## 整体验收`; this section reaches the integration owner. The root does not copy a child's normative requirement, behavior, batch design or runtime progress; an integration acceptance cites the child acceptances it combines in the root's `relies_on` (`{"A-total": [{"document": "host", "acceptance": "A6"}]}`), and one that names a child's exported symbols without citing is a `SDD_V2_ROOT_RESTATES_CHILD` candidate. Each child owns those clauses, its steps, write boundary, interfaces and acceptance through [sdd/v2](v2-contract.md). Every shared write and cross-child integration has one execution child as owner. A consumer waits for the producer's real output and exact version; interface agreement is not implementation evidence.
 
 ## Five-Meta relation graph
 
@@ -45,4 +45,4 @@ The root body defines `E1` as the user outcome. The foundation child exports the
 
 Do not restore mandatory minute ranges, test allocations, leases, fixed roles, reading receipts or a second program state. The legacy `sdd-program/v1` reader remains available for existing documents.
 
-<!-- reading-receipt: 71c97a5b -->
+<!-- reading-receipt: ab01ef70 -->

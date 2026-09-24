@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import { PSEUDOCODE_BUILTINS, read, walk } from '../../facts/repository.ts'
-import { list, pathForm, text, type Item } from './v2-meta.ts'
+import { escape, list, pathForm, text, under, type Item } from './v2-meta.ts'
 import { stepRecords } from './v2-tasks.ts'
 
 /** Source files a step's calls may resolve to. */
@@ -13,15 +13,21 @@ const definition = (name: string) =>
     `(?:function|class|def|fn|func)\\s+${name}\\b|(?:const|let|var)\\s+${name}\\b|\\b${name}\\s*[:=]\\s*(?:async\\s+)?(?:function\\b|\\()`
   )
 
+/** The text of every source file under `roots` (repository-relative), except `skip`. */
+export const sourceCorpus = (repository: string, roots: readonly string[], skip?: string) =>
+  walk(repository)
+    .filter((file) => file !== skip && SOURCE.test(file) && roots.some((root) => under(root, file)))
+    .map((file) => read(join(repository, file)))
+    .join('\n')
+
 /**
  * The prose of one step: its anchor line and everything under it (continuation lines and fences)
  * up to the next unindented list item or heading outside a fence.
  */
 export function stepText(body: string, id: string): string {
   const lines = body.split('\n')
-  const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const anchor = new RegExp(
-    `^(?:#{1,6}\\s+|[-*]\\s+|\\|\\s*)(?:\\*\\*)?${escaped}(?:\\*\\*)?(?=\\s|[:：|]|$)`
+    `^(?:#{1,6}\\s+|[-*]\\s+|\\|\\s*)(?:\\*\\*)?${escape(id)}(?:\\*\\*)?(?=\\s|[:：|]|$)`
   )
   const start = lines.findIndex((line) => anchor.test(line))
   if (start < 0) return ''
@@ -54,13 +60,7 @@ export function symbolCandidates(
     (root): root is string => text(root) && pathForm(root)
   )
   if (!roots.length) return []
-  const corpus = walk(repository)
-    .filter(
-      (file) =>
-        SOURCE.test(file) && roots.some((root) => file === root || file.startsWith(`${root}/`))
-    )
-    .map((file) => read(join(repository, file)))
-    .join('\n')
+  const corpus = sourceCorpus(repository, roots)
   const candidates: { code: string; detail: string }[] = []
   // A step defined through step_sources lives in its source document, which may also declare names.
   const documents = [body, ...external.values()].join('\n')

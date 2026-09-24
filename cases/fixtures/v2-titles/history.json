@@ -1,0 +1,15 @@
+{
+  "commits": [
+    {
+      "message": "base",
+      "files": {}
+    },
+    {
+      "message": "S1: run returns ok",
+      "files": {
+        "src/api.ts": "export const run = () => 'ok'\n",
+        "test/api.test.ts": "import { expect, test } from 'bun:test'\nimport { run } from '../src/api'\ntest('A1 run returns ok', () => expect(run()).toBe('ok'))\n"
+      }
+    }
+  ]
+}

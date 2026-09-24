@@ -1,18 +1,17 @@
 import { existsSync, statSync } from 'node:fs'
 import { join, posix } from 'node:path'
 import { read, walk } from '../../facts/repository.ts'
-import { list, object, pathForm, text, type Item } from './v2-meta.ts'
+import { list, object, pathForm, text, under, type Item } from './v2-meta.ts'
 import { SOURCE, stepText } from './v2-symbols.ts'
 import { stepOrder, stepRecords } from './v2-tasks.ts'
 
 type Candidate = { code: string; detail: string }
 /** A test file by the usual conventions: a test directory or a `.test`/`.spec` suffix. */
-const TEST = /(?:^|\/)(?:tests?|__tests__)\/|\.(?:test|spec)\.[cm]?[jt]sx?$/
+export const TEST = /(?:^|\/)(?:tests?|__tests__)\/|\.(?:test|spec)\.[cm]?[jt]sx?$/
 /** An error thrown with a literal message of at least eight characters. */
 const THROWN = /new\s+\w*Error\(\s*(['"`])((?:(?!\1).){8,}?)\1/g
 /** Names a step declares in its prose or pseudocode. */
 const DECLARED = /(?:function|class|const|let|var)\s+([A-Za-z_]\w*)/g
-const under = (root: string, path: string) => path === root || path.startsWith(`${root}/`)
 
 /**
  * OD-03: an acceptance that names a path or symbol produced only by a step that is neither one of

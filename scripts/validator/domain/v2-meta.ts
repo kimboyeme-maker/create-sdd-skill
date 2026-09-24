@@ -65,6 +65,12 @@ function refs(value: unknown, subtype: string, at: string, report: Report): stri
   return value as string[]
 }
 
+/** `text` quoted for use inside a regular expression. */
+export const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** Whether repository-relative `path` is `root` or lies under it. */
+export const under = (root: string, path: string) => path === root || path.startsWith(`${root}/`)
+
 /** A repository-relative path: not absolute, no backslash, `..`, bare `.` or glob. */
 export const pathForm = (path: string): boolean =>
   !isAbsolute(path) &&

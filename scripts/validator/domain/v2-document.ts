@@ -8,6 +8,7 @@ import type { DocumentDiagnostic } from './document-check.ts'
 import {
   checkV2MetaGraph,
   deriveLeafMetas,
+  escape,
   layers,
   list,
   object,
@@ -22,6 +23,8 @@ import { ignoredInputCandidates, ownershipCandidates } from './v2-boundaries.ts'
 import { forwardDependencyCandidates, readerCandidates } from './v2-readers.ts'
 import { qualityCandidates } from './v2-quality.ts'
 import { applyPreset, loadPreset } from './v2-preset.ts'
+import { checkDelegations, checkSemantics } from './v2-semantics.ts'
+import { scopeCandidates } from './v2-scope.ts'
 import { symbolCandidates } from './v2-symbols.ts'
 import { ancestors, checkStepRecords, stepRecords } from './v2-tasks.ts'
 
@@ -89,8 +92,7 @@ export type V2Result = Readonly<{
  * requirements table remains a valid (and single) definition.
  */
 function definitionCount(text: string, id: string): number {
-  const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const tail = `(?:\\*\\*)?${escaped}(?:\\*\\*)?(?=\\s|[:：|]|$)`
+  const tail = `(?:\\*\\*)?${escape(id)}(?:\\*\\*)?(?=\\s|[:：|]|$)`
   const anchor = new RegExp(`^\\s*(?:#{1,6}\\s+|[-*]\\s+)${tail}`)
   const row = new RegExp(`^\\s*\\|\\s*${tail}`)
   let anchors = 0
@@ -851,9 +853,50 @@ export function validateV2Document(
         ...ownershipCandidates(selected.index, selected.path, selected.text, repo),
         ...forwardDependencyCandidates(selected.index, selectedBody, external),
         ...readerCandidates(selected.index, selectedBody, repo, reads),
+        ...scopeCandidates(selected.index, selectedBody),
         ...qualityCandidates(selected.index, selectedBody, repo)
       ]
     : []
+  // OD-37: consumed semantics come from the producer, by fingerprint and citation, not restatement.
+  const assetPaths = new Map(
+    list(metaIndex.metas)
+      .filter((m): m is Item => object(m) && m.kind === 'Asset')
+      .map((m) => [String(m.id), m.path])
+  )
+  const semanticCandidates = checkSemantics(
+    [...leaves].map(([id, leaf]) => ({
+      id,
+      path: leaf.path,
+      body: prose(leaf.text, 'sdd-contract'),
+      index: leaf.index
+    })),
+    root
+      ? { id: 'root', path: root.path, body: prose(root.text, 'sdd-program'), index: root.index }
+      : null,
+    assetPaths,
+    repo,
+    report
+  )
+  const delegationCandidates = checkDelegations(
+    [...leaves].map(([id, leaf]) => ({
+      id,
+      path: leaf.path,
+      body: prose(leaf.text, 'sdd-contract'),
+      index: leaf.index
+    })),
+    assetPaths,
+    repo,
+    report
+  )
+  if (selected)
+    candidates.push(...delegationCandidates.filter((c) => c.detail.startsWith(`${selected.id} `)))
+  candidates.push(
+    ...semanticCandidates.filter((c) =>
+      selected
+        ? c.code === 'SDD_V2_PRODUCER_SEMANTICS_RESTATED' && c.detail.startsWith(`${selected.id} `)
+        : c.code === 'SDD_V2_ROOT_RESTATES_CHILD'
+    )
+  )
   const preset = loadPreset(repo, report)
   if (preset) {
     const document = selected ?? root!

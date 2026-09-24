@@ -1,0 +1,19 @@
+{
+  "protocol": "sdd-evidence/v1",
+  "sdd": "api",
+  "revision": "1",
+  "results": [
+    {
+      "acceptance": "A1",
+      "status": "PASS",
+      "evidence": "ci",
+      "command": "bun test test/api.test.ts",
+      "commit": "HEAD",
+      "baseline": {
+        "status": "FAIL",
+        "evidence": "A1 failed at base: run returned no",
+        "commit": "HEAD~1"
+      }
+    }
+  ]
+}
