@@ -282,6 +282,38 @@
       "at": "2026-09-24",
       "round": "budget-change",
       "reason": "User goal and budget authorization 2026-09-24: an init command that writes SDD, bug, assessment, program and evidence skeletons that validate; repository presets (.create-sdd/preset.json: default principles, required sections, promoted candidates, replay runner, init templates) as the skill's extension point; and requirement-level ablation that reverts only the commits naming a requirement's steps. Closes the toolchain and extension gaps against spec-kit."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 7750,
+      "to": 8200,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User goal 2026-09-24: open an RSI update that settles OD-15..OD-28 from the PluginHost R2 SHIP audit and lands every finding in the skill. Sixteen advisory acceptance-quality detectors (requirement outcome coverage, failure-clause binding, quantifier fixtures, oracle boundary, invariant and surface inventories, error position, principle binding, cause overwrite, negative-search tokens, dirty-tree oracles, gate dispositions, budget feasibility, count-only preservation, unscripted procedures) live in one validator module."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 15000,
+      "to": 15450,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User goal 2026-09-24: open an RSI update that settles OD-15..OD-28 from the PluginHost R2 SHIP audit and lands every finding in the skill. Sixteen advisory acceptance-quality detectors (requirement outcome coverage, failure-clause binding, quantifier fixtures, oracle boundary, invariant and surface inventories, error position, principle binding, cause overwrite, negative-search tokens, dirty-tree oracles, gate dispositions, budget feasibility, count-only preservation, unscripted procedures) live in one validator module."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 8200,
+      "to": 7750,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User review 2026-09-24 of round R-20260924035702: the raise was never used — after the OD-15..OD-28 detectors and the review fixes the measured sizes are validator.lines 7720 and scripts.lines 14826, under the previous ceilings — so the headroom is withdrawn. The earlier raise stays on record."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 15450,
+      "to": 15000,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User review 2026-09-24 of round R-20260924035702: the raise was never used — after the OD-15..OD-28 detectors and the review fixes the measured sizes are validator.lines 7720 and scripts.lines 14826, under the previous ceilings — so the headroom is withdrawn. The earlier raise stays on record."
     }
   ],
   "introduced": [

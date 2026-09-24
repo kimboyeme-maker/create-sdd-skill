@@ -522,6 +522,166 @@
       "counterexample": "A relative --sdd would read a different document depending on the working directory.",
       "scope": "scripts/init.ts CLI usage.",
       "tradeoff": "Callers resolve the path first."
+    },
+    {
+      "asset": "code:SDD_V2_NEGATIVE_SEARCH_GENERIC_TOKEN",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-15: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "`rg \"IPluginHostView|\\.view\\b\"` rejected Store WASM `field.view()` and Tray `result.view`.",
+      "scope": "Acceptance negative searches (rg/grep with a no-output expectation).",
+      "tradeoff": "An owner-qualified pattern or an explicit retained-domain note silences it."
+    },
+    {
+      "asset": "code:SDD_V2_INDEX_ORACLE_DIRTY_TREE",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-16: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "`git ls-files` misreported unstaged renames during a dirty-worktree delivery.",
+      "scope": "Acceptance in documents that declare dirty-worktree delivery.",
+      "tradeoff": "Use a working-tree inventory (`rg --files`) or state the index intent elsewhere."
+    },
+    {
+      "asset": "code:SDD_V2_REPO_GATE_NO_DISPOSITION",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-17: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "A root recursive test run failed 33 unrelated website checks with no rule for whether they block SHIP.",
+      "scope": "Prose lines naming a recursive workspace gate.",
+      "tradeoff": "The gate line must state its failure domain or pre-existing-failure policy."
+    },
+    {
+      "asset": "code:SDD_V2_BUDGET_GATE_UNOWNED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-18: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "Coverage custody rejected the feature's own branch growth; the baseline update was out of scope.",
+      "scope": "Prose lines naming coverage custody, size or bundle budgets.",
+      "tradeoff": "The line states feasibility and who updates the baseline."
+    },
+    {
+      "asset": "code:SDD_V2_COUNT_ONLY_PRESERVATION",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-19: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "Equal Vitest counts could hide one deleted and one added case.",
+      "scope": "Acceptance asserting equal case or test counts.",
+      "tradeoff": "Add a rename map or stable case IDs."
+    },
+    {
+      "asset": "code:SDD_V2_SURFACE_INVENTORY_INCOMPLETE",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-20: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "Logger's typed facade still projected the old return type while runtime tests passed.",
+      "scope": "Surface inventories when a repository is given; declarations under writes, tests excluded.",
+      "tradeoff": "Regex declaration matching may miss generated or re-exported sites; advisory."
+    },
+    {
+      "asset": "code:SDD_V2_ORACLE_PROCEDURE_UNSCRIPTED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-21: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "A temporary checkout without docs/ was described in prose and assembled ad hoc.",
+      "scope": "Acceptance naming a temporary or scratch environment.",
+      "tradeoff": "Name a checked script that creates, runs and removes the environment."
+    },
+    {
+      "asset": "code:SDD_V2_REQUIREMENT_OUTCOME_UNCOVERED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-22: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "R5 named PREREQUISITE_REMOVED and R7 optional-absent; neither was tested nor implemented.",
+      "scope": "Code-span SCREAMING codes and quoted literals in requirement prose.",
+      "tradeoff": "Every named outcome appears in a linked acceptance; may flag intentionally inherited codes."
+    },
+    {
+      "asset": "code:SDD_V2_FAILURE_CLAUSE_UNBOUND",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-23: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "Replacement failure semantics lived in \u00a75 prose with no acceptance and shipped broken.",
+      "scope": "List items and table rows under lifecycle, failure or concurrency headings.",
+      "tradeoff": "Cite an acceptance or requirement ID, or mark deferred/non-testable."
+    },
+    {
+      "asset": "code:SDD_V2_QUANTIFIER_FIXTURE_UNDISCRIMINATING",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-24: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "blockedBy \"all dependents\" was tested with one direct dependent; direct-only passed.",
+      "scope": "Requirements with all/every/transitive and their linked acceptance.",
+      "tradeoff": "A two-element array, a two-level chain or an explicit count silences it."
+    },
+    {
+      "asset": "code:SDD_V2_ORACLE_BELOW_BOUNDARY",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-25: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "A15 drove internal instantiateFeatures while R15 named the host diagnostic outlet.",
+      "scope": "Boundary requirements whose oracle file imports unpublished src modules.",
+      "tradeoff": "Package exports count as public; tests that legitimately probe internals still get an advisory."
+    },
+    {
+      "asset": "code:SDD_V2_INVARIANT_INVENTORY_MISSING",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-26: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "Guards on unUse/disable were bypassed through enable, the managed protocol and cycle-closing installs.",
+      "scope": "Requirements with guard or signature-migration wording.",
+      "tradeoff": "Declaring inventories costs one JSON entry per guarded requirement; noisy on guard-heavy documents by design."
+    },
+    {
+      "asset": "code:SDD_V2_INVENTORY_ENTRY_UNCOVERED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-26: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "An inventory entry point without acceptance recreates the unlisted-path gap.",
+      "scope": "Every inventories entry point.",
+      "tradeoff": "Each entry needs acceptance IDs or an exemption reason."
+    },
+    {
+      "asset": "code:SDD_V2_ERROR_POSITION_UNSTATED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-27: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "\"Throws PREREQUISITE_MISSING\" was implemented wrapped and the test adapted to cause.",
+      "scope": "Acceptance asserting a code in documents that wrap errors in cause.",
+      "tradeoff": "State top-level or cause-chain position."
+    },
+    {
+      "asset": "code:SDD_V2_PRINCIPLE_CHECK_UNBOUND",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-28: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "A self-attested \"\u9075\u5b88\" hid R15 and S12 principle violations.",
+      "scope": "Compliance bullets in the principle-check section.",
+      "tradeoff": "Each claim cites the clauses it constrains."
+    },
+    {
+      "asset": "code:SDD_V2_CAUSE_OVERWRITE_PRESCRIBED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924035720",
+      "supersedes": [],
+      "supersedes_nothing_because": "OD-28: no existing rule inspects this acceptance-quality property; structural checks passed the audited document.",
+      "counterexample": "R15 prescribed setting cause on the original rejection, overwriting its own cause.",
+      "scope": "Any prose line prescribing cause on an existing original error.",
+      "tradeoff": "Wrap in a new error whose cause keeps the original reachable instead."
     }
   ]
 }

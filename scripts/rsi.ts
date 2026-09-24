@@ -77,6 +77,9 @@ const CODE_PATTERNS = [
   /\breport\(\s*'([A-Z][A-Z0-9_]{3,})'(?=,|\))/g
 ]
 
+/** A code written as a standalone quoted string, as test tables and expectations do. */
+const TEST_CODE_PATTERN = /['"`]([A-Z][A-Z0-9_]{3,})['"`]/g
+
 export type Rule = Readonly<{
   id: string
   /** Where the rule lives, in the form the supersession record refers to it by. */
@@ -112,9 +115,16 @@ export function catalog(root = ROOT): readonly Rule[] {
     for (const file of entries) {
       const text = readFileSync(file, 'utf8')
       const relativePath = relative(root, file)
-      for (const pattern of CODE_PATTERNS)
+      // A test also names a code as a bare expected string (`['od15', 'SDD_…']`). Those count only
+      // for codes a script already reports, and each source offset counts once across patterns.
+      const seen = new Set<number>()
+      const patterns = dir === 'tests' ? [...CODE_PATTERNS, TEST_CODE_PATTERN] : CODE_PATTERNS
+      for (const pattern of patterns)
         for (const match of text.matchAll(pattern)) {
           const code = match[1]!
+          const at = match.index! + match[0].indexOf(code)
+          if (seen.has(at) || (pattern === TEST_CODE_PATTERN && !sites.has(code))) continue
+          seen.add(at)
           if (dir === 'scripts') {
             if (!sites.has(code)) sites.set(code, new Set())
             sites.get(code)!.add(relativePath)
