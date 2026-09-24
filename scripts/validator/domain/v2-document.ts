@@ -20,6 +20,7 @@ import {
 } from './v2-meta.ts'
 import { ignoredInputCandidates, ownershipCandidates } from './v2-boundaries.ts'
 import { forwardDependencyCandidates, readerCandidates } from './v2-readers.ts'
+import { qualityCandidates } from './v2-quality.ts'
 import { applyPreset, loadPreset } from './v2-preset.ts'
 import { symbolCandidates } from './v2-symbols.ts'
 import { ancestors, checkStepRecords, stepRecords } from './v2-tasks.ts'
@@ -829,7 +830,8 @@ export function validateV2Document(
         ...ignoredInputCandidates(selected.index, selectedBody, repo, reads),
         ...ownershipCandidates(selected.index, selected.path, selected.text, repo),
         ...forwardDependencyCandidates(selected.index, selectedBody, external),
-        ...readerCandidates(selected.index, selectedBody, repo, reads)
+        ...readerCandidates(selected.index, selectedBody, repo, reads),
+        ...qualityCandidates(selected.index, selectedBody, repo)
       ]
     : []
   const preset = loadPreset(repo, report)

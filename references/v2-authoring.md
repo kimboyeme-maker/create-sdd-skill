@@ -37,6 +37,13 @@ This page fills each of the six authoring phases with the practices that make a 
 - The integration or end-to-end acceptance is the quickstart: the shortest runnable walk through the P1 Entries (spec-kit's `quickstart.md`). In a program it is the root's `## Integration Acceptance`.
 - Before calling the requirements ready, review them as a checklist. For each requirement, check that it is complete, unambiguous, consistent, measurable and covered by acceptance. Also check that no vague adjective ("fast", "robust", "intuitive") remains without a number. This review tests the writing, not the implementation; it runs no code.
 - A document that declares exported TypeScript in fences may run `type-probe.ts check` to catch degenerate public types before implementation.
+- Coverage is per outcome, not per requirement. Advisory candidates (a preset may promote them) flag the gaps that let a structurally ready document ship broken:
+  - every error code or quoted status a requirement names appears in a linked acceptance (`REQUIREMENT_OUTCOME_UNCOVERED`), and says whether it is top-level or on the `cause` chain (`ERROR_POSITION_UNSTATED`);
+  - "all / every / transitive" needs a fixture of at least two elements or a two-level chain (`QUANTIFIER_FIXTURE_UNDISCRIMINATING`);
+  - a state guard (a named operation that rejects, refuses or throws a code) or a signature migration declares an `inventories` entry with `kind` `invariant`/`surface` and at least one entry point — an empty shell does not count — and each entry point maps to acceptance or an exemption (`INVARIANT_INVENTORY_MISSING`, `INVENTORY_ENTRY_UNCOVERED`); a surface inventory lists every owned declaration site (`SURFACE_INVENTORY_INCOMPLETE`);
+  - an oracle for a requirement that names a boundary (host, public API, CLI, outlet) drives that boundary or a published subpath, not an internal module; test-support modules (observers, helpers, fixtures) are exempt (`ORACLE_BELOW_BOUNDARY`);
+  - every lifecycle, failure and concurrency clause cites the acceptance or requirement that decides it, or says `deferred`/`non-testable` (`FAILURE_CLAUSE_UNBOUND`); every principle-check claim names the clauses it constrains (`PRINCIPLE_CHECK_UNBOUND`), and no clause prescribes setting `cause` on an existing error (`CAUSE_OVERWRITE_PRESCRIBED`);
+  - negative searches use owner-qualified tokens (`NEGATIVE_SEARCH_GENERIC_TOKEN`); a dirty-worktree delivery proves files with the working tree, not `git ls-files` (`INDEX_ORACLE_DIRTY_TREE`); test migrations carry a rename map, not counts (`COUNT_ONLY_PRESERVATION`); a temporary environment runs through a checked script (`ORACLE_PROCEDURE_UNSCRIPTED`); a recursive repository gate states which failures it can block (`REPO_GATE_NO_DISPOSITION`); a budget or custody gate states its feasibility and baseline-update owner (`BUDGET_GATE_UNOWNED`).
 
 ## 5 Decompose — tasks as a derived view
 
@@ -114,4 +121,4 @@ An idea that is not yet worth an SDD gets an assessment: a document whose `sdd-c
 | Bundle | One executable SDD and its reads and required Assets | One feature (`specs/###-name/`) |
 | Asset | A versioned delivered file: interface, schema, entity model or code | `contracts/`, `data-model.md`, source |
 
-<!-- reading-receipt: 2a1ebc36 -->
+<!-- reading-receipt: 1b54640e -->

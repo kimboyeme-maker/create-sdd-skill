@@ -1330,6 +1330,414 @@
       "owning_test": "tests/v2-converge.test.ts",
       "introduced_detector_at": "2026-09-24",
       "source_delivery": "user review 2026-09-24, finding 4"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-015",
+      "defect_class": "generic-negative-search",
+      "statement": "A negative search for a generic member token (`\\.view\\b`) passes structural checks although the token has several semantic owners in scope.",
+      "root_cause": "Negative-search oracles are accepted without checking that each alternation branch names one owner.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od15.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_NEGATIVE_SEARCH_GENERIC_TOKEN",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-15"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-016",
+      "defect_class": "index-oracle-on-dirty-tree",
+      "statement": "A document that delivers on a dirty worktree proves file absence with `git ls-files`, which reads the index and misreports unstaged renames.",
+      "root_cause": "No check relates an oracle's tree state (index, committed, working) to the delivery state the document declares.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od16.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_INDEX_ORACLE_DIRTY_TREE",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-16"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-017",
+      "defect_class": "repository-gate-without-disposition",
+      "statement": "A recursive repository gate is declared with no rule for unrelated or pre-existing failures, so SHIP is ambiguous when the wider gate fails.",
+      "root_cause": "Gate presence is checked, not the alignment of its failure domain with the write scope.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od17.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_REPO_GATE_NO_DISPOSITION",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-17"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-018",
+      "defect_class": "budget-gate-without-owned-baseline",
+      "statement": "A coverage-custody gate that necessarily fails on the feature's own growth is declared without a feasibility statement or owned baseline-update path.",
+      "root_cause": "Budget and custody gates are not checked for feasibility against the planned delta.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od18.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_BUDGET_GATE_UNOWNED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-18"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-019",
+      "defect_class": "count-only-test-preservation",
+      "statement": "Test-topology migration is accepted by equal case counts alone; deleting one case and adding another satisfies it.",
+      "root_cause": "A quantitative preservation oracle is accepted without a rename map or stable case IDs.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od19.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_COUNT_ONLY_PRESERVATION",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-19"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-020",
+      "defect_class": "surface-inventory-incomplete",
+      "statement": "A public signature migration lists only the runtime implementation; the typed facade that also declares `use` is missing, so runtime tests pass while consumers fail to type-check.",
+      "root_cause": "Nothing compares a migration's surface inventory with the declaration sites of the migrated symbol in owned source.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od20.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_SURFACE_INVENTORY_INCOMPLETE",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-20",
+      "repository": "cases/fixtures/v2-quality"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-021",
+      "defect_class": "unscripted-oracle-procedure",
+      "statement": "An acceptance requires a temporary checkout without `docs/` but names no checked script that creates, runs and removes it.",
+      "root_cause": "Concrete-sounding prose is not distinguished from a reproducible oracle.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od21.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_ORACLE_PROCEDURE_UNSCRIPTED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-21"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-022",
+      "defect_class": "requirement-outcome-uncovered",
+      "statement": "A requirement enumerates the outcome `'optional-absent'` that no linked acceptance mentions; PluginHost R2 shipped with such a label and an error code never implemented.",
+      "root_cause": "Coverage is checked per requirement, not per enumerated outcome.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od22.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_REQUIREMENT_OUTCOME_UNCOVERED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-22"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-023",
+      "defect_class": "failure-clause-unbound",
+      "statement": "A lifecycle-and-error clause names no acceptance or requirement, so normative failure semantics are invisible to coverage.",
+      "root_cause": "Only R-level requirements are linked; §5-style clauses are free text.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od23.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_FAILURE_CLAUSE_UNBOUND",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-23"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-024",
+      "defect_class": "quantifier-fixture-undiscriminating",
+      "statement": "A requirement says blockers list all transitive dependents, but the acceptance fixture has one direct dependent, so a direct-only implementation passes.",
+      "root_cause": "No check asks whether a fixture separates the requirement from its weaker reading.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od24.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_QUANTIFIER_FIXTURE_UNDISCRIMINATING",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-24"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-025",
+      "defect_class": "oracle-below-boundary",
+      "statement": "A requirement names the public host boundary, but its oracle drives an internal module, so the requirement can be unachievable at that boundary while the oracle passes.",
+      "root_cause": "The layer an oracle drives is never compared with the boundary its requirement names.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od25.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_ORACLE_BELOW_BOUNDARY",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-25",
+      "repository": "cases/fixtures/v2-quality"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-026A",
+      "defect_class": "invariant-inventory-missing",
+      "statement": "A guard requirement (`rejects ... while required dependents remain`) has no invariant inventory, so enable, managed-protocol and cycle-closing entry points go unlisted.",
+      "root_cause": "Operations are specified without the invariant they protect or its mutating entry points.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od26a.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_INVARIANT_INVENTORY_MISSING",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-26"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-026B",
+      "defect_class": "inventory-entry-uncovered",
+      "statement": "An invariant inventory lists an entry point with neither acceptance nor an exemption reason.",
+      "root_cause": "Inventory entries are not required to map to acceptance.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od26b.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_INVENTORY_ENTRY_UNCOVERED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-26"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-027",
+      "defect_class": "error-position-unstated",
+      "statement": "An acceptance says the call rejects with a code while the document also wraps errors in `cause`; the test was later adapted to assert the code inside `cause`.",
+      "root_cause": "Acceptance wording is not required to state whether a code is top-level or on the cause chain.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od27.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_ERROR_POSITION_UNSTATED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-27"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-028A",
+      "defect_class": "principle-check-unbound",
+      "statement": "A principle-check bullet claims compliance without naming any clause it constrains.",
+      "root_cause": "The principle check is free text attested by the author.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od28a.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_PRINCIPLE_CHECK_UNBOUND",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-28"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-028B",
+      "defect_class": "cause-overwrite-prescribed",
+      "statement": "A requirement prescribes attaching a reporter failure as `cause` on the original rejection, overwriting the original error's own cause.",
+      "root_cause": "Clauses are not linted against known error-contract anti-patterns.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 826,
+        "quote": "const candidates = selected"
+      },
+      "fixture": "cases/fixtures/v2-quality-od28b.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_CAUSE_OVERWRITE_PRESCRIBED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "PluginHost R2 SHIP audit 2026-09-24, OD-28"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-026C",
+      "defect_class": "inventory-shell-bypass",
+      "statement": "An inventory object carrying only `requirement: \"R1\"` silences the missing-inventory finding although it lists no entry point.",
+      "root_cause": "Any inventory whose requirement matches counts; kind and entry points are not checked.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-quality.ts",
+        "line": 157,
+        "quote": "entry.requirement === id"
+      },
+      "fixture": "cases/fixtures/v2-quality-od26c.md",
+      "negative_fixture": "cases/fixtures/v2-quality.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_INVARIANT_INVENTORY_MISSING",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "user review of round R-20260924035720, 2026-09-24"
+    },
+    {
+      "id": "CSDD-V2-QUALITY-026D",
+      "defect_class": "bare-prohibition-treated-as-state-guard",
+      "statement": "A presentation rule (\"the settings page must never show an empty label\") is reported as needing a state entry-point inventory.",
+      "root_cause": "`must not`/`never` alone count as a guard, with no operation or rejection involved.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-quality.ts",
+        "line": 24,
+        "quote": "const GUARD"
+      },
+      "fixture": "cases/fixtures/v2-quality-od26d.md",
+      "negative_fixture": "cases/fixtures/v2-quality-od26a.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture>",
+        "expected_code": "SDD_V2_INVARIANT_INVENTORY_MISSING",
+        "must_fire": false
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "user review of round R-20260924035720, 2026-09-24",
+      "negative_expectation": {
+        "must_fire": true
+      }
+    },
+    {
+      "id": "CSDD-V2-QUALITY-025B",
+      "defect_class": "test-support-import-below-boundary",
+      "statement": "A test that drives the public entry and imports a test-support module under src/ is reported as an oracle below the boundary.",
+      "root_cause": "Every non-entry src import counts, including test observers and helpers.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-quality.ts",
+        "line": 170,
+        "quote": "/\\/src\\//.test(path)"
+      },
+      "fixture": "cases/fixtures/v2-quality-od25b.md",
+      "negative_fixture": "cases/fixtures/v2-quality-od25.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_ORACLE_BELOW_BOUNDARY",
+        "must_fire": false
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-quality.test.ts",
+      "source_delivery": "user review of round R-20260924035720, 2026-09-24",
+      "negative_expectation": {
+        "must_fire": true
+      },
+      "repository": "cases/fixtures/v2-quality"
     }
   ],
   "held_out": [
