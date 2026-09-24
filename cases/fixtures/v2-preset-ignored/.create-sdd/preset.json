@@ -1,0 +1,6 @@
+{
+  "protocol": "create-sdd-preset/v1",
+  "blocking_candidates": [
+    "SDD_V2_PATH_GIT_IGNORED"
+  ]
+}

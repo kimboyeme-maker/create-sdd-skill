@@ -20,7 +20,7 @@ Optimize for the host that will implement the document: it should read less cont
 
 ## Repository fit
 
-Read applicable `AGENTS.md` files and repository SDD templates first. Repository conventions override this skill's default shape; preserve an existing document's language, terminology, headings and IDs unless replacement is requested. Without the repository or implementation, limit claims to supplied evidence and mark unknowns; never invent owners, paths, commands or completion evidence.
+Read applicable `AGENTS.md` files and repository SDD templates first. Repository conventions override this skill's default shape (a `.create-sdd/preset.json` states them mechanically: [presets](references/v2-presets.md)); preserve an existing document's language, terminology, headings and IDs unless replacement is requested. Without the repository or implementation, limit claims to supplied evidence and mark unknowns; never invent owners, paths, commands or completion evidence.
 
 ## Modes
 
@@ -59,6 +59,7 @@ Run as `bun <create-sdd-root>/scripts/<script>`; flags are in each script's head
 |---|---|
 | `validate.ts validate --sdd <absolute-SDD> [--repository <absolute-root>]` | Check v2 structure and return one compact host handoff; structural readiness still needs semantic review |
 | `validate.ts validate --sdd <SDD> --evidence <report.json> [--replay]` | Converge: oracle-linked, causal behaviour proof and design-to-code gaps; `--replay` runs each oracle at base, change and with the change removed |
+| `init.ts --kind feature\|bug\|assessment\|program\|evidence --out <path>` | Write a skeleton (or evidence report) that validates as AWAITING_USER; never overwrites |
 | `validate.ts validate-draft` | Check a proposed SDD before writing it |
 | `validate.ts document-check` | Check a document that does not target implementation |
 | `type-probe.ts check --sdd <SDD>` | Optional: type-check exported TypeScript fences for degenerate public types |

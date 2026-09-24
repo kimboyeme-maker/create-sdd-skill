@@ -225,3 +225,97 @@ test('replay runs the declared oracle: base fails, head passes, ablation fails',
     rmSync(root, { recursive: true, force: true })
   }
 })
+
+test('requirement-level ablation reverts only the commits naming the case steps', () => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'v2-ablation-')))
+  const git = (...args: string[]) =>
+    Bun.spawnSync(['git', '-C', root, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args])
+      .stdout.toString()
+      .trim()
+  const write = (path: string, content: string) => {
+    mkdirSync(dirname(join(root, path)), { recursive: true })
+    writeFileSync(join(root, path), content)
+  }
+  const pad = ['// -', '// -', '// -', '// -', '// -', '// -']
+  try {
+    git('init', '-q')
+    write('bun.lock', '')
+    write('src/greet.ts', ['// greet', ...pad, '// farewell', ''].join('\n'))
+    git('add', '.')
+    git('commit', '-q', '-m', 'base')
+    const base = git('rev-parse', 'HEAD')
+    const greet = "export const greet = () => 'hi'"
+    const bye = "export const farewell = () => 'bye'"
+    write('src/greet.ts', ['// greet', greet, ...pad, '// farewell', ''].join('\n'))
+    git('commit', '-q', '-am', 'S1: add greet')
+    write('src/greet.ts', ['// greet', greet, ...pad, '// farewell', bye, ''].join('\n'))
+    git('commit', '-q', '-am', 'S2: add farewell')
+    const check = (id: string) =>
+      `import { expect, test } from 'bun:test'\nimport { farewell } from './greet'\ntest('${id}', () => expect(farewell()).toBe('bye'))\n`
+    // A1's oracle wrongly tests R2's behaviour; only requirement-level ablation can tell.
+    write('src/a1.test.ts', check('A1'))
+    write('src/a2.test.ts', check('A2'))
+    git('add', '.')
+    git('commit', '-q', '-m', 'tests')
+    const head = git('rev-parse', 'HEAD')
+    const body = [
+      '- R1 Greets.',
+      '- R2 Says goodbye.',
+      '- C1 Both.',
+      '- S1 Add `greet()`.',
+      '- S2 Add `farewell()`.',
+      '- A1 `greet()` returns hi.',
+      '- A2 `farewell()` returns bye.'
+    ].join('\n')
+    const index = {
+      protocol: 'sdd/v2',
+      id: 'pair',
+      revision: '1',
+      requirements: [
+        { id: 'R1', kind: 'must-ship', implementation: ['S1'], acceptance: ['A1'] },
+        { id: 'R2', kind: 'must-ship', implementation: ['S2'], acceptance: ['A2'] }
+      ],
+      batches: [{ id: 'C1', steps: ['S1', 'S2'], requirements: ['R1', 'R2'], depends_on: [] }],
+      steps: [
+        { id: 'S1', touches: ['src/greet.ts'], closes: ['A1'] },
+        { id: 'S2', touches: ['src/greet.ts'], closes: ['A2'] }
+      ],
+      acceptance: ['A1', 'A2'],
+      writes: ['src'],
+      oracles: { A1: 'src/a1.test.ts', A2: 'src/a2.test.ts' },
+      unresolved_user_decisions: []
+    }
+    const text = `# Pair\n\n${body}\n\n<!-- sdd-contract:start -->\n\`\`\`json\n${JSON.stringify(index)}\n\`\`\`\n<!-- sdd-contract:end -->\n`
+    const result = validateV2Document(join(root, 'pair.sdd.md'), text, [], root)!
+    expect(result.diagnostics).toEqual([])
+    const row = (id: string) => ({
+      acceptance: id,
+      status: 'PASS',
+      evidence: 'ci',
+      command: `bun test src/${id.toLowerCase()}.test.ts`,
+      commit: head,
+      baseline: { status: 'FAIL', evidence: 'ci', commit: base }
+    })
+    const report = {
+      protocol: 'sdd-evidence/v1',
+      sdd: 'pair',
+      revision: '1',
+      results: [row('A1'), row('A2')]
+    }
+    const closure = checkClosure(result, index, report, root, { replay: true })
+    const byId = Object.fromEntries(closure.replays.map((r) => [r.acceptance, r]))
+    expect(byId.A1).toMatchObject({
+      granularity: 'requirement',
+      ablation: 'PASS',
+      verdict: 'not-proven'
+    })
+    expect(byId.A2).toMatchObject({
+      granularity: 'requirement',
+      ablation: 'FAIL',
+      verdict: 'proven'
+    })
+    expect(closure.status).toBe('OPEN')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})

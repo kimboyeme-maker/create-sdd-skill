@@ -462,6 +462,66 @@
       "counterexample": "CSDD-V2-SHAPE-101; observed in plugin-host R1: web-rpc, store-middleware and tray broke when the host class became a factory.",
       "scope": "sdd/v2 leaves with a resolved repository: classes declared in existing touched files, searched as Name.prototype, extends Name and instanceof Name outside the writes. Advisory candidate in the v2 handoff; never blocks readiness.",
       "tradeoff": "Fires for any touched class with shape readers, even when the step keeps the class; the author names the reader or dismisses it."
+    },
+    {
+      "asset": "code:SDD_V2_PRESET_INVALID",
+      "added_at": "2026-09-24",
+      "round": "R-20260924022208",
+      "supersedes": [],
+      "supersedes_nothing_because": "New extension point: a repository preset that cannot be read must say so rather than silently apply nothing.",
+      "counterexample": "A preset runner without {oracle} would run the whole suite for every replay and report a meaningless PASS.",
+      "scope": "sdd/v2 validate, init and closure with a resolved repository.",
+      "tradeoff": "A malformed preset blocks until fixed; the skill's defaults are not applied silently in its place."
+    },
+    {
+      "asset": "code:SDD_V2_PRESET_BLOCKED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924022208",
+      "supersedes": [],
+      "supersedes_nothing_because": "Lets a repository promote an advisory candidate to a blocker without changing the skill (spec-kit presets).",
+      "counterexample": "CSDD-V2-PRESET-102: a repository that forbids git-ignored acceptance inputs still got STRUCTURALLY_READY.",
+      "scope": "sdd/v2 leaves whose repository preset lists the candidate code.",
+      "tradeoff": "Only codes the candidates already produce can be promoted; nothing new is detected."
+    },
+    {
+      "asset": "code:INIT_TEMPLATE_UNRECOGNIZED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924022208",
+      "supersedes": [],
+      "supersedes_nothing_because": "New: init reports a repository template it cannot validate instead of crashing or claiming a checked skeleton.",
+      "counterexample": "A preset template for assessments with no index block crashed init before this code existed.",
+      "scope": "scripts/init.ts CLI usage.",
+      "tradeoff": "The file is still written; the author sees it is unvalidated."
+    },
+    {
+      "asset": "code:INIT_EVIDENCE_REQUIRES_V2_LEAF",
+      "added_at": "2026-09-24",
+      "round": "R-20260924022208",
+      "supersedes": [],
+      "supersedes_nothing_because": "Usage guard: an evidence skeleton needs a v2 leaf's acceptance list.",
+      "counterexample": "init --kind evidence on a program root would write a report with no rows and look complete.",
+      "scope": "scripts/init.ts CLI usage.",
+      "tradeoff": "Program roots get evidence per child leaf."
+    },
+    {
+      "asset": "code:INIT_OUT_ABSOLUTE_REQUIRED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924022208",
+      "supersedes": [],
+      "supersedes_nothing_because": "Usage guard: output paths are absolute so where the document lands never depends on the caller's directory.",
+      "counterexample": "A relative --out from the skill directory would write the SDD into the skill itself.",
+      "scope": "scripts/init.ts CLI usage.",
+      "tradeoff": "Callers resolve the path first."
+    },
+    {
+      "asset": "code:INIT_SDD_ABSOLUTE_REQUIRED",
+      "added_at": "2026-09-24",
+      "round": "R-20260924022208",
+      "supersedes": [],
+      "supersedes_nothing_because": "Usage guard for --kind evidence, same reason as INIT_OUT_ABSOLUTE_REQUIRED.",
+      "counterexample": "A relative --sdd would read a different document depending on the working directory.",
+      "scope": "scripts/init.ts CLI usage.",
+      "tradeoff": "Callers resolve the path first."
     }
   ]
 }

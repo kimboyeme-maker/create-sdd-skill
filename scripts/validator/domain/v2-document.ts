@@ -20,6 +20,7 @@ import {
 } from './v2-meta.ts'
 import { ignoredInputCandidates, ownershipCandidates } from './v2-boundaries.ts'
 import { forwardDependencyCandidates, readerCandidates } from './v2-readers.ts'
+import { applyPreset, loadPreset } from './v2-preset.ts'
 import { symbolCandidates } from './v2-symbols.ts'
 import { ancestors, checkStepRecords, stepRecords } from './v2-tasks.ts'
 
@@ -65,6 +66,8 @@ export type V2Handoff = Readonly<{
   assessment: string | null
   /** Advisory findings that never block, such as step calls declared nowhere in owned source. */
   candidates: readonly { code: string; detail: string }[]
+  /** The repository preset applied, if any (`.create-sdd/preset.json`). */
+  preset: string | null
   /** Program root only: child IDs in dependency layers. */
   parallel_children?: readonly (readonly string[])[]
   read_order: readonly string[]
@@ -806,6 +809,36 @@ export function validateV2Document(
         .map(({ step, path }) => ({ step, path }))
     : []
   const displayRoot = root ?? { path: source, text, index: contract.value ?? {} }
+  // Advisory findings about the selected leaf; a repository preset may promote some to blockers.
+  const selectedBody = selected ? prose(selected.text, 'sdd-contract') : ''
+  const reads = selected ? (slices.get(root ? selected.id : 'self')?.reads ?? []) : []
+  const external = new Map(
+    selectedSourcePaths.map(({ step, path }) => [step, io.read(path).toString('utf8')])
+  )
+  const candidates = selected
+    ? [
+        ...symbolCandidates(selected.index, selectedBody, repo, reads, external),
+        ...ignoredInputCandidates(selected.index, selectedBody, repo, reads),
+        ...ownershipCandidates(selected.index, selected.path, selected.text, repo),
+        ...forwardDependencyCandidates(selected.index, selectedBody, external),
+        ...readerCandidates(selected.index, selectedBody, repo, reads)
+      ]
+    : []
+  const preset = loadPreset(repo, report)
+  if (preset) {
+    const document = selected ?? root!
+    const body = selected ? selectedBody : prose(root!.text, 'sdd-program')
+    const kind = !selected ? 'program' : selected.index.intent === 'bug' ? 'bug' : 'feature'
+    applyPreset(
+      preset,
+      kind,
+      document.index,
+      (names) => !!section(body, names),
+      candidates,
+      document.path,
+      report
+    )
+  }
   const blockers = diagnostics.map((item) => `${item.code}: ${item.message}`)
   const maturity = blockers.length
     ? 'BLOCKED'
@@ -857,39 +890,8 @@ export function validateV2Document(
       selected_source_paths: selectedSourcePaths,
       ...(selected ? { execution_slice: slices.get(root ? selected.id : 'self') } : {}),
       meta_source: meta.source,
-      candidates: selected
-        ? [
-            ...symbolCandidates(
-              selected.index,
-              prose(selected.text, 'sdd-contract'),
-              repo,
-              slices.get(root ? selected.id : 'self')?.reads ?? [],
-              new Map(
-                selectedSourcePaths.map(({ step, path }) => [step, io.read(path).toString('utf8')])
-              )
-            ),
-            ...ignoredInputCandidates(
-              selected.index,
-              prose(selected.text, 'sdd-contract'),
-              repo,
-              slices.get(root ? selected.id : 'self')?.reads ?? []
-            ),
-            ...ownershipCandidates(selected.index, selected.path, selected.text, repo),
-            ...forwardDependencyCandidates(
-              selected.index,
-              prose(selected.text, 'sdd-contract'),
-              new Map(
-                selectedSourcePaths.map(({ step, path }) => [step, io.read(path).toString('utf8')])
-              )
-            ),
-            ...readerCandidates(
-              selected.index,
-              prose(selected.text, 'sdd-contract'),
-              repo,
-              slices.get(root ? selected.id : 'self')?.reads ?? []
-            )
-          ]
-        : [],
+      candidates,
+      preset: preset?.path ?? null,
       intent: selected?.index.intent === 'bug' ? 'bug' : 'feature',
       regression: list(selected?.index.regression).filter(nonempty),
       assessment,

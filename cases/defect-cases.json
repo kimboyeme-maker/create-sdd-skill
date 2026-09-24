@@ -1238,6 +1238,52 @@
       "owning_test": "tests/v2-converge.test.ts",
       "introduced_detector_at": "2026-09-24",
       "source_delivery": "user requirement 2026-09-24: convergence must show the command verifies the requirement"
+    },
+    {
+      "id": "CSDD-V2-PRESET-101",
+      "defect_class": "repository-section-policy-ignored",
+      "statement": "A repository that requires a Security Review section in every feature SDD has no way to say so; a leaf without it is STRUCTURALLY_READY.",
+      "root_cause": "No repository-local preset is read; the skill's defaults are the only rules.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-document.ts",
+        "line": 1,
+        "quote": "validateV2Document"
+      },
+      "repository": "cases/fixtures/v2-preset",
+      "fixture": "cases/fixtures/v2-leaf.md",
+      "negative_fixture": "cases/fixtures/v2-leaf-security.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_SECTION_MISSING",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-preset.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "user requirement 2026-09-24: presets let a repository adapt the skill's defaults"
+    },
+    {
+      "id": "CSDD-V2-PRESET-102",
+      "defect_class": "repository-cannot-promote-candidate",
+      "statement": "A repository that treats git-ignored acceptance inputs as release blockers still gets STRUCTURALLY_READY, because the candidate is advisory everywhere.",
+      "root_cause": "Advisory candidates cannot be promoted per repository.",
+      "evidence": {
+        "file": "scripts/validator/domain/v2-boundaries.ts",
+        "line": 1,
+        "quote": "ignoredInputCandidates"
+      },
+      "repository": "cases/fixtures/v2-preset-ignored",
+      "fixture": "cases/fixtures/v2-ignored-input.md",
+      "negative_fixture": "cases/fixtures/v2-ignored-input.ok.md",
+      "detector": {
+        "command": "bun scripts/validate.ts validate --sdd <fixture> --repository <repository>",
+        "expected_code": "SDD_V2_PRESET_BLOCKED",
+        "must_fire": true
+      },
+      "observed_at": "2026-09-24",
+      "owning_test": "tests/v2-preset.test.ts",
+      "introduced_detector_at": "2026-09-24",
+      "source_delivery": "user requirement 2026-09-24: presets let a repository adapt the skill's defaults"
     }
   ],
   "held_out": [

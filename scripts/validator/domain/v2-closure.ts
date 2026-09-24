@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { V2Result } from './v2-document.ts'
 import { list, object, text, type Item, type Report } from './v2-meta.ts'
+import { loadPreset } from './v2-preset.ts'
 import { replay, type Replay } from './v2-replay.ts'
 import { stepRecords } from './v2-tasks.ts'
 
@@ -49,18 +50,22 @@ function proofOf(row: Item, repository: string | null): { level: string; reason?
     : { level: 'none', reason: 'baseline is not an earlier commit of the change' }
 }
 
+/** The steps that close an acceptance, or else the implementation steps of the requirements owning it. */
+function closingSteps(index: Item, id: string) {
+  const records = stepRecords(index).records
+  const steps = records.filter((record) => record.closes.includes(id))
+  if (steps.length) return steps
+  const owners = new Set(
+    list(index.requirements).flatMap((r) =>
+      object(r) && list(r.acceptance).includes(id) ? list(r.implementation) : []
+    )
+  )
+  return records.filter((record) => owners.has(record.id))
+}
+
 /** Files a change must touch for this acceptance to flip: its closing steps' touches and Assets. */
 function implementing(index: Item, result: V2Result, id: string): string[] {
-  const records = stepRecords(index).records
-  let steps = records.filter((record) => record.closes.includes(id))
-  if (!steps.length) {
-    const owners = new Set(
-      list(index.requirements).flatMap((r) =>
-        object(r) && list(r.acceptance).includes(id) ? list(r.implementation) : []
-      )
-    )
-    steps = records.filter((record) => owners.has(record.id))
-  }
+  const steps = closingSteps(index, id)
   const assets = (result.handoff.execution_slice?.produced_assets ?? []).map((asset) => asset.path)
   return [...new Set([...steps.flatMap((step) => step.touches), ...assets])]
 }
@@ -204,7 +209,9 @@ export function checkClosure(
                   oracle,
                   (row!.baseline as Item).commit as string,
                   row!.commit as string,
-                  files
+                  files,
+                  closingSteps(index, id).map((step) => step.id),
+                  loadPreset(repository)?.runners
                 )
               : null
           if (replayed) replays.push(replayed)

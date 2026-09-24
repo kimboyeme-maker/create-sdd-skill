@@ -3,12 +3,12 @@
   "note": "A round freezes these ceilings and its measured starting size when it opens. For ordinary rounds, `prune` rejects growth beyond the higher of those two values; inherited overage remains visible in `health` and cannot be worsened. An explicit budget-change round may revise ceilings and is RECORDED after clean checks, never credited with a repair. Historical raises and ratchets remain records; close no longer ratchets automatically.",
   "set_at": "2026-09-23",
   "ceilings": {
-    "SKILL.md.characters": 10000,
-    "references.lines": 4720,
-    "validator.lines": 7550,
+    "SKILL.md.characters": 10450,
+    "references.lines": 4820,
+    "validator.lines": 7750,
     "behavior_cases": 46,
-    "scripts.lines": 14500,
-    "tests.lines": 4800
+    "scripts.lines": 15000,
+    "tests.lines": 5150
   },
   "raises": [
     {
@@ -242,6 +242,46 @@
       "at": "2026-09-24",
       "round": "budget-change",
       "reason": "User requirement and budget authorization 2026-09-24: convergence must show that the command verifies the requirement. Adds strict closure (oracle required for must-ship, regression needs a verified causal proof), an opt-in --replay that runs only the declared oracle with a runner the validator derives, at the baseline, at the change and with the implementing files reverted (ablation), from read-only git exports, and a design gap that checks step touches and per-requirement code changes at the reported commit. Sized from measured cost of comparable closure work plus tests."
+    },
+    {
+      "dimension": "validator.lines",
+      "from": 7550,
+      "to": 7750,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User goal and budget authorization 2026-09-24: an init command that writes SDD, bug, assessment, program and evidence skeletons that validate; repository presets (.create-sdd/preset.json: default principles, required sections, promoted candidates, replay runner, init templates) as the skill's extension point; and requirement-level ablation that reverts only the commits naming a requirement's steps. Closes the toolchain and extension gaps against spec-kit."
+    },
+    {
+      "dimension": "scripts.lines",
+      "from": 14500,
+      "to": 15000,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User goal and budget authorization 2026-09-24: an init command that writes SDD, bug, assessment, program and evidence skeletons that validate; repository presets (.create-sdd/preset.json: default principles, required sections, promoted candidates, replay runner, init templates) as the skill's extension point; and requirement-level ablation that reverts only the commits naming a requirement's steps. Closes the toolchain and extension gaps against spec-kit."
+    },
+    {
+      "dimension": "tests.lines",
+      "from": 4800,
+      "to": 5150,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User goal and budget authorization 2026-09-24: an init command that writes SDD, bug, assessment, program and evidence skeletons that validate; repository presets (.create-sdd/preset.json: default principles, required sections, promoted candidates, replay runner, init templates) as the skill's extension point; and requirement-level ablation that reverts only the commits naming a requirement's steps. Closes the toolchain and extension gaps against spec-kit."
+    },
+    {
+      "dimension": "references.lines",
+      "from": 4720,
+      "to": 4820,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User goal and budget authorization 2026-09-24: an init command that writes SDD, bug, assessment, program and evidence skeletons that validate; repository presets (.create-sdd/preset.json: default principles, required sections, promoted candidates, replay runner, init templates) as the skill's extension point; and requirement-level ablation that reverts only the commits naming a requirement's steps. Closes the toolchain and extension gaps against spec-kit."
+    },
+    {
+      "dimension": "SKILL.md.characters",
+      "from": 10000,
+      "to": 10450,
+      "at": "2026-09-24",
+      "round": "budget-change",
+      "reason": "User goal and budget authorization 2026-09-24: an init command that writes SDD, bug, assessment, program and evidence skeletons that validate; repository presets (.create-sdd/preset.json: default principles, required sections, promoted candidates, replay runner, init templates) as the skill's extension point; and requirement-level ablation that reverts only the commits naming a requirement's steps. Closes the toolchain and extension gaps against spec-kit."
     }
   ],
   "introduced": [

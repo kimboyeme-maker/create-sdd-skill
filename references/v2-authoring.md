@@ -4,6 +4,8 @@ This page fills each of the six authoring phases with the practices that make a 
 
 ## 1 Harvest — facts and principles
 
+- Start a new document with `init` ([presets and init](v2-presets.md)): the skeleton carries the repository preset's principles and sections and waits on `D1` until you replace it.
+
 - Classify every fact as `USER_STATED`, `OBSERVED` (with its `path:line` or command), `INFERRED` or `ASSUMED`. Only the first two become normative. An inferred fact that decides owner, route or acceptance needs a check. A material assumption becomes an open decision (Admit), never a silent requirement.
 - Principles: read the repository's standing rules before designing — `AGENTS.md`, contribution guides and, in a spec-kit project, `.specify/memory/constitution.md`. Name the files the design must respect in the index's `principles` array. They stay the authority; do not copy their rules into the SDD.
 - A predecessor SDD cited as basis is evidence of its own day: re-verify its numeric and universal claims (counts, "all", "none") against live source before reusing them.
@@ -75,7 +77,7 @@ This page fills each of the six authoring phases with the practices that make a 
   - a `verified` proof is downgraded unless the change between the two commits touches the files of the steps that close the case (or its Assets);
   - a `regression` case closes only on such a verified, causal proof; a claimed pair without commits is not enough.
 
-  **Replay (`--replay`).** The validator then runs the declared oracle itself, never the host's command: it derives the runner from the oracle's type and the repository's tooling (`bun test`, `vitest`, `jest`, `pytest`, `go test`) and runs it in trees exported read-only with `git archive` — at the baseline (must FAIL), at the change (must PASS), and at the change with the implementing files put back to their baseline content (must FAIL). The last run is the ablation: an oracle that still passes without the implementation does not verify the requirement, and the closure stays `OPEN` (`replay-not-proven`). `behaviour_proven` is true only when every must-ship case has a linked oracle, a verified causal proof and, with `--replay`, a proven replay.
+  **Replay (`--replay`).** The validator then runs the declared oracle itself, never the host's command: it derives the runner from the oracle's type and the repository's tooling (`bun test`, `vitest`, `jest`, `pytest`, `go test`) and runs it in trees exported read-only with `git archive` — at the baseline (must FAIL), at the change (must PASS), and at the change with the implementing files put back to their baseline content (must FAIL). The last run is the ablation, at requirement level when it can be: when the host commits each step separately with its step ID in the message (`S2: add farewell`), only the commits naming the case's steps are reverted (the oracle's own changes kept), so another requirement's edits in the same file stay in place; otherwise, or when a patch does not apply, the implementing files are reverted whole and the replay says `granularity: file`. The ablation: an oracle that still passes without the implementation does not verify the requirement, and the closure stays `OPEN` (`replay-not-proven`). `behaviour_proven` is true only when every must-ship case has a linked oracle, a verified causal proof and, with `--replay`, a proven replay.
 
   **Design gap.** Like spec-kit's converge, closure compares the delivered code with the design, at the reported change commit when the rows name one: an Asset missing, a step's touched file missing (unless the change deleted it), a step call the code does not declare, or a must-ship requirement none of whose implementing files changed between the commits. Each is a `design-gap` that keeps the closure `OPEN` until the code or the SDD (a new revision) changes.
 
@@ -112,4 +114,4 @@ An idea that is not yet worth an SDD gets an assessment: a document whose `sdd-c
 | Bundle | One executable SDD and its reads and required Assets | One feature (`specs/###-name/`) |
 | Asset | A versioned delivered file: interface, schema, entity model or code | `contracts/`, `data-model.md`, source |
 
-<!-- reading-receipt: 5dd9eb15 -->
+<!-- reading-receipt: d2fd6250 -->

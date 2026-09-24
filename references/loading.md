@@ -37,6 +37,7 @@ Each code is a family; the message starts with the specific relation that failed
 | `SDD_V2_META_SOURCE_MISMATCH`, `SDD_V2_OWNER_CONFLICT` | [five-Meta graph](v2-program.md#five-meta-relation-graph) |
 | `SDD_V2_INTERFACE_MISMATCH`, `SDD_V2_PROGRAM_LINK_INVALID`, `SDD_V2_INTEGRATION_OWNER_REQUIRED`, `SDD_V2_SECTION_MISSING` | [multi-SDD](v2-program.md) |
 | `SDD_V2_PATH_INVALID`, `SDD_V2_PATH_ESCAPE`, `SDD_V2_PATH_NOT_FOUND`, `REPOSITORY_NOT_FOUND` | [host handoff](v2-contract.md#direct-host-handoff) |
+| `SDD_V2_PRESET_INVALID`, `SDD_V2_PRESET_BLOCKED`, `preset-*` subtypes | [presets](v2-presets.md) |
 | `SDD_V2_CLARIFICATION_UNTRACKED` | [clarify](v2-authoring.md#2-admit--what-and-why) |
 | Candidates `SDD_V2_ACCEPTANCE_FORWARD_DEPENDENCY`, `SDD_V2_ERROR_TEXT_READER_UNDECLARED`, `SDD_V2_SHAPE_READER_UNDECLARED` | [design](v2-authoring.md#3-design--how-under-the-principles), [decompose](v2-authoring.md#5-decompose--tasks-as-a-derived-view) |
 | `SDD_V2_CLOSURE_OPEN`, `SDD_V2_CLOSURE_FAILED` (under `closure`) | [converge](v2-authoring.md#6-report--analyze-hand-off-converge) |
@@ -46,4 +47,4 @@ Keep the repository's current rules authoritative. Do not copy its instructions 
 
 Existing v1 documents may still use the older phase cards, delivery plan, reading receipts and lifecycle hooks. Those are legacy guidance, not readiness gates for sdd/v2. RSI maintenance is a separate skill-improvement activity and does not enter this table.
 
-<!-- reading-receipt: 01c2fcc4 -->
+<!-- reading-receipt: 8c7953ec -->
